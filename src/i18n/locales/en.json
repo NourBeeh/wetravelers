@@ -1,0 +1,86 @@
+{
+  "common": {
+    "appName": "We Travelers",
+    "today": "Today",
+    "login": "Login",
+    "logout": "Logout",
+    "signUp": "Sign Up",
+    "guest": "Continue as Guest",
+    "language": "Language",
+    "arabic": "Arabic",
+    "english": "English",
+    "profile": "Profile",
+    "settings": "Settings",
+    "save": "Save",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "home": {
+    "weTravelers": "We Travelers",
+    "today": "Today",
+    "flightCard": {
+      "tag": "✈️ Timeline View",
+      "subtitle": "Direct & flexible flights",
+      "title": "Fastest Cairo to London",
+      "departure": "CAI",
+      "arrival": "LHR",
+      "expanded1": "• Boeing 777 - Extra legroom",
+      "expanded2": "• 1 hour layover at Athens Airport",
+      "appName": "SkyFly Tracker",
+      "appCategory": "Flight Comparison & Booking"
+    },
+    "hotelCard": {
+      "tag": "✨ Contextual AI",
+      "subtitle": "Premium Hotels & Resorts",
+      "title": "Ritz Carlton Luxury Resort",
+      "description": "Perfect for your upcoming trip based on your previous romantic preferences.",
+      "room": "Room",
+      "view": "View",
+      "appName": "Ritz Luxury Booking",
+      "appCategory": "Hotel Booking & Stay"
+    },
+    "getButton": "GET",
+    "inAppPurchases": "In-App Purchases"
+  },
+  "profile": {
+    "title": "Account",
+    "loginPrompt": "Sign in to access all features",
+    "loggedInAs": "Logged in as",
+    "languageSetting": "Language",
+    "currentLanguage": "Current Language",
+    "switchToArabic": "Switch to Arabic",
+    "switchToEnglish": "Switch to English",
+    "loginRequired": "Please log in to view your profile",
+    "logoutConfirm": "Are you sure you want to logout?"
+  },
+  "login": {
+    "title": "Welcome Back 👋",
+    "subtitle": "Sign in to enjoy a personalized travel experience",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "forgotPassword": "Forgot Password?",
+    "loginButton": "Sign In",
+    "noAccount": "Don't have an account?",
+    "signUpLink": "Sign Up",
+    "socialApple": "Apple",
+    "socialGoogle": "Google",
+    "socialFacebook": "Facebook",
+    "or": "or"
+  },
+  "search": {
+    "title": "Search Flights & Hotels",
+    "subtitle": "Coming soon..."
+  },
+  "ai": {
+    "title": "🤖 Smart Travel Assistant",
+    "subtitle": "Ask me anything about travel",
+    "placeholder": "Type your message here...",
+    "welcome": "Hello! I'm your smart travel assistant. How can I help you today?"
+  },
+  "bookings": {
+    "title": "Your Bookings",
+    "subtitle": "Your bookings will appear here"
+  }
+}
