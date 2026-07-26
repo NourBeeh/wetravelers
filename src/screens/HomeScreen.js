@@ -4,31 +4,23 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
-  SafeAreaView,
   StatusBar,
   Image,
   TouchableOpacity,
-  Dimensions,
   useColorScheme,
-  RefreshControl,
+  Modal,
+  ScrollView,
+  Dimensions,
+  SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import AppStoreCard from '../components/AppStoreCard';
 
-const { width } = Dimensions.get('window');
-
-const CARD_WIDTH = width - 32;
-const CARD_HEIGHT = 440;
-const IMAGE_HEIGHT = 280;
-const CORNER_RADIUS = 20;
-
-const HOTEL_COLORS = ['#3D2B1F', '#2C1810', '#1A1108', '#4A3728', '#2F1B0E'];
-const FLIGHT_COLORS = ['#2C1C13', '#3D2B1F', '#1A1108', '#4A3728', '#2F1B0E'];
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -38,399 +30,413 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
-  const [isFlightExpanded, setIsFlightExpanded] = useState(false);
   const [hotelImageIndex, setHotelImageIndex] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
+  const [isFlightExpanded, setIsFlightExpanded] = useState(false);
+  // ===== حالة النافذة المنبثقة =====
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const colors = {
-    background: isDark ? '#1C1C1E' : '#FFFFFF',
+    background: isDark ? '#0B0C10' : '#FFFFFF',
     text: isDark ? '#F2F2F7' : '#000000',
-    subText: isDark ? '#98989E' : '#8E8E93',
-    buttonBg: isDark ? 'rgba(10, 132, 255, 0.15)' : 'rgba(0, 122, 255, 0.1)',
-    buttonBorder: isDark ? 'rgba(10, 132, 255, 0.3)' : 'rgba(0, 122, 255, 0.2)',
+    subText: isDark ? '#8E8E93' : '#6C6C70',
+    cardHotelBg: '#2C1D18',
+    cardFlightBg: '#132232',
+    metaBlue: '#0064FF',
   };
 
-  const hotelImages = [
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=600&fit=crop',
-  ];
-
-  const flightImage =
-    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=600&fit=crop';
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+  const tr = (key, fallback = '') => {
+    const value = t(key);
+    return (value && typeof value === 'string') ? value : fallback;
   };
+
+  const hotelData = {
+    id: 'hotel',
+    title: tr('home.hotelCard.title', 'Luxury Resort & Spa'),
+    subtitle: tr('home.hotelCard.subtitle', 'EXCLUSIVE OFFER'),
+    description: tr('home.hotelCard.description', 'Experience world-class service in Cairo.'),
+    tag: tr('home.hotelCard.tag', 'FEATURED'),
+    images: [
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=600&fit=crop',
+    ],
+    appName: tr('home.hotelCard.appName', 'Four Seasons'),
+    appCategory: tr('home.hotelCard.appCategory', 'Hotel & Resort'),
+    // ✅ تم إزالة appIcon
+    buttonText: 'BOOK', // ✅ تغيير إلى BOOK
+    backgroundColor: colors.cardHotelBg,
+  };
+
+  const flightData = {
+    id: 'flight',
+    title: tr('home.flightCard.title', 'Direct Flight to Europe'),
+    subtitle: tr('home.flightCard.subtitle', 'BEST PRICE'),
+    description: tr('home.flightCard.description', 'Fly with comfort and luxury airlines.'),
+    tag: tr('home.flightCard.tag', 'POPULAR'),
+    images: [
+      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&h=600&fit=crop',
+    ],
+    appName: tr('home.flightCard.appName', 'WE Airways'),
+    appCategory: tr('home.flightCard.appCategory', 'Flight Booking'),
+    // ✅ تم إزالة appIcon
+    buttonText: 'BOOK', // ✅ BOOK
+    backgroundColor: colors.cardFlightBg,
+  };
+
+  // ===== فتح النافذة المنبثقة =====
+  const handleOpenModal = (data) => {
+    setSelectedCard(data);
+    setActiveImageIndex(0);
+    setModalVisible(true);
+  };
+
+  const HEADER_HEIGHT = 58;
+  const BOTTOM_SPACER = insets.bottom + 70;
+
+  // ✅ خلفية الشريط العلوي
+  const headerBgColor = isDark
+    ? 'rgba(11, 12, 16, 0.95)'
+    : 'rgba(255, 255, 255, 0.98)';
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      <View style={[styles.headerContainer, { paddingTop: insets.top + 12 }]}>
-        <View>
-          <Text style={[styles.appNameText, { color: colors.subText }]}>
-            {t('home.weTravelers')}
-          </Text>
-          <Text style={[styles.todayText, { color: colors.text }]}>
-            {t('home.today')}
-          </Text>
-        </View>
+      {/* ===== الشريط العلوي ===== */}
+      <View
+        style={[
+          styles.headerWrapper,
+          {
+            height: HEADER_HEIGHT,
+            paddingTop: insets.top,
+            backgroundColor: headerBgColor,
+          },
+        ]}
+        pointerEvents="box-none"
+      >
+        <View style={styles.headerContainer}>
+          <View style={styles.headerLeftText}>
+            <Text style={[styles.headerTitleText, { color: colors.metaBlue }]}>
+              We Traveler's
+            </Text>
+          </View>
 
-        <TouchableOpacity
-          style={[
-            styles.profileAvatarContainer,
-            {
-              backgroundColor: colors.buttonBg,
-              borderColor: colors.buttonBorder,
-            },
-          ]}
-          onPress={() => navigation.navigate('الملف الشخصي')}
-          activeOpacity={0.7}
-        >
-          {user?.avatar ? (
-            <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
-          ) : (
-            <Ionicons name="person-outline" size={20} color="#007AFF" />
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.profileAvatarContainer}
+            onPress={() => navigation.navigate('Profile')}
+            activeOpacity={0.7}
+          >
+            {user?.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.profileIconWrapper}>
+                <Ionicons name="person-outline" size={22} color={colors.metaBlue} />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
+      {/* ===== المحتوى ===== */}
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[
+          styles.scrollContainer,
+          {
+            paddingTop: HEADER_HEIGHT + insets.top + 4,
+            backgroundColor: colors.background,
+          },
+        ]}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.text}
-            colors={[colors.text]}
-            progressBackgroundColor={colors.background}
-          />
-        }
       >
-        {/* ===== كارت الفنادق ===== */}
-        <View style={[styles.card, { backgroundColor: HOTEL_COLORS[0] }]}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: hotelImages[hotelImageIndex] }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-          </View>
-
-          <LinearGradient
-            colors={[
-              'rgba(26, 17, 8, 0.0)',
-              'rgba(26, 17, 8, 0.0)',
-              'rgba(26, 17, 8, 0.85)',
-              '#1A1108',
-            ]}
-            locations={[0, 0.5, 0.7, 1]}
-            style={StyleSheet.absoluteFillObject}
-          />
-
-          <View style={styles.hotelTabsRow}>
-            <TouchableOpacity
-              style={[styles.hotelTabButton, hotelImageIndex === 0 && styles.hotelTabActive]}
-              onPress={() => setHotelImageIndex(0)}
-            >
-              <Text style={styles.hotelTabText}>{t('home.hotelCard.room')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.hotelTabButton, hotelImageIndex === 1 && styles.hotelTabActive]}
-              onPress={() => setHotelImageIndex(1)}
-            >
-              <Text style={styles.hotelTabText}>{t('home.hotelCard.view')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.mainContainer}>
-            <View style={styles.contentContainer}>
-              <View style={styles.tagContainer}>
-                <Text style={styles.tagText}>{t('home.hotelCard.tag')}</Text>
-              </View>
-              <Text style={styles.subtitleText}>{t('home.hotelCard.subtitle')}</Text>
-              <Text style={styles.titleText}>{t('home.hotelCard.title')}</Text>
-              <Text style={styles.descriptionText}>
-                {t('home.hotelCard.description')}
-              </Text>
-            </View>
-
-            <View style={styles.bottomRow}>
-              <View style={styles.appIconContainer}>
-                <View style={[styles.appIcon, { backgroundColor: '#FF9500' }]}>
-                  <Text style={styles.appIconText}>H</Text>
-                </View>
-              </View>
-              <View style={styles.appInfo}>
-                <Text style={styles.appName}>{t('home.hotelCard.appName')}</Text>
-                <Text style={styles.appCategory}>{t('home.hotelCard.appCategory')}</Text>
-              </View>
-              <View style={styles.getButtonContainer}>
-                <TouchableOpacity style={styles.getButton}>
-                  <Text style={styles.getButtonText}>{t('home.getButton')}</Text>
+        <View style={styles.cardsWrapper}>
+          {/* ===== كارت الفندق ===== */}
+          <AppStoreCard
+            key="hotel"
+            backgroundColor={hotelData.backgroundColor}
+            image={hotelData.images[hotelImageIndex]}
+            tag={hotelData.tag}
+            subtitle={hotelData.subtitle}
+            title={hotelData.title}
+            description={hotelData.description}
+            buttonText={hotelData.buttonText}
+            onPress={() => {}}
+            onLongPress={() => handleOpenModal(hotelData)}
+            extraControls={
+              <View style={styles.hotelTabsRow}>
+                <TouchableOpacity style={[styles.hotelTabButton, hotelImageIndex === 0 && styles.hotelTabActive]} onPress={() => setHotelImageIndex(0)}>
+                  <Text style={styles.hotelTabText}>{tr('home.hotelCard.room', 'Room')}</Text>
                 </TouchableOpacity>
-                <Text style={styles.inAppText}>{t('home.inAppPurchases')}</Text>
+                <TouchableOpacity style={[styles.hotelTabButton, hotelImageIndex === 1 && styles.hotelTabActive]} onPress={() => setHotelImageIndex(1)}>
+                  <Text style={styles.hotelTabText}>{tr('home.hotelCard.view', 'View')}</Text>
+                </TouchableOpacity>
               </View>
-            </View>
-          </View>
-        </View>
-
-        {/* ===== كارت الطيران ===== */}
-        <TouchableOpacity
-          style={[
-            styles.card,
-            {
-              backgroundColor: FLIGHT_COLORS[0],
-              height: isFlightExpanded ? 520 : CARD_HEIGHT,
-            },
-          ]}
-          activeOpacity={0.95}
-          onPress={() => setIsFlightExpanded(!isFlightExpanded)}
-        >
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: flightImage }} style={styles.image} resizeMode="cover" />
-          </View>
-
-          <LinearGradient
-            colors={[
-              'rgba(44, 28, 19, 0.0)',
-              'rgba(44, 28, 19, 0.0)',
-              'rgba(44, 28, 19, 0.85)',
-              '#2C1C13',
-            ]}
-            locations={[0, 0.5, 0.7, 1]}
-            style={StyleSheet.absoluteFillObject}
+            }
           />
 
-          <View style={styles.mainContainer}>
-            <View style={styles.contentContainer}>
-              <View style={styles.tagContainer}>
-                <Text style={styles.tagText}>{t('home.flightCard.tag')}</Text>
-              </View>
-              <Text style={styles.subtitleText}>{t('home.flightCard.subtitle')}</Text>
-              <Text style={styles.titleText}>{t('home.flightCard.title')}</Text>
-
-              <View style={styles.timelineWrapper}>
-                <Text style={styles.timelineLocation}>{t('home.flightCard.departure')}</Text>
+          {/* ===== كارت الطيران ===== */}
+          <AppStoreCard
+            key="flight"
+            backgroundColor={flightData.backgroundColor}
+            image={flightData.images[0]}
+            tag={flightData.tag}
+            subtitle={flightData.subtitle}
+            title={flightData.title}
+            description={flightData.description}
+            buttonText={flightData.buttonText}
+            onPress={() => {}}
+            onLongPress={() => handleOpenModal(flightData)}
+            extraContent={
+              <TouchableOpacity style={styles.timelineWrapper} onPress={() => setIsFlightExpanded(!isFlightExpanded)} activeOpacity={0.8}>
+                <Text style={styles.timelineLocation}>{tr('home.flightCard.departure', 'CAI')}</Text>
                 <View style={styles.timelineTrack}>
                   <View style={styles.timelineDot} />
                   <View style={styles.timelineBar} />
-                  <View style={[styles.timelineDot, { backgroundColor: '#FF3B30' }]} />
+                  <Ionicons name="airplane" size={14} color="#FFFFFF" />
                   <View style={styles.timelineBar} />
                   <View style={styles.timelineDot} />
                 </View>
-                <Text style={styles.timelineLocation}>{t('home.flightCard.arrival')}</Text>
-              </View>
+                <Text style={styles.timelineLocation}>{tr('home.flightCard.arrival', 'CDG')}</Text>
+              </TouchableOpacity>
+            }
+          />
+        </View>
 
-              {isFlightExpanded && (
-                <View style={styles.explodedDetails}>
-                  <Text style={styles.explodedText}>{t('home.flightCard.expanded1')}</Text>
-                  <Text style={styles.explodedText}>{t('home.flightCard.expanded2')}</Text>
-                </View>
-              )}
-            </View>
-
-            <View style={styles.bottomRow}>
-              <View style={styles.appIconContainer}>
-                <View style={[styles.appIcon, { backgroundColor: '#5856D6' }]}>
-                  <Text style={styles.appIconText}>F</Text>
-                </View>
-              </View>
-              <View style={styles.appInfo}>
-                <Text style={styles.appName}>{t('home.flightCard.appName')}</Text>
-                <Text style={styles.appCategory}>{t('home.flightCard.appCategory')}</Text>
-              </View>
-              <View style={styles.getButtonContainer}>
-                <TouchableOpacity style={styles.getButton}>
-                  <Text style={styles.getButtonText}>{t('home.getButton')}</Text>
-                </TouchableOpacity>
-                <Text style={styles.inAppText}>{t('home.inAppPurchases')}</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <View style={styles.bottomSpacer} />
+        <View style={{ height: BOTTOM_SPACER }} />
       </ScrollView>
+
+      {/* ================================================================
+          النافذة المنبثقة (PageSheet)
+          ================================================================ */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        {selectedCard && (
+          <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+            {/* ===== مقبض السحب ===== */}
+            <View style={styles.modalDragHeader}>
+              <View style={styles.modalDragIndicator} />
+            </View>
+
+            <ScrollView style={styles.modalScroll} bounces={false} showsVerticalScrollIndicator={false}>
+              {/* ===== معرض الصور ===== */}
+              <View style={styles.carouselWrapper}>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={(e) => {
+                    const slide = Math.round(e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width);
+                    if (slide !== activeImageIndex) setActiveImageIndex(slide);
+                  }}
+                  scrollEventThrottle={16}
+                >
+                  {selectedCard.images.map((imgUri, idx) => (
+                    <Image key={idx} source={{ uri: imgUri }} style={styles.carouselImage} />
+                  ))}
+                </ScrollView>
+
+                {/* ===== النقاط الدائرية ===== */}
+                <View style={styles.dotsContainer}>
+                  {selectedCard.images.map((_, idx) => (
+                    <View key={idx} style={[styles.dot, idx === activeImageIndex && styles.activeDot]} />
+                  ))}
+                </View>
+
+                {/* ===== زر الإغلاق ===== */}
+                <TouchableOpacity style={styles.closeModalButton} onPress={() => setModalVisible(false)}>
+                  <Ionicons name="close" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+
+              {/* ===== المعلومات ===== */}
+              <View style={styles.modalDetailsContent}>
+                <Text style={styles.modalSubtitle}>{selectedCard.subtitle}</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>{selectedCard.title}</Text>
+                <Text style={[styles.modalDescription, { color: colors.subText }]}>{selectedCard.description}</Text>
+
+                <View style={styles.modalDivider} />
+
+                <Text style={[styles.sectionHeading, { color: colors.text }]}>Overview & Amenities</Text>
+                <Text style={[styles.sectionBodyText, { color: colors.subText }]}>
+                  Enjoy exclusive privileges with instant booking confirmation, flexible cancellations, and premium VIP access provided directly through WE TRAVELERS. This property features a swimming pool, fitness center, and 24-hour room service.
+                </Text>
+              </View>
+            </ScrollView>
+          </View>
+        )}
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  appNameText: {
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  todayText: {
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginTop: 0,
-  },
-  profileAvatarContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 0.5,
-    overflow: 'hidden',
-  },
-  avatarImage: { width: 36, height: 36, borderRadius: 18 },
-  scrollContainer: { paddingBottom: 20, paddingHorizontal: 16 },
-  card: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    borderRadius: CORNER_RADIUS,
-    overflow: 'hidden',
-    marginBottom: 24,
-    alignSelf: 'center',
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  imageContainer: {
-    width: CARD_WIDTH,
-    height: IMAGE_HEIGHT,
+
+  // ===== الشريط العلوي =====
+  headerWrapper: {
     position: 'absolute',
     top: 0,
     left: 0,
+    right: 0,
+    zIndex: 100,
+  },
+  headerContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  headerLeftText: { flex: 1 },
+  headerTitleText: {
+    fontSize: 22,
+    fontWeight: '800',
+    fontFamily: 'System',
+    letterSpacing: 0.2,
+  },
+
+  profileAvatarContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
     overflow: 'hidden',
   },
-  image: { width: '100%', height: '100%' },
-  mainContainer: { flex: 1, justifyContent: 'flex-end' },
-  contentContainer: { paddingHorizontal: 16, marginBottom: 12 },
-  tagContainer: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
+  profileIconWrapper: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(0, 100, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 100, 255, 0.15)',
   },
-  tagText: { color: '#FFFFFF', fontSize: 11, fontWeight: '600' },
-  subtitleText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.55)',
-    textTransform: 'uppercase',
-    marginBottom: 2,
-    textAlign: 'left',
-  },
-  titleText: {
-    color: '#FFFFFF',
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 6,
-    lineHeight: 32,
-    textAlign: 'left',
-  },
-  descriptionText: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 15,
-    fontWeight: '400',
-    lineHeight: 20,
-    textAlign: 'left',
-  },
+  avatarImage: { width: 30, height: 30, borderRadius: 15 },
+
+  scrollContainer: { paddingBottom: 20 },
+  cardsWrapper: { paddingHorizontal: 16 },
+
+  // ===== عناصر التحكم في الكروت =====
   hotelTabsRow: {
     flexDirection: 'row',
-    position: 'absolute',
-    top: 16,
-    right: 16,
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 12,
-    padding: 2,
-    zIndex: 10,
+    padding: 3,
   },
-  hotelTabButton: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  hotelTabActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
-  hotelTabText: { color: '#FFFFFF', fontSize: 11, fontWeight: '600' },
+  hotelTabButton: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 9 },
+  hotelTabActive: { backgroundColor: 'rgba(255,255,255,0.3)' },
+  hotelTabText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+
   timelineWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 10,
   },
-  timelineLocation: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
-  timelineTrack: {
-    flex: 1,
-    flexDirection: 'row',
+  timelineLocation: { color: '#FFFFFF', fontWeight: '800', fontSize: 12 },
+  timelineTrack: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  timelineDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#007AFF' },
+  timelineBar: { flex: 1, height: 1.5, backgroundColor: 'rgba(255,255,255,0.4)', marginHorizontal: 4 },
+
+  // ===== النافذة المنبثقة =====
+  modalContainer: { flex: 1 },
+  modalDragHeader: {
+    width: '100%',
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
   },
-  timelineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#34C759' },
-  timelineBar: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  modalDragIndicator: {
+    width: 38,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: 'rgba(150,150,150,0.4)',
+  },
+  modalScroll: { flex: 1 },
+  carouselWrapper: {
+    position: 'relative',
+    height: 360,
+    width: SCREEN_WIDTH,
+  },
+  carouselImage: {
+    width: SCREEN_WIDTH,
+    height: 360,
+    resizeMode: 'cover',
+  },
+  dotsContainer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: 'rgba(255,255,255,0.4)',
     marginHorizontal: 4,
   },
-  explodedDetails: {
-    marginTop: 10,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    padding: 10,
-    borderRadius: 8,
-  },
-  explodedText: { color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4, textAlign: 'left' },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(255,255,255,0.08)',
-  },
-  appIconContainer: { marginRight: 12 },
-  appIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 13,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  appIconText: { fontSize: 28, fontWeight: '700', color: '#FFFFFF' },
-  appInfo: { flex: 1, justifyContent: 'center' },
-  appName: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', marginBottom: 2, textAlign: 'left' },
-  appCategory: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'left',
-  },
-  getButtonContainer: { alignItems: 'center', marginLeft: 8 },
-  getButton: {
+  activeDot: {
     backgroundColor: '#FFFFFF',
-    width: 74,
-    height: 28,
-    borderRadius: 14,
+    width: 18,
+  },
+  closeModalButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  getButtonText: { color: '#007AFF', fontSize: 14, fontWeight: 'bold' },
-  inAppText: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 8,
-    marginTop: 3,
-    textAlign: 'center',
+  modalDetailsContent: {
+    padding: 24,
   },
-  bottomSpacer: { height: 20 },
+  modalSubtitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#007AFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  modalTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    marginBottom: 10,
+  },
+  modalDescription: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  modalDivider: {
+    height: 1,
+    backgroundColor: 'rgba(150,150,150,0.2)',
+    marginVertical: 20,
+  },
+  sectionHeading: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  sectionBodyText: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 30,
+  },
 });

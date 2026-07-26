@@ -3,6 +3,7 @@ import React from 'react';
 import {
   View,
   Text,
+  Image,          // ✅ تم إضافة الاستيراد المفقود
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
@@ -26,6 +27,11 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, login, logout } = useAuth();
 
+  const tr = (key, fallback = '') => {
+    const value = t(key);
+    return (value && typeof value === 'string') ? value : fallback;
+  };
+
   const colors = {
     background: isDark ? '#1C1C1E' : '#F2F2F7',
     card: isDark ? '#2C2C2E' : '#FFFFFF',
@@ -45,12 +51,12 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      t('profile.logoutConfirm'),
+      tr('profile.logoutConfirm', 'Are you sure you want to logout?'),
       '',
       [
-        { text: t('common.cancel'), style: 'cancel' },
+        { text: tr('common.cancel', 'Cancel'), style: 'cancel' },
         {
-          text: t('common.logout'),
+          text: tr('common.logout', 'Logout'),
           style: 'destructive',
           onPress: () => {
             logout();
@@ -68,9 +74,10 @@ export default function ProfileScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
 
-        <Text style={[styles.title, { color: colors.text }]}>{t('profile.title')}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {tr('profile.title', 'Account')}
+        </Text>
 
-        {/* قسم تسجيل الدخول */}
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {user ? (
             <View style={styles.userInfo}>
@@ -78,14 +85,14 @@ export default function ProfileScreen() {
                 <Text style={styles.avatarText}>U</Text>
               </View>
               <Text style={[styles.userName, { color: colors.text }]}>
-                {user.name || t('profile.loggedInAs')}
+                {user.name || tr('profile.loggedInAs', 'Logged in as')}
               </Text>
               <TouchableOpacity
                 style={[styles.logoutButton, { borderColor: colors.border }]}
                 onPress={handleLogout}
               >
                 <Text style={[styles.logoutText, { color: colors.primary }]}>
-                  {t('common.logout')}
+                  {tr('common.logout', 'Logout')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -95,21 +102,22 @@ export default function ProfileScreen() {
               onPress={() => navigation.navigate('Login')}
             >
               <Text style={[styles.loginPrompt, { color: colors.text }]}>
-                {t('profile.loginPrompt')}
+                {tr('profile.loginPrompt', 'Sign in to access all features')}
               </Text>
               <View style={[styles.loginButton, { backgroundColor: colors.primary }]}>
-                <Text style={styles.loginButtonText}>{t('common.login')}</Text>
+                <Text style={styles.loginButtonText}>
+                  {tr('common.login', 'Login')}
+                </Text>
               </View>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* قسم التحكم في اللغة */}
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.languageRow}>
             <Ionicons name="language-outline" size={22} color={colors.subText} />
             <Text style={[styles.languageLabel, { color: colors.text }]}>
-              {t('profile.languageSetting')}
+              {tr('profile.languageSetting', 'Language')}
             </Text>
             <View style={styles.languageToggle}>
               <TouchableOpacity
@@ -127,7 +135,7 @@ export default function ProfileScreen() {
                     { color: currentLanguage === 'ar' ? colors.primary : colors.subText },
                   ]}
                 >
-                  {t('common.arabic')}
+                  {tr('common.arabic', 'Arabic')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -145,13 +153,14 @@ export default function ProfileScreen() {
                     { color: currentLanguage === 'en' ? colors.primary : colors.subText },
                   ]}
                 >
-                  {t('common.english')}
+                  {tr('common.english', 'English')}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
           <Text style={[styles.currentLangText, { color: colors.subText }]}>
-            {t('profile.currentLanguage')}: {currentLanguage === 'ar' ? 'العربية' : 'English'}
+            {tr('profile.currentLanguage', 'Current Language')}:{' '}
+            {currentLanguage === 'ar' ? 'العربية' : 'English'}
           </Text>
         </View>
       </ScrollView>

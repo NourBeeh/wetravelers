@@ -1,5 +1,5 @@
 // src/components/AppStoreCard.js
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -7,223 +7,187 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Animated,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
-
-// ============================================
-// 1. المقاسات الثابتة (تم تعديل العرض ليتوافق مع Today)
-// ============================================
-const CARD_WIDTH = width - 40;     // هامش 20pt من كل جانب (مثل Today)
-const CARD_HEIGHT = 440;           // ارتفاع ثابت
-const CORNER_RADIUS = 20;
-const CARD_MARGIN = 8;
-
-// ============================================
-// 2. الألوان (بني داكن)
-// ============================================
-const COLORS = [
-  '#3D2B1F', // RGB: 61, 43, 31
-  '#2C1810', // RGB: 44, 24, 16
-  '#1A1108', // RGB: 26, 17, 8
-  '#4A3728', // RGB: 74, 55, 40
-  '#2F1B0E', // RGB: 47, 27, 14
-];
-
-// دالة لتحويل اللون السداسي إلى قيم RGB
-const hexToRgb = (hex) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : { r: 61, g: 43, b: 31 };
-};
+const CARD_WIDTH = width - 32;
+const CORNER_RADIUS = 24;
 
 export default function AppStoreCard({
-  title,
-  subtitle,
-  description,
+  title = '',
+  subtitle = '',
+  description = '',
   image,
+  tag = '',
+  buttonText = 'BOOK',
   onPress,
-  index = 0,
-  tagText = 'عرض خاص',
+  onLongPress,
+  backgroundColor = '#1C2431',
+  extraControls,
+  extraContent,
 }) {
-  const backgroundColor = COLORS[index % COLORS.length];
-  const rgb = hexToRgb(backgroundColor);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 6,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 6,
+    }).start();
+  };
 
   return (
-    <TouchableOpacity
-      style={[styles.card, { backgroundColor }]}
-      onPress={onPress}
-      activeOpacity={0.95}
-    >
-      {/* ===== الخلفية البنية للكارت ===== */}
-      <View style={[styles.cardBackground, { backgroundColor }]} />
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <Pressable
+        style={[styles.card, { backgroundColor }]}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={300}
+      >
+        <View style={styles.imageWrapper}>
+          <Image
+            source={typeof image === 'string' ? { uri: image } : image}
+            style={styles.image}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.25)', 'transparent', backgroundColor]}
+            locations={[0, 0.45, 1]}
+            style={styles.gradientOverlay}
+          />
+          {tag ? (
+            <View style={styles.tagContainer}>
+              <Text style={styles.tagText}>{tag}</Text>
+            </View>
+          ) : null}
+          {extraControls ? (
+            <View style={styles.extraControlsContainer}>{extraControls}</View>
+          ) : null}
+        </View>
 
-      {/* ===== الصورة مع هوامش متساوية ===== */}
-      <View style={styles.imageContainer}>
-        <Image source={image} style={styles.image} resizeMode="cover" />
+        <View style={[styles.bottomContent, { backgroundColor }]}>
+          {subtitle ? <Text style={styles.subtitleText}>{subtitle}</Text> : null}
+          {title ? <Text style={styles.titleText} numberOfLines={2}>{title}</Text> : null}
+          {description ? <Text style={styles.descriptionText} numberOfLines={2}>{description}</Text> : null}
+          {extraContent ? <View style={styles.extraContentWrapper}>{extraContent}</View> : null}
 
-        {/* ===== التدرج الشفاف باستخدام rgba صريحة ===== */}
-        <LinearGradient
-          colors={[
-            `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`,   // 0%: شفاف تماماً
-            `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`,   // 50%: شفاف تماماً
-            `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.8)`, // 70%: شبه معتم
-            `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)`,   // 100%: معتم تماماً
-          ]}
-          locations={[0, 0.5, 0.7, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.gradientOverlay}
-        />
-      </View>
-
-      {/* ===== المستطيل الشمالي العلوي (Tag) ===== */}
-      <View style={[styles.tagContainer, { backgroundColor }]}>
-        <Text style={styles.tagText}>{tagText}</Text>
-      </View>
-
-      {/* ===== المحتوى النصي ===== */}
-      <View style={styles.contentContainer}>
-        <Text style={[styles.subtitleText, { color: 'rgba(255,255,255,0.7)' }]}>
-          {subtitle || 'وجهة مميزة'}
-        </Text>
-
-        <Text style={[styles.titleText, { color: '#FFFFFF' }]} numberOfLines={2}>
-          {title}
-        </Text>
-
-        <Text style={[styles.descriptionText, { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={2}>
-          {description || 'اكتشف أفضل العروض والوجهات السياحية'}
-        </Text>
-      </View>
-
-      {/* ===== زر GET في أسفل اليمين ===== */}
-      <View style={styles.getButtonWrapper}>
-        <TouchableOpacity style={styles.getButton} onPress={onPress}>
-          <Text style={styles.getButtonText}>GET</Text>
-        </TouchableOpacity>
-        <Text style={styles.inAppText}>مشتريات داخلية</Text>
-      </View>
-    </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.actionButton} onPress={onPress} activeOpacity={0.8}>
+              <Text style={styles.actionButtonText}>{buttonText}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Pressable>
+    </Animated.View>
   );
 }
 
-// ============================================
-// 5. الأنماط (Styles)
-// ============================================
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    height: CARD_HEIGHT,
     borderRadius: CORNER_RADIUS,
     overflow: 'hidden',
     marginBottom: 20,
     alignSelf: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 18,
+    elevation: 12,
+    // ✅ إزالة borderWidth و borderColor
+  },
+  imageWrapper: {
+    width: '100%',
+    height: 250,
     position: 'relative',
-  },
-  cardBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  imageContainer: {
-    position: 'absolute',
-    top: CARD_MARGIN,
-    left: CARD_MARGIN,
-    right: CARD_MARGIN,
-    bottom: CARD_MARGIN,
-    borderRadius: 16,
     overflow: 'hidden',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  gradientOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
+  image: { width: '100%', height: '100%' },
+  gradientOverlay: { ...StyleSheet.absoluteFillObject },
   tagContainer: {
     position: 'absolute',
-    top: 20,
-    left: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 12,
-    zIndex: 3,
+    top: 14,
+    left: 14,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
     borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   tagText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
-  contentContainer: {
+  extraControlsContainer: {
     position: 'absolute',
-    bottom: 70,
-    left: 24,
-    right: 24,
-    zIndex: 2,
+    top: 14,
+    right: 14,
+    zIndex: 4,
+  },
+  bottomContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
   },
   subtitleText: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.7)',
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   titleText: {
-    fontSize: 26,
-    fontWeight: '700',
-    marginBottom: 6,
+    fontSize: 24,
+    fontWeight: '800',
     lineHeight: 30,
     color: '#FFFFFF',
+    marginBottom: 4,
   },
   descriptionText: {
     fontSize: 15,
     fontWeight: '400',
+    color: 'rgba(255,255,255,0.8)',
     lineHeight: 20,
-    opacity: 0.9,
+    marginBottom: 10,
   },
-  getButtonWrapper: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    zIndex: 3,
-    alignItems: 'center',
+  extraContentWrapper: { marginTop: 6 },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 6,
   },
-  getButton: {
-    backgroundColor: '#FFFFFF',
-    width: 74,
-    height: 30,
-    borderRadius: 15,
+  actionButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  getButtonText: {
-    color: '#007AFF',
+  actionButtonText: {
+    color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
-  },
-  inAppText: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 9,
-    marginTop: 2,
-    textAlign: 'center',
+    fontWeight: '700',
   },
 });

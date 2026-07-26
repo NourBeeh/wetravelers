@@ -28,6 +28,11 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const tr = (key, fallback = '') => {
+    const value = t(key);
+    return (value && typeof value === 'string') ? value : fallback;
+  };
+
   const colors = {
     background: isDark ? '#1C1C1E' : '#F2F2F7',
     card: isDark ? '#2C2C2E' : '#FFFFFF',
@@ -39,7 +44,7 @@ export default function LoginScreen() {
   };
 
   const handleLogin = () => {
-    Alert.alert(t('common.login'), t('common.ok'));
+    Alert.alert(tr('common.login', 'Login'), tr('common.ok', 'OK'));
     login({ name: 'User', email: email, avatar: null });
     navigation.goBack();
   };
@@ -50,7 +55,7 @@ export default function LoginScreen() {
       Apple: 'https://ui-avatars.com/api/?name=Apple+User&background=000000&color=fff&size=128',
       Facebook: 'https://ui-avatars.com/api/?name=FB+User&background=1877F2&color=fff&size=128',
     };
-    Alert.alert(`${t('common.login')} ${provider}`, t('common.ok'));
+    Alert.alert(`${tr('common.login', 'Login')} ${provider}`, tr('common.ok', 'OK'));
     login({ name: `${provider} User`, email: `${provider}@example.com`, avatar: avatars[provider] });
     navigation.goBack();
   };
@@ -70,9 +75,11 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <View style={styles.headerContainer}>
-            <Text style={[styles.title, { color: colors.text }]}>{t('login.title')}</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {tr('login.title', 'Welcome Back 👋')}
+            </Text>
             <Text style={[styles.subtitle, { color: colors.subText }]}>
-              {t('login.subtitle')}
+              {tr('login.subtitle', 'Sign in to enjoy a personalized travel experience')}
             </Text>
           </View>
 
@@ -82,7 +89,9 @@ export default function LoginScreen() {
               onPress={() => handleSocialLogin('Apple')}
             >
               <Ionicons name="logo-apple" size={22} color={colors.text} />
-              <Text style={[styles.socialButtonText, { color: colors.text }]}>{t('login.socialApple')}</Text>
+              <Text style={[styles.socialButtonText, { color: colors.text }]}>
+                {tr('login.socialApple', 'Apple')}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -90,7 +99,9 @@ export default function LoginScreen() {
               onPress={() => handleSocialLogin('Google')}
             >
               <Ionicons name="logo-google" size={22} color="#DB4437" />
-              <Text style={[styles.socialButtonText, { color: colors.text }]}>{t('login.socialGoogle')}</Text>
+              <Text style={[styles.socialButtonText, { color: colors.text }]}>
+                {tr('login.socialGoogle', 'Google')}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -98,13 +109,17 @@ export default function LoginScreen() {
               onPress={() => handleSocialLogin('Facebook')}
             >
               <Ionicons name="logo-facebook" size={22} color="#1877F2" />
-              <Text style={[styles.socialButtonText, { color: colors.text }]}>{t('login.socialFacebook')}</Text>
+              <Text style={[styles.socialButtonText, { color: colors.text }]}>
+                {tr('login.socialFacebook', 'Facebook')}
+              </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.dividerContainer}>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.dividerText, { color: colors.subText }]}>{t('login.or')}</Text>
+            <Text style={[styles.dividerText, { color: colors.subText }]}>
+              {tr('login.or', 'or')}
+            </Text>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
@@ -113,7 +128,7 @@ export default function LoginScreen() {
               <Ionicons name="mail-outline" size={20} color={colors.subText} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { color: colors.text }]}
-                placeholder={t('login.emailPlaceholder')}
+                placeholder={tr('login.emailPlaceholder', 'Email')}
                 placeholderTextColor={colors.subText}
                 value={email}
                 onChangeText={setEmail}
@@ -126,7 +141,7 @@ export default function LoginScreen() {
               <Ionicons name="lock-closed-outline" size={20} color={colors.subText} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { color: colors.text }]}
-                placeholder={t('login.passwordPlaceholder')}
+                placeholder={tr('login.passwordPlaceholder', 'Password')}
                 placeholderTextColor={colors.subText}
                 value={password}
                 onChangeText={setPassword}
@@ -144,7 +159,7 @@ export default function LoginScreen() {
 
             <TouchableOpacity style={styles.forgotPassword}>
               <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
-                {t('login.forgotPassword')}
+                {tr('login.forgotPassword', 'Forgot Password?')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -154,16 +169,18 @@ export default function LoginScreen() {
             onPress={handleLogin}
             activeOpacity={0.8}
           >
-            <Text style={styles.loginButtonText}>{t('login.loginButton')}</Text>
+            <Text style={styles.loginButtonText}>
+              {tr('login.loginButton', 'Sign In')}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.footerContainer}>
             <Text style={[styles.footerText, { color: colors.subText }]}>
-              {t('login.noAccount')}
+              {tr('login.noAccount', "Don't have an account?")}
             </Text>
             <TouchableOpacity>
               <Text style={[styles.footerLink, { color: colors.primary }]}>
-                {' '}{t('login.signUpLink')}
+                {' '}{tr('login.signUpLink', 'Sign Up')}
               </Text>
             </TouchableOpacity>
           </View>

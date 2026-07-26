@@ -20,8 +20,13 @@ export default function AIScreen() {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 
+  const tr = (key, fallback = '') => {
+    const value = t(key);
+    return (value && typeof value === 'string') ? value : fallback;
+  };
+
   const [messages, setMessages] = useState([
-    { id: 1, text: t('ai.welcome'), sender: 'ai' },
+    { id: 1, text: tr('ai.welcome', 'Hello! I\'m your smart travel assistant. How can I help you today?'), sender: 'ai' },
   ]);
   const [inputText, setInputText] = useState('');
 
@@ -46,7 +51,7 @@ export default function AIScreen() {
     setTimeout(() => {
       const aiResponse = {
         id: messages.length + 2,
-        text: t('ai.welcome'),
+        text: tr('ai.welcome', 'Hello! I\'m your smart travel assistant. How can I help you today?'),
         sender: 'ai',
       };
       setMessages((prev) => [...prev, aiResponse]);
@@ -61,8 +66,12 @@ export default function AIScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('ai.title')}</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.subText }]}>{t('ai.subtitle')}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {tr('ai.title', 'Smart Travel Assistant')}
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.subText }]}>
+            {tr('ai.subtitle', 'Ask me anything about travel')}
+          </Text>
         </View>
 
         <ScrollView
@@ -95,7 +104,7 @@ export default function AIScreen() {
         <View style={[styles.inputContainer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text }]}
-            placeholder={t('ai.placeholder')}
+            placeholder={tr('ai.placeholder', 'Type your message here...')}
             placeholderTextColor={colors.subText}
             value={inputText}
             onChangeText={setInputText}

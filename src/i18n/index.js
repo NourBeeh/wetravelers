@@ -12,16 +12,15 @@ const resources = {
 };
 
 const initI18n = async () => {
-  // محاولة استرجاع اللغة المخزنة
   let savedLanguage = await AsyncStorage.getItem('app-language');
   if (!savedLanguage) {
-    // إذا لم توجد، استخدم لغة الجهاز أو الإنجليزية كـ fallback
-    const deviceLang = Localization.locale.split('-')[0];
-    savedLanguage = deviceLang === 'ar' ? 'ar' : 'en';
+    const deviceLang = Localization.locale || 'en';
+    savedLanguage = deviceLang.split('-')[0] === 'ar' ? 'ar' : 'en';
     await AsyncStorage.setItem('app-language', savedLanguage);
   }
 
   i18n.use(initReactI18next).init({
+    compatibilityJSON: 'v3', // ✅ إصلاح تحذير i18next
     resources,
     lng: savedLanguage,
     fallbackLng: 'en',

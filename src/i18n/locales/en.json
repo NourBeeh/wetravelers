@@ -15,7 +15,10 @@
     "cancel": "Cancel",
     "ok": "OK",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "search": "Search",
+    "ai": "AI Assistant",
+    "bookings": "Bookings"
   },
   "home": {
     "weTravelers": "We Travelers",
