@@ -3,7 +3,6 @@ import React from 'react';
 import {
   View,
   Text,
-  Image,          // ✅ تم إضافة الاستيراد المفقود
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
@@ -14,18 +13,16 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from 'i18next';
 
 export default function ProfileScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
-  const insets = useSafeAreaInsets();
-  const { user, login, logout } = useAuth();
+
+  const { user, logout } = useAuth();
 
   const tr = (key, fallback = '') => {
     const value = t(key);
@@ -43,10 +40,10 @@ export default function ProfileScreen() {
 
   const currentLanguage = i18n.language;
 
-  const toggleLanguage = async () => {
-    const newLang = currentLanguage === 'ar' ? 'en' : 'ar';
-    await AsyncStorage.setItem('app-language', newLang);
-    i18n.changeLanguage(newLang);
+  const changeLanguage = async (lang) => {
+    if (lang === currentLanguage) return;
+    await AsyncStorage.setItem('app-language', lang);
+    i18n.changeLanguage(lang);
   };
 
   const handleLogout = () => {
@@ -58,10 +55,7 @@ export default function ProfileScreen() {
         {
           text: tr('common.logout', 'Logout'),
           style: 'destructive',
-          onPress: () => {
-            logout();
-            navigation.goBack();
-          },
+          onPress: logout,
         },
       ]
     );
@@ -70,9 +64,11 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
+        {navigation.canGoBack() ? (
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+        ) : null}
 
         <Text style={[styles.title, { color: colors.text }]}>
           {tr('profile.title', 'Account')}
@@ -82,7 +78,9 @@ export default function ProfileScreen() {
           {user ? (
             <View style={styles.userInfo}>
               <View style={styles.avatarLarge}>
-                <Text style={styles.avatarText}>U</Text>
+                <Text style={styles.avatarText}>
+                  {(user.name || 'U').trim().charAt(0).toUpperCase()}
+                </Text>
               </View>
               <Text style={[styles.userName, { color: colors.text }]}>
                 {user.name || tr('profile.loggedInAs', 'Logged in as')}
@@ -126,7 +124,7 @@ export default function ProfileScreen() {
                   currentLanguage === 'ar' && styles.langOptionActive,
                   { borderColor: colors.border },
                 ]}
-                onPress={toggleLanguage}
+                onPress={() => changeLanguage('ar')}
               >
                 <Text
                   style={[
@@ -144,7 +142,7 @@ export default function ProfileScreen() {
                   currentLanguage === 'en' && styles.langOptionActive,
                   { borderColor: colors.border },
                 ]}
-                onPress={toggleLanguage}
+                onPress={() => changeLanguage('en')}
               >
                 <Text
                   style={[

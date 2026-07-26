@@ -64,8 +64,7 @@ export default function HomeScreen() {
     ],
     appName: tr('home.hotelCard.appName', 'Four Seasons'),
     appCategory: tr('home.hotelCard.appCategory', 'Hotel & Resort'),
-    // ✅ تم إزالة appIcon
-    buttonText: 'BOOK', // ✅ تغيير إلى BOOK
+    buttonText: tr('home.bookButton', 'BOOK'),
     backgroundColor: colors.cardHotelBg,
   };
 
@@ -81,8 +80,7 @@ export default function HomeScreen() {
     ],
     appName: tr('home.flightCard.appName', 'WE Airways'),
     appCategory: tr('home.flightCard.appCategory', 'Flight Booking'),
-    // ✅ تم إزالة appIcon
-    buttonText: 'BOOK', // ✅ BOOK
+    buttonText: tr('home.bookButton', 'BOOK'),
     backgroundColor: colors.cardFlightBg,
   };
 
@@ -120,7 +118,7 @@ export default function HomeScreen() {
         <View style={styles.headerContainer}>
           <View style={styles.headerLeftText}>
             <Text style={[styles.headerTitleText, { color: colors.metaBlue }]}>
-              We Traveler's
+              We Traveler&apos;s
             </Text>
           </View>
 
@@ -162,7 +160,7 @@ export default function HomeScreen() {
             title={hotelData.title}
             description={hotelData.description}
             buttonText={hotelData.buttonText}
-            onPress={() => {}}
+            onPress={() => handleOpenModal(hotelData)}
             onLongPress={() => handleOpenModal(hotelData)}
             extraControls={
               <View style={styles.hotelTabsRow}>
@@ -186,20 +184,28 @@ export default function HomeScreen() {
             title={flightData.title}
             description={flightData.description}
             buttonText={flightData.buttonText}
-            onPress={() => {}}
+            onPress={() => handleOpenModal(flightData)}
             onLongPress={() => handleOpenModal(flightData)}
             extraContent={
-              <TouchableOpacity style={styles.timelineWrapper} onPress={() => setIsFlightExpanded(!isFlightExpanded)} activeOpacity={0.8}>
-                <Text style={styles.timelineLocation}>{tr('home.flightCard.departure', 'CAI')}</Text>
-                <View style={styles.timelineTrack}>
-                  <View style={styles.timelineDot} />
-                  <View style={styles.timelineBar} />
-                  <Ionicons name="airplane" size={14} color="#FFFFFF" />
-                  <View style={styles.timelineBar} />
-                  <View style={styles.timelineDot} />
-                </View>
-                <Text style={styles.timelineLocation}>{tr('home.flightCard.arrival', 'CDG')}</Text>
-              </TouchableOpacity>
+              <View>
+                <TouchableOpacity style={styles.timelineWrapper} onPress={() => setIsFlightExpanded(!isFlightExpanded)} activeOpacity={0.8}>
+                  <Text style={styles.timelineLocation}>{tr('home.flightCard.departure', 'CAI')}</Text>
+                  <View style={styles.timelineTrack}>
+                    <View style={styles.timelineDot} />
+                    <View style={styles.timelineBar} />
+                    <Ionicons name="airplane" size={14} color="#FFFFFF" />
+                    <View style={styles.timelineBar} />
+                    <View style={styles.timelineDot} />
+                  </View>
+                  <Text style={styles.timelineLocation}>{tr('home.flightCard.arrival', 'CDG')}</Text>
+                </TouchableOpacity>
+                {isFlightExpanded ? (
+                  <View style={styles.flightDetailsWrapper}>
+                    <Text style={styles.flightDetailText}>{tr('home.flightCard.expanded1', '')}</Text>
+                    <Text style={styles.flightDetailText}>{tr('home.flightCard.expanded2', '')}</Text>
+                  </View>
+                ) : null}
+              </View>
             }
           />
         </View>
@@ -262,9 +268,11 @@ export default function HomeScreen() {
 
                 <View style={styles.modalDivider} />
 
-                <Text style={[styles.sectionHeading, { color: colors.text }]}>Overview & Amenities</Text>
+                <Text style={[styles.sectionHeading, { color: colors.text }]}>
+                  {tr('home.details.overviewTitle', 'Overview & Amenities')}
+                </Text>
                 <Text style={[styles.sectionBodyText, { color: colors.subText }]}>
-                  Enjoy exclusive privileges with instant booking confirmation, flexible cancellations, and premium VIP access provided directly through WE TRAVELERS. This property features a swimming pool, fitness center, and 24-hour room service.
+                  {tr('home.details.overviewBody', '')}
                 </Text>
               </View>
             </ScrollView>
@@ -347,6 +355,8 @@ const styles = StyleSheet.create({
   timelineTrack: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
   timelineDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#007AFF' },
   timelineBar: { flex: 1, height: 1.5, backgroundColor: 'rgba(255,255,255,0.4)', marginHorizontal: 4 },
+  flightDetailsWrapper: { marginTop: 8, paddingHorizontal: 4 },
+  flightDetailText: { color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 20 },
 
   // ===== النافذة المنبثقة =====
   modalContainer: { flex: 1 },

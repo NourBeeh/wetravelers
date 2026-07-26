@@ -27,6 +27,7 @@
       "tag": "✈️ Timeline View",
       "subtitle": "Direct & flexible flights",
       "title": "Fastest Cairo to London",
+      "description": "Fly with comfort on premium airlines.",
       "departure": "CAI",
       "arrival": "LHR",
       "expanded1": "• Boeing 777 - Extra legroom",
@@ -44,8 +45,13 @@
       "appName": "Ritz Luxury Booking",
       "appCategory": "Hotel Booking & Stay"
     },
+    "bookButton": "BOOK",
     "getButton": "GET",
-    "inAppPurchases": "In-App Purchases"
+    "inAppPurchases": "In-App Purchases",
+    "details": {
+      "overviewTitle": "Overview & Amenities",
+      "overviewBody": "Enjoy exclusive privileges with instant booking confirmation, flexible cancellations, and premium VIP access provided directly through WE TRAVELERS. This property features a swimming pool, fitness center, and 24-hour room service."
+    }
   },
   "profile": {
     "title": "Account",
@@ -80,7 +86,8 @@
     "title": "🤖 Smart Travel Assistant",
     "subtitle": "Ask me anything about travel",
     "placeholder": "Type your message here...",
-    "welcome": "Hello! I'm your smart travel assistant. How can I help you today?"
+    "welcome": "Hello! I'm your smart travel assistant. How can I help you today?",
+    "defaultResponse": "I'm still learning. Soon I'll be able to search flights and hotels for you."
   },
   "bookings": {
     "title": "Your Bookings",

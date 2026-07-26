@@ -1,5 +1,5 @@
 // src/screens/AIScreen.js
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,12 @@ export default function AIScreen() {
     { id: 1, text: tr('ai.welcome', 'Hello! I\'m your smart travel assistant. How can I help you today?'), sender: 'ai' },
   ]);
   const [inputText, setInputText] = useState('');
+  const messageIdRef = useRef(1);
+
+  const nextId = () => {
+    messageIdRef.current += 1;
+    return messageIdRef.current;
+  };
 
   const colors = {
     background: isDark ? '#1C1C1E' : '#F2F2F7',
@@ -42,19 +48,21 @@ export default function AIScreen() {
   };
 
   const sendMessage = () => {
-    if (inputText.trim() === '') return;
+    const text = inputText.trim();
+    if (text === '') return;
 
-    const userMessage = { id: messages.length + 1, text: inputText, sender: 'user' };
-    setMessages([...messages, userMessage]);
+    setMessages((prev) => [...prev, { id: nextId(), text, sender: 'user' }]);
     setInputText('');
 
     setTimeout(() => {
-      const aiResponse = {
-        id: messages.length + 2,
-        text: tr('ai.welcome', 'Hello! I\'m your smart travel assistant. How can I help you today?'),
-        sender: 'ai',
-      };
-      setMessages((prev) => [...prev, aiResponse]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: nextId(),
+          text: tr('ai.defaultResponse', "I'm still learning. Soon I'll be able to search flights and hotels for you."),
+          sender: 'ai',
+        },
+      ]);
     }, 1000);
   };
 

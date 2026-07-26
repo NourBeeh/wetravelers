@@ -1,7 +1,9 @@
 // index.js
+import { registerRootComponent } from 'expo';
 import { NativeModules } from 'react-native';
+import App from './App';
 
-// ✅ تصحيح مؤقت لـ PlatformConstants (يعمل مع newArchEnabled=false)
+// تصحيح مؤقت لـ PlatformConstants (يعمل مع newArchEnabled=false)
 try {
   if (!NativeModules.PlatformConstants) {
     NativeModules.PlatformConstants = {
@@ -16,11 +18,8 @@ try {
       }),
     };
   }
-} catch (e) {
+} catch {
   console.warn('PlatformConstants fallback applied');
 }
-
-import { registerRootComponent } from 'expo';
-import App from './App';
 
 registerRootComponent(App);

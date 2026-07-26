@@ -14,8 +14,8 @@ const resources = {
 const initI18n = async () => {
   let savedLanguage = await AsyncStorage.getItem('app-language');
   if (!savedLanguage) {
-    const deviceLang = Localization.locale || 'en';
-    savedLanguage = deviceLang.split('-')[0] === 'ar' ? 'ar' : 'en';
+    const deviceLang = Localization.getLocales()[0]?.languageCode || 'en';
+    savedLanguage = deviceLang === 'ar' ? 'ar' : 'en';
     await AsyncStorage.setItem('app-language', savedLanguage);
   }
 
