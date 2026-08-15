@@ -6,6 +6,7 @@ import 'package:wetravellers/core/domain/models/home/home_section.dart';
 enum AiStatus { idle, loading, success, empty, error }
 
 /// Immutable AI assistant state.
+/// // Immutable AI assistant state.
 ///
 /// Mirrors the `StateNotifier` state shapes used by Home/Search/Auth:
 /// a `status` gate plus the data that each phase needs.

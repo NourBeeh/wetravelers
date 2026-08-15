@@ -9,7 +9,7 @@ import 'ai_state.dart';
 final aiHomeMapperProvider = Provider<AiHomeMapper>((ref) {
   return const AiHomeMapper();
 });
-
+// Memory sync test
 /// Exposes the reactive [AiState] produced by [AiController].
 ///
 /// The controller is wired to the real HTTP `AiAssistantService`; pointing it
