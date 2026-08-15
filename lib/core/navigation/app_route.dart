@@ -1,0 +1,48 @@
+import 'package:flutter/material.dart';
+
+/// Canonical navigation destinations for WeTravellers.
+///
+/// Used by the floating navigation, router and future drag/reorder controllers
+/// so a single source of truth drives labels, icons and ordering.
+enum AppRoute {
+  home('Home', Icons.home_outlined, Icons.home),
+  search('Search', Icons.search_outlined, Icons.search),
+  flights('Flights', Icons.flight_outlined, Icons.flight),
+  hotels('Hotels', Icons.hotel_outlined, Icons.hotel),
+  cars('Cars', Icons.directions_car_outlined, Icons.directions_car),
+  groups('Groups', Icons.groups_outlined, Icons.groups),
+  bag('Bag', Icons.shopping_bag_outlined, Icons.shopping_bag),
+  ai('AI', Icons.auto_awesome_outlined, Icons.auto_awesome),
+  notifications('Notifications', Icons.notifications_none, Icons.notifications),
+  profile('Profile', Icons.person_outline, Icons.person),
+  settings('Settings', Icons.settings_outlined, Icons.settings),
+  auth('Sign in', Icons.login_rounded, Icons.login_rounded);
+
+  const AppRoute(this.label, this.outlinedIcon, this.filledIcon);
+
+  final String label;
+  final IconData outlinedIcon;
+  final IconData filledIcon;
+
+  /// The route segment used to build paths (e.g. `/flights`).
+  String get path => '/$name';
+
+  /// Destinations surfaced in the floating navigation (Settings/Auth are
+  /// reached through the shell rather than the primary radial menu).
+  static const List<AppRoute> primaryDestinations = <AppRoute>[
+    AppRoute.home,
+    AppRoute.search,
+    AppRoute.flights,
+    AppRoute.hotels,
+    AppRoute.cars,
+    AppRoute.groups,
+    AppRoute.bag,
+    AppRoute.ai,
+    AppRoute.notifications,
+    AppRoute.profile,
+    AppRoute.settings,
+  ];
+
+  IconData iconFor({bool selected = false}) =>
+      selected ? filledIcon : outlinedIcon;
+}

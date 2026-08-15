@@ -1,0 +1,22 @@
+{
+  "project": "WeTravellers",
+  "snapshot_date": "2026-08-15",
+  "flutter": "3.44.8",
+  "dart": "3.12.2",
+  "architecture": "feature-first + Riverpod + GoRouter + Repository→UseCase→Controller",
+  "current_phase": 9,
+  "current_phase_status": "COMPLETE",
+  "next_phase": 10,
+  "next_phase_status": "NOT_STARTED",
+  "booking_execution_payment": "NOT_STARTED",
+  "memory_version": "V4",
+  "hard_constraints": [
+    "No deletion of files/directories",
+    "No destructive commands",
+    "No rename without explicit approval",
+    "No new packages without explicit approval",
+    "Preserve HomeCard/HomeSection engine",
+    "Validate Flutter changes with flutter analyze and flutter test",
+    "Do not start next phase without explicit scope"
+  ]
+}

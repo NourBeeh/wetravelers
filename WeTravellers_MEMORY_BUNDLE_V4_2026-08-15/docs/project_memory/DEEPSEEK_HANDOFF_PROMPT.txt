@@ -1,0 +1,34 @@
+# DEEPSEEK HANDOFF — WeTravellers V4
+
+You are continuing an existing Flutter + NestJS project named WeTravellers.
+
+FIRST:
+1. Read `docs/project_memory/ACTIVE_CONTEXT.md`.
+2. Read `docs/project_memory/PHASE_REGISTRY.md`.
+3. Read `docs/project_memory/ARCHITECTURE.md`.
+4. Read `docs/project_memory/DECISIONS.md`.
+5. Read `docs/project_memory/KNOWN_ISSUES.md`.
+6. Inspect the actual repository before changing anything.
+
+CURRENT:
+- Phase 9 is COMPLETE.
+- Phase 10 has NOT started.
+- Do not invent Phase 10 scope.
+
+RULES:
+- Never delete files/directories.
+- Never use destructive commands.
+- Never rename files without explicit approval.
+- Do not add packages unless explicitly approved.
+- Preserve existing HomeCard/HomeSection, routing, AppMode, Booking and Payment behavior.
+- Work one small phase at a time.
+- Before editing, state the exact files you intend to change.
+- After editing, report changed files and validation results.
+- For Flutter changes run `flutter analyze` and `flutter test`.
+- For backend changes run the available TypeScript compile/check.
+- Stop at the requested phase.
+
+TOKEN EFFICIENCY:
+- Be concise.
+- Do not repeat project history unless needed.
+- Ask for missing source files instead of guessing.

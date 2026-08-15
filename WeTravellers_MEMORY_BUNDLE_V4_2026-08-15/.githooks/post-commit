@@ -1,0 +1,5 @@
+#!/bin/sh
+# Safe post-commit memory refresh.
+# It only updates memory files; it does not delete or rename project files.
+ROOT="$(git rev-parse --show-toplevel)"
+python3 "$ROOT/tools/update_project_memory.py" || true
