@@ -1,0 +1,61 @@
+#!/bin/sh
+
+set -e
+
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+MEMORY_DIR="$PROJECT_ROOT/WeTravellers_MEMORY_BUNDLE_V4_2026-08-15"
+MEMORY_ZIP="$PROJECT_ROOT/WeTravellers_MEMORY_BUNDLE_V4_2026-08-15.zip"
+STATUS_FILE="$MEMORY_DIR/PROJECT_GIT_STATUS.md"
+
+if [ ! -d "$MEMORY_DIR" ]; then
+    echo "[WeTravellers] Memory bundle not found. Skipping."
+    exit 0
+fi
+
+BRANCH="$(git branch --show-current)"
+PROJECT_STATUS="$(git status --short)"
+RECENT_COMMITS="$(git log -10 --oneline --decorate 2>/dev/null || true)"
+
+cat > "$STATUS_FILE" <<STATUS
+# WeTravellers — Automatic Project State
+
+Updated automatically before Git commit.
+
+## Current Branch
+
+- Branch: $BRANCH
+
+## Repository Status Before Commit
+
+\`\`\`
+$PROJECT_STATUS
+\`\`\`
+
+## Recent Commits
+
+\`\`\`
+$RECENT_COMMITS
+\`\`\`
+
+## Project Root
+
+$PROJECT_ROOT
+
+## Memory Bundle
+
+This directory is automatically packaged before each commit.
+STATUS
+
+cd "$PROJECT_ROOT"
+
+TEMP_ZIP="$MEMORY_ZIP.tmp"
+
+rm -f "$TEMP_ZIP"
+zip -qr "$TEMP_ZIP" "$(basename "$MEMORY_DIR")"
+mv -f "$TEMP_ZIP" "$MEMORY_ZIP"
+
+git add "$STATUS_FILE" "$MEMORY_ZIP"
+
+echo "[WeTravellers] Memory bundle prepared for commit."
+
+exit 0
