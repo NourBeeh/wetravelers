@@ -61,7 +61,6 @@ const SYSTEM_PROMPT = [
             rating: 4.5,
             reviewCount: 100,
             badge: 'optional',
-            highlights: ['optional'],
             tags: ['optional'],
             actionLabel: 'optional',
             rawPrice: 100,
@@ -73,7 +72,7 @@ const SYSTEM_PROMPT = [
       },
     ],
   }),
-].join('\n');
+].join("\n");
 
 /**
  * Real OpenAI-compatible AI provider (Phase 9).
@@ -147,9 +146,67 @@ export class OpenAiAiProvider implements AiProvider {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Normalization: raw LLM output → AiResponseDto (provider-agnostic).
-// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------// Normalization: raw LLM output → AiResponseDto (provider-agnostic).// ---------------------------------------------------------------------------//
+
+/**
+ * Extracts pure JSON from the model's response, handling various formats:
+ * - Fenced code blocks (```json ... ``` or ``` ... ```)
+ * - Inline JSON at the start of the response
+ * - Strips leading/trailing whitespace and commentary
+ */
+export function extractJsonContent(content: string): string {
+  const trimmed = content.trim();
+
+  // 1. Try to extract from fenced code blocks (```json ... ``` or ``` ... ```)
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fencedMatch) {
+    return fencedMatch[1].trim();
+  }
+
+  // 2. Try to find the first { ... } balanced pair (simple approach)
+  //    This handles cases where the model returns text before/after the JSON.
+  const firstBrace = trimmed.indexOf('{');
+  const lastBrace = trimmed.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    const candidate = trimmed.substring(firstBrace, lastBrace + 1);
+    // Quick check: if it starts with { and has key-value pairs, treat as JSON candidate
+    if (candidate.startsWith('{')) {
+      return candidate;
+    }
+  }
+
+  // 3. Return trimmed content as-is (caller will attempt JSON parse)
+  return trimmed;
+}
+
+export function tryParseJson(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+export function asRecord(value: unknown): Record<string, any> | null {
+  return value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value)
+    ? (value as Record<string, any>)
+    : null;
+}
+
+export function asString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+export function asNumber(value: unknown): number | undefined {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  return undefined;
+}
 
 /**
  * Parses and hard-normalizes the model's JSON answer into an [AiResponseDto].
@@ -157,13 +214,27 @@ export class OpenAiAiProvider implements AiProvider {
  * Anything outside the contract (bad card types, malformed items, unsupported
  * layouts) is dropped rather than propagated, so the Flutter contract can
  * never see provider-specific shapes.
+ *
+ * Safety rules:
+ * - Never returns raw provider output verbatim.
+ * - Falls back to a safe, provider-agnostic text when parsing fails.
+ * - Strips any provider-identifying metadata from the fallback.
  */
 export function normalizeAiResponse(content: string): AiResponseDto {
-  const parsed = tryParseJson(extractJsonContent(content));
+  const jsonContent = extractJsonContent(content);
+  const parsed = tryParseJson(jsonContent);
   const record = asRecord(parsed);
   if (!record) {
-    return { text: content.trim() || undefined, sections: [], metadata: {} };
+    // Parsing failed entirely - return safe fallback with no provider leakage.
+    return {
+      text: "I received a response from the AI assistant, but I couldn't parse the suggestions at this time. Please try again.",
+      sections: [],
+      metadata: { queryId: randomUUID(), version: 1, parseFallback: true },
+    };
   }
+
+  // Ensure text is a clean string (fallback if missing or non-string)
+  const text = asString(record.text) || "I received a response from the AI assistant.";
 
   const sections: AiSectionDto[] = [];
   if (Array.isArray(record.sections)) {
@@ -174,45 +245,10 @@ export function normalizeAiResponse(content: string): AiResponseDto {
   }
 
   return {
-    text: asString(record.text),
+    text,
     sections,
     metadata: { queryId: randomUUID(), version: 1 },
   };
-}
-
-function extractJsonContent(content: string): string {
-  const trimmed = content.trim();
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
-  return fenced ? fenced[1].trim() : trimmed;
-}
-
-function tryParseJson(value: string): unknown {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
-}
-
-function asRecord(value: unknown): Record<string, any> | null {
-  return value !== null &&
-    typeof value === 'object' &&
-    !Array.isArray(value)
-    ? (value as Record<string, any>)
-    : null;
-}
-
-function asString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
-}
-
-function asNumber(value: unknown): number | undefined {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : undefined;
-  }
-  return undefined;
 }
 
 function toSection(value: unknown): AiSectionDto | null {
@@ -244,20 +280,6 @@ function toSection(value: unknown): AiSectionDto | null {
     }
   }
   return section;
-}
-
-function toAction(value: unknown): AiActionDto | null {
-  const record = asRecord(value);
-  if (!record) return null;
-  const type = asString(record.type);
-  if (!type) return null;
-
-  const action: AiActionDto = { type };
-  const label = asString(record.label);
-  if (label !== undefined) action.label = label;
-  const payload = asRecord(record.payload);
-  if (payload) action.payload = payload;
-  return action;
 }
 
 function toItem(value: unknown): AiItemDto | null {
@@ -318,4 +340,18 @@ function toItem(value: unknown): AiItemDto | null {
   }
 
   return item;
+}
+
+function toAction(value: unknown): AiActionDto | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const type = asString(record.type);
+  if (!type) return null;
+
+  const action: AiActionDto = { type };
+  const label = asString(record.label);
+  if (label !== undefined) action.label = label;
+  const payload = asRecord(record.payload);
+  if (payload) action.payload = payload;
+  return action;
 }
