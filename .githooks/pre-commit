@@ -1,147 +1,62 @@
 #!/bin/sh
-
 set -e
 
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
-MEMORY_DIR="$PROJECT_ROOT/WeTravellers_MEMORY_BUNDLE_V4_2026-08-15"
-MEMORY_ZIP="$PROJECT_ROOT/WeTravellers_MEMORY_BUNDLE_V4_2026-08-15.zip"
-STATUS_FILE="$MEMORY_DIR/PROJECT_GIT_STATUS.md"
-
-PROJECT_MEMORY_DIR="$PROJECT_ROOT/PROJECT_MEMORY"
-CURRENT_STATE="$PROJECT_MEMORY_DIR/03_CURRENT_STATE.md"
-AI_HANDOFF="$PROJECT_MEMORY_DIR/09_AI_HANDOFF.md"
+MEMORY_DIR="$PROJECT_ROOT/PROJECT_MEMORY"
+MEMORY_ZIP="$PROJECT_ROOT/WeTravellers_PROJECT_MEMORY_SYSTEM.zip"
+STATUS_FILE="$MEMORY_DIR/03_CURRENT_STATE.md"
+GIT_STATUS_FILE="$MEMORY_DIR/09_AI_HANDOFF.md"
 
 if [ ! -d "$MEMORY_DIR" ]; then
-    echo "[WeTravellers] Memory bundle not found. Skipping memory bundle."
+    echo "[WeTravellers] PROJECT_MEMORY not found. Skipping memory sync."
     exit 0
 fi
 
 BRANCH="$(git branch --show-current)"
-PROJECT_STATUS="$(git status --short)"
 RECENT_COMMITS="$(git log -10 --oneline --decorate 2>/dev/null || true)"
-COMMIT_DATE="$(date '+%Y-%m-%d %H:%M:%S %z')"
+PROJECT_STATUS="$(git status --short)"
 
-# ------------------------------------------------------------
-# 1. Update technical Git state
-# ------------------------------------------------------------
+cat >> "$STATUS_FILE" <<STATUS
 
-cat > "$STATUS_FILE" <<STATUS
-# WeTravellers — Automatic Project State
-
-Updated automatically before Git commit.
-
-## Current Branch
-
+---
+## Automatic Git Sync
 - Branch: $BRANCH
-- Prepared: $COMMIT_DATE
+- Last sync before commit
+- Repository status captured automatically
 
-## Repository Status Before Commit
-
-\`\`\`
-$PROJECT_STATUS
-\`\`\`
-
-## Recent Commits
-
+### Recent commits
 \`\`\`
 $RECENT_COMMITS
 \`\`\`
 
-## Project Root
-
-$PROJECT_ROOT
-
-## Memory Bundle
-
-This directory is automatically packaged before each commit.
+### Pending status
+\`\`\`
+$PROJECT_STATUS
+\`\`\`
 STATUS
 
-# ------------------------------------------------------------
-# 2. Update CURRENT_STATE only with technical Git metadata.
-#    Do NOT overwrite project knowledge written by AI/human.
-# ------------------------------------------------------------
+cat >> "$GIT_STATUS_FILE" <<STATUS
 
-if [ -f "$CURRENT_STATE" ]; then
-    TMP_STATE="$CURRENT_STATE.tmp"
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
 
-    awk '
-    BEGIN {skip=0}
-    /^<!-- AUTO_GIT_STATE_START -->$/ {skip=1; next}
-    /^<!-- AUTO_GIT_STATE_END -->$/ {skip=0; next}
-    !skip {print}
-    ' "$CURRENT_STATE" > "$TMP_STATE"
+Branch: $BRANCH
 
-    cat >> "$TMP_STATE" <<STATE
-
-<!-- AUTO_GIT_STATE_START -->
-## Automatic Git State
-
-- Branch: $BRANCH
-- Last commit observed before this commit: $(git rev-parse --short HEAD 2>/dev/null || echo "none")
-- Repository status before commit: see \`PROJECT_GIT_STATUS.md\`
-- Memory synchronization timestamp: $COMMIT_DATE
-<!-- AUTO_GIT_STATE_END -->
-STATE
-
-    mv "$TMP_STATE" "$CURRENT_STATE"
-fi
-
-# ------------------------------------------------------------
-# 3. Update AI_HANDOFF technical footer only.
-#    Existing handoff content is preserved.
-# ------------------------------------------------------------
-
-if [ -f "$AI_HANDOFF" ]; then
-    TMP_HANDOFF="$AI_HANDOFF.tmp"
-
-    awk '
-    BEGIN {skip=0}
-    /^<!-- AUTO_GIT_HANDOFF_START -->$/ {skip=1; next}
-    /^<!-- AUTO_GIT_HANDOFF_END -->$/ {skip=0; next}
-    !skip {print}
-    ' "$AI_HANDOFF" > "$TMP_HANDOFF"
-
-    cat >> "$TMP_HANDOFF" <<HANDOFF
-
-<!-- AUTO_GIT_HANDOFF_START -->
-## Automatic Git Handoff Metadata
-
-- Branch: $BRANCH
-- Last known commit: $(git rev-parse --short HEAD 2>/dev/null || echo "none")
-- Sync timestamp: $COMMIT_DATE
-- Repository status: see \`PROJECT_GIT_STATUS.md\`
-- Full project memory: \`PROJECT_MEMORY/01_MASTER_MEMORY.md\`
-- Agent execution context: \`PROJECT_MEMORY/02_AGENT_MEMORY.md\`
-- Current state: \`PROJECT_MEMORY/03_CURRENT_STATE.md\`
-- Next steps: \`PROJECT_MEMORY/08_NEXT_STEPS.md\`
-- DeepSeek context: \`PROJECT_MEMORY/10_DEEPSEEK_CONTEXT.md\`
-<!-- AUTO_GIT_HANDOFF_END -->
-HANDOFF
-
-    mv "$TMP_HANDOFF" "$AI_HANDOFF"
-fi
-
-# ------------------------------------------------------------
-# 4. Rebuild legacy memory ZIP
-# ------------------------------------------------------------
+Recent commits:
+\`\`\`
+$RECENT_COMMITS
+\`\`\`
+STATUS
 
 cd "$PROJECT_ROOT"
 
 TEMP_ZIP="$MEMORY_ZIP.tmp"
 
-rm -f "$TEMP_ZIP"
-zip -qr "$TEMP_ZIP" "$(basename "$MEMORY_DIR")"
+zip -qr "$TEMP_ZIP" "PROJECT_MEMORY"
 mv -f "$TEMP_ZIP" "$MEMORY_ZIP"
 
-# ------------------------------------------------------------
-# 5. Stage ONLY generated memory state.
-#    Never stage the whole repository automatically.
-# ------------------------------------------------------------
-
-git add "$STATUS_FILE" "$MEMORY_ZIP"
-
-[ -f "$CURRENT_STATE" ] && git add "$CURRENT_STATE"
-[ -f "$AI_HANDOFF" ] && git add "$AI_HANDOFF"
+git add "$MEMORY_DIR" "$MEMORY_ZIP"
 
 echo "[WeTravellers] Memory state synchronized."
 echo "[WeTravellers] Memory bundle prepared for commit."

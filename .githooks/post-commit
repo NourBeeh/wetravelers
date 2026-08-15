@@ -1,12 +1,12 @@
 #!/bin/sh
-
 set -e
 
 COMMIT_HASH="$(git rev-parse --short HEAD)"
 COMMIT_MESSAGE="$(git log -1 --format=%s)"
 
-echo "[WeTravellers] Memory bundle committed successfully."
+echo "[WeTravellers] Commit completed."
 echo "[WeTravellers] Commit: $COMMIT_HASH"
 echo "[WeTravellers] Message: $COMMIT_MESSAGE"
+echo "[WeTravellers] Working tree should remain clean."
 
 exit 0
