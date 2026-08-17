@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'ai_parsing.dart';
 import 'ai_section.dart';
 
 /// Top-level contract for an AI assistant response.
@@ -28,18 +29,18 @@ class AiResponse {
 
   factory AiResponse.fromMap(Map<String, dynamic> map) {
     final sections = <AiSection>[];
-    final rawSections = map['sections'] as List? ?? const [];
-    for (final entry in rawSections) {
-      if (entry is Map<String, dynamic>) {
-        sections.add(AiSection.fromMap(entry));
+    for (final entry in asList(map['sections'])) {
+      // Accept any map shape: a payload decoded outside `jsonDecode` can carry
+      // `Map<dynamic, dynamic>` entries, which a `Map<String, dynamic>` test
+      // would silently drop.
+      if (entry is Map) {
+        sections.add(AiSection.fromMap(asStringKeyedMap(entry)));
       }
     }
     return AiResponse(
       text: map['text']?.toString() ?? map['content']?.toString(),
       sections: sections,
-      metadata: map['metadata'] is Map
-          ? Map<String, dynamic>.from(map['metadata'] as Map)
-          : const {},
+      metadata: asStringKeyedMap(map['metadata']),
     );
   }
 }

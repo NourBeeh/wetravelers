@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:wetravellers/core/ai/ai_assistant_service.dart';
+import 'package:wetravellers/core/network/api_error.dart';
 
 import '../domain/ai_home_mapper.dart';
 import 'ai_state.dart';
@@ -56,7 +57,7 @@ class AiController extends StateNotifier<AiState> {
       state = AiState(
         status: AiStatus.error,
         currentPrompt: trimmed,
-        errorMessage: error.toString(),
+        errorMessage: _userFacingMessage(error),
       );
     }
   }
@@ -66,4 +67,40 @@ class AiController extends StateNotifier<AiState> {
 
   /// Returns the controller to its pristine idle state.
   void reset() => state = const AiState();
+
+  /// Translates a thrown failure into a message that is safe to display.
+  ///
+  /// [AiState.errorMessage] is rendered verbatim on the AI surface
+  /// (`ai_response_content.dart` → `_AiErrorState`), while `HttpApiClient`
+  /// stores the whole HTTP response body in [ApiError.message] and socket
+  /// failures carry the host and port. Publishing `error.toString()` therefore
+  /// put raw transport, backend and exception text on screen — including the
+  /// backend's `AI_API_KEY is missing` configuration notice.
+  ///
+  /// Reuses the existing [ApiError] hierarchy rather than introducing a new
+  /// error type. The switch is exhaustive over the sealed class, so adding a
+  /// new [ApiError] subtype fails the build instead of silently leaking again.
+  static String _userFacingMessage(Object error) {
+    if (error is ApiError) {
+      return switch (error) {
+        ApiTimeoutError() =>
+          'The assistant took too long to respond. Please try again.',
+        ApiNetworkError() =>
+          'No connection to the assistant. Check your internet and try again.',
+        ApiUnauthorizedError() =>
+          'Your session has expired. Please sign in and try again.',
+        ApiParseError() =>
+          'The assistant sent an unexpected reply. Please try again.',
+        ApiServerError() =>
+          'The assistant is temporarily unavailable. Please try again shortly.',
+        ApiClientError() =>
+          'That request could not be handled. Please rephrase and try again.',
+        ApiUnknownError() => _genericMessage,
+      };
+    }
+    return _genericMessage;
+  }
+
+  static const String _genericMessage =
+      'Something went wrong. Please try again.';
 }

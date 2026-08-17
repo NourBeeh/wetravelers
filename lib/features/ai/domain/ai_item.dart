@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
 
 import 'ai_action.dart';
+import 'ai_parsing.dart';
 
 /// Parses the canonical card-type string used by the AI contract, mirroring
 /// the home repository fallback so unknown types render as a plain deal.
@@ -29,16 +30,11 @@ HomeCardType _parseCardType(String? s) {
   }
 }
 
-Map<String, dynamic> _asMap(Object? value) =>
-    value is Map ? Map<String, dynamic>.from(value) : const {};
-
 List<AiAction> _parseActions(Object? value) {
   final actions = <AiAction>[];
-  if (value is List) {
-    for (final entry in value) {
-      if (entry is Map<String, dynamic>) {
-        actions.add(AiAction.fromMap(entry));
-      }
+  for (final entry in asList(value)) {
+    if (entry is Map) {
+      actions.add(AiAction.fromMap(asStringKeyedMap(entry)));
     }
   }
   return actions;
@@ -111,19 +107,19 @@ class AiItem {
       subtitle: map['subtitle']?.toString(),
       description: map['description']?.toString(),
       imageUrl: map['imageUrl']?.toString(),
-      price: double.tryParse(map['price']?.toString() ?? ''),
+      price: asDouble(map['price']),
       currency: map['currency']?.toString(),
-      rating: double.tryParse(map['rating']?.toString() ?? ''),
-      reviewCount: int.tryParse(map['reviewCount']?.toString() ?? ''),
+      rating: asDouble(map['rating']),
+      reviewCount: asInt(map['reviewCount']),
       badge: map['badge']?.toString(),
-      highlights: (map['highlights'] as List?)?.map((e) => e.toString()).toList() ?? const [],
-      tags: (map['tags'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+      highlights: asStringList(map['highlights']),
+      tags: asStringList(map['tags']),
       actionLabel: map['action']?.toString() ?? map['actionLabel']?.toString(),
-      rawPrice: double.tryParse(map['rawPrice']?.toString() ?? ''),
-      order: int.tryParse(map['order']?.toString() ?? ''),
-      data: _asMap(map['data']),
+      rawPrice: asDouble(map['rawPrice']),
+      order: asInt(map['order']),
+      data: asStringKeyedMap(map['data']),
       actions: _parseActions(map['actions']),
-      metadata: _asMap(map['metadata']),
+      metadata: asStringKeyedMap(map['metadata']),
     );
   }
 }

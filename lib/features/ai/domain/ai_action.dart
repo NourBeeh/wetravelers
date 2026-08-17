@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'ai_parsing.dart';
+
 /// Future action metadata carried by an AI card/item.
 ///
 /// Purely a contract: typed, safe payload a later tap handler can turn into
@@ -25,9 +27,7 @@ class AiAction {
     return AiAction(
       type: map['type']?.toString() ?? '',
       label: map['label']?.toString(),
-      payload: map['payload'] is Map
-          ? Map<String, dynamic>.from(map['payload'] as Map)
-          : const {},
+      payload: asStringKeyedMap(map['payload']),
     );
   }
 }

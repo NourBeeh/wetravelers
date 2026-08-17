@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
@@ -9,7 +9,7 @@ import {
   AiResponseDto,
   AiSectionDto,
 } from '../../common/dto/ai.dto';
-import { AiProvider } from './ai.provider';
+import { AiProvider, AiProviderFailure } from './ai.provider';
 
 const ALLOWED_CARD_TYPES: ReadonlySet<string> = new Set([
   'hotel',
@@ -31,6 +31,7 @@ const ALLOWED_LAYOUTS: ReadonlySet<AiSectionDto['layout']> = new Set([
 
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
 const DEFAULT_MODEL = 'gpt-4o-mini';
+const REQUEST_TIMEOUT_MS = 30_000;
 
 /**
  * Instructs the model to answer with ONLY plain JSON matching the
@@ -105,31 +106,55 @@ export class OpenAiAiProvider implements AiProvider {
   async generate(prompt: string): Promise<AiResponseDto> {
     const key = this.apiKey;
     if (!key) {
-      throw new ServiceUnavailableException(
+      // A missing key is a deployment mistake, not a transient outage: failing
+      // fast surfaces the misconfiguration instead of quietly serving fallback
+      // answers forever.
+      throw new AiProviderFailure(
         'AI provider is not configured: AI_API_KEY is missing.',
+        { category: 'not_configured' },
       );
     }
 
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        temperature: 0.2,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: prompt },
-        ],
-      }),
-      signal: AbortSignal.timeout(30_000),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          model: this.model,
+          temperature: 0.2,
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: prompt },
+          ],
+        }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    } catch (cause) {
+      // Connection refused, DNS failure, TLS failure or the abort timeout.
+      // The cause is deliberately not interpolated: it can carry the resolved
+      // host and port. Both cases are transient, so a fallback is allowed.
+      const timedOut = cause instanceof Error && cause.name === 'TimeoutError';
+      throw new AiProviderFailure(
+        timedOut
+          ? 'AI provider request timed out.'
+          : 'AI provider could not be reached.',
+        { category: timedOut ? 'timeout' : 'network' },
+      );
+    }
 
     if (!response.ok) {
-      throw new ServiceUnavailableException(
+      // 5xx is transient and may be retried elsewhere; 4xx means the request
+      // itself was rejected, so another provider would fail the same way.
+      throw new AiProviderFailure(
         `AI provider request failed (HTTP ${response.status}).`,
+        {
+          category: response.status >= 500 ? 'upstream_5xx' : 'upstream_4xx',
+          upstreamStatus: response.status,
+        },
       );
     }
 
@@ -138,8 +163,9 @@ export class OpenAiAiProvider implements AiProvider {
     };
     const content: unknown = payload?.choices?.[0]?.message?.content;
     if (typeof content !== 'string' || content.trim().length === 0) {
-      throw new ServiceUnavailableException(
+      throw new AiProviderFailure(
         'AI provider returned an empty completion.',
+        { category: 'empty_completion', upstreamStatus: response.status },
       );
     }
     return normalizeAiResponse(content);

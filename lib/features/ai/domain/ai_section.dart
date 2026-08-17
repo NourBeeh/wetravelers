@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
 
 import 'ai_item.dart';
+import 'ai_parsing.dart';
 
 /// Parses the layout string, reusing the home section vocabulary.
 HomeSectionLayout _parseLayout(String? s) {
@@ -49,10 +50,9 @@ class AiSection {
 
   factory AiSection.fromMap(Map<String, dynamic> map) {
     final items = <AiItem>[];
-    final rawItems = map['items'] as List? ?? const [];
-    for (final entry in rawItems) {
-      if (entry is Map<String, dynamic>) {
-        items.add(AiItem.fromMap(entry));
+    for (final entry in asList(map['items'])) {
+      if (entry is Map) {
+        items.add(AiItem.fromMap(asStringKeyedMap(entry)));
       }
     }
     return AiSection(
@@ -61,10 +61,8 @@ class AiSection {
       subtitle: map['subtitle']?.toString(),
       layout: _parseLayout(map['layout']?.toString()),
       items: items,
-      order: int.tryParse(map['order']?.toString() ?? ''),
-      metadata: map['metadata'] is Map
-          ? Map<String, dynamic>.from(map['metadata'] as Map)
-          : const {},
+      order: asInt(map['order']),
+      metadata: asStringKeyedMap(map['metadata']),
     );
   }
 }
