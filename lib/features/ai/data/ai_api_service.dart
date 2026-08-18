@@ -18,10 +18,12 @@ class AiApiService implements AiAssistantService {
   static const String _queryPath = '/ai/query';
 
   @override
-  Future<AiResponse> query(String prompt) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
     final result = await _client.post<Map<String, dynamic>>(
       _queryPath,
       body: <String, dynamic>{'prompt': prompt},
+      timeout: timeout,
+      token: token,
     );
 
     final map = result.when(

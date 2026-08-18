@@ -26,6 +26,7 @@ String userFacingMessage(Object error, {String subject = 'request'}) {
       ApiServerError() =>
         'The service is temporarily unavailable. Please try again shortly.',
       ApiClientError() => 'That request could not be handled. Please try again.',
+      ApiRequestCancelledError() => 'Request cancelled.',
       ApiUnknownError() => _genericMessage,
     };
   }

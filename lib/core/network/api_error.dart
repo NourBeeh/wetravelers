@@ -56,3 +56,8 @@ class ApiUnauthorizedError extends ApiError {
 class ApiUnknownError extends ApiError {
   const ApiUnknownError({super.message, super.cause});
 }
+
+/// The request was cancelled by the caller before completion.
+class ApiRequestCancelledError extends ApiError {
+  const ApiRequestCancelledError({super.message, super.cause});
+}

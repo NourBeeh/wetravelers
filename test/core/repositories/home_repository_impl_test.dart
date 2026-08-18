@@ -24,6 +24,7 @@ class _HomeApiClient implements ApiClient {
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) async => ApiResult.success(payload as T);
 
   @override
@@ -32,6 +33,7 @@ class _HomeApiClient implements ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) => _unsupported();
 
   @override
@@ -40,6 +42,7 @@ class _HomeApiClient implements ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) => _unsupported();
 
   @override
@@ -48,14 +51,15 @@ class _HomeApiClient implements ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) => _unsupported();
 
   @override
   Future<ApiResult<T>> delete<T>(
     String path, {
-    Map<String, String>? queryParameters,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) => _unsupported();
 
   @override

@@ -38,8 +38,9 @@ class HttpApiClient implements ApiClient {
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) async {
-    return _request<T>('GET', path, queryParameters: queryParameters, headers: headers, timeout: timeout);
+    return _request<T>('GET', path, queryParameters: queryParameters, headers: headers, timeout: timeout, token: token);
   }
 
   @override
@@ -48,8 +49,9 @@ class HttpApiClient implements ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) async {
-    return _request<T>('POST', path, body: body, headers: headers, timeout: timeout);
+    return _request<T>('POST', path, body: body, headers: headers, timeout: timeout, token: token);
   }
 
   @override
@@ -58,8 +60,9 @@ class HttpApiClient implements ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) async {
-    return _request<T>('PUT', path, body: body, headers: headers, timeout: timeout);
+    return _request<T>('PUT', path, body: body, headers: headers, timeout: timeout, token: token);
   }
 
   @override
@@ -68,8 +71,9 @@ class HttpApiClient implements ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) async {
-    return _request<T>('PATCH', path, body: body, headers: headers, timeout: timeout);
+    return _request<T>('PATCH', path, body: body, headers: headers, timeout: timeout, token: token);
   }
 
   @override
@@ -77,8 +81,9 @@ class HttpApiClient implements ApiClient {
     String path, {
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) async {
-    return _request<T>('DELETE', path, headers: headers, timeout: timeout);
+    return _request<T>('DELETE', path, headers: headers, timeout: timeout, token: token);
   }
 
   @override
@@ -93,8 +98,13 @@ class HttpApiClient implements ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   }) async {
     try {
+      if (token?.isCancelled == true) {
+        return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
+      }
+
       final uri = Uri.parse(baseUrl).resolve(path);
       final finalUri = queryParameters != null
           ? uri.replace(queryParameters: {...uri.queryParameters, ...queryParameters})
@@ -116,7 +126,15 @@ class HttpApiClient implements ApiClient {
         return ApiResult.failure(ApiTimeoutError(message: 'Request timed out', cause: e));
       }
 
+      if (token?.isCancelled == true) {
+        return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
+      }
+
       final responseBody = await response.transform(utf8.decoder).join();
+
+      if (token?.isCancelled == true) {
+        return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
+      }
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         dynamic data;
@@ -124,6 +142,9 @@ class HttpApiClient implements ApiClient {
           data = jsonDecode(responseBody);
         } catch (_) {
           return ApiResult.failure(ApiParseError(message: 'Invalid JSON response', cause: responseBody));
+        }
+        if (token?.isCancelled == true) {
+          return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
         }
         return ApiResult.success(data as T);
       } else {

@@ -6,6 +6,7 @@ import '../core/widgets/floating_navigation/floating_navigation.dart';
 import '../core/widgets/command_bar/command_bar.dart';
 import '../core/navigation/app_route.dart';
 import '../features/ai/presentation/pages/ai_visual_shell_page.dart';
+import '../features/ai/presentation/widgets/ai_bottom_sheet.dart';
 import '../shared/providers/app_mode_provider.dart';
 
 /// The application shell.
@@ -64,8 +65,9 @@ class WeTravellersShell extends ConsumerWidget {
                   } else if (text.toLowerCase().contains('car') || text.toLowerCase().contains('cars')) {
                     context.go(AppRoute.cars.path);
                   } else {
-                    // fallback: open AI mode
-                    // toggling app mode is out of scope here; rely on existing AppMode controls
+                    // fallback: open AI bottom sheet with the prompt
+                    // Uses the mock AI assistant for prototypes; Phase 14B will switch to backend.
+                    showAiBottomSheet(context, text);
                   }
                 },
               ),

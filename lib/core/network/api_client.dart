@@ -18,6 +18,17 @@ class ApiResponse<T> {
 /// Phase 1 defines the abstraction only — no concrete HTTP client or Provider
 /// is wired yet. Implementations translate platform errors into [ApiError] and
 /// always return an [ApiResult].
+/// Token used to allow callers to cancel an in-flight request.
+///
+/// Usage: create a token before issuing a request, pass it down to the
+/// ApiClient.post/get/... implementation and call [cancel] when the caller
+/// wants to discard the result and optionally abort handling.
+class RequestToken {
+  bool _cancelled = false;
+  void cancel() => _cancelled = true;
+  bool get isCancelled => _cancelled;
+}
+
 abstract interface class ApiClient {
   /// Base URL all relative paths are resolved against.
   String get baseUrl;
@@ -33,6 +44,7 @@ abstract interface class ApiClient {
     Map<String, String>? queryParameters,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   });
 
   Future<ApiResult<T>> post<T>(
@@ -40,6 +52,7 @@ abstract interface class ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   });
 
   Future<ApiResult<T>> put<T>(
@@ -47,6 +60,7 @@ abstract interface class ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   });
 
   Future<ApiResult<T>> patch<T>(
@@ -54,12 +68,14 @@ abstract interface class ApiClient {
     Object? body,
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   });
 
   Future<ApiResult<T>> delete<T>(
     String path, {
     Map<String, String>? headers,
     Duration? timeout,
+    RequestToken? token,
   });
 
   /// Translates an arbitrary thrown error into the closest [ApiError].

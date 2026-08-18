@@ -95,6 +95,7 @@ class AiController extends StateNotifier<AiState> {
           'The assistant is temporarily unavailable. Please try again shortly.',
         ApiClientError() =>
           'That request could not be handled. Please rephrase and try again.',
+        ApiRequestCancelledError() => 'Request cancelled.',
         ApiUnknownError() => _genericMessage,
       };
     }

@@ -1,3 +1,4 @@
+import 'package:wetravellers/core/network/api_client.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
 
 /// AI assistant service boundary.
@@ -14,5 +15,8 @@ abstract interface class AiAssistantService {
   Future<String> generateContent({required String prompt});
 
   /// Requests a full structured [AiResponse] for [prompt].
-  Future<AiResponse> query(String prompt);
+  ///
+  /// [token] optionally allows callers to cancel/ignore the request before
+  /// completion; [timeout] overrides the default client timeout for this call.
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout});
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wetravellers/core/ai/ai_assistant_service.dart';
+import 'package:wetravellers/core/network/api_client.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
 import 'package:wetravellers/core/network/api_error.dart';
 import 'package:wetravellers/features/ai/application/ai_controller.dart';
@@ -37,7 +38,7 @@ class _ThrowingAiService implements AiAssistantService {
   int calls = 0;
 
   @override
-  Future<AiResponse> query(String prompt) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
     calls++;
     throw error;
   }
@@ -67,7 +68,7 @@ class _FailThenSucceedAiService implements AiAssistantService {
   final List<String> prompts = <String>[];
 
   @override
-  Future<AiResponse> query(String prompt) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
     calls++;
     prompts.add(prompt);
     if (calls == 1) {
@@ -106,7 +107,7 @@ class _StaticAiService implements AiAssistantService {
   int calls = 0;
 
   @override
-  Future<AiResponse> query(String prompt) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
     calls++;
     return response;
   }
