@@ -2,7 +2,7 @@
 
 ## Integrated delivery roadmap
 
-> **Current position: 11B1 is complete. Next pending phase: 11B2.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
+> **Current position: Phase 13 implemented. Next pending phase: Phase 14 (UI prototype done — Phase 14B: backend integration pending).** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
 
 | Phase | Outcome | External need at this phase |
 |---|---|---|

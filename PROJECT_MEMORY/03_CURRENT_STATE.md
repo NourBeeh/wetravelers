@@ -1,35 +1,39 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**AI Phases 1–10 complete. Phase 11 is active.**
+**AI Phases 1–10 complete. Phases 11B1, 11C, Phase 12 and Phase 13 implemented. Phase 14 UI prototype added.**
 
 ## Last confirmed AI state
 - AI visual shell exists.
-- AI prompt input exists.
-- AI state/controller exists.
-- AI response contract exists.
-- AI-to-Home mapper exists.
-- Mock AI path existed as a development path.
-- NestJS `POST /ai/query` exists.
-- Provider abstraction exists.
-- OpenAI-compatible real provider is bound.
-- Runtime requires `AI_API_KEY`.
-- No live request was confirmed without a real key.
+- AI prompt input exists (persistent CommandBar wired into shell).
+- AI state/controller exists and is test-covered.
+- AI response contract exists (AiResponse) and mapper (AiHomeMapper) is in place.
+- AI Bottom Sheet UI prototype implemented (lib/features/ai/presentation/widgets/ai_bottom_sheet.dart) and wired to CommandBar fallback.
+- Mock AI path available and used as a safe fallback for UI prototypes.
+- NestJS `POST /ai/query` endpoint and AiApiService integration exist in code, but live requests require runtime AI_API_KEY.
+- Provider abstraction exists; provider wiring supports swapping the mock and the HTTP AiApiService at provider level.
 - Phase 10 sub-phases 10A–10D are complete (commit `eda9668e`).
-- Phase 11A cache/local-database foundation is complete according to the latest repository history.
-- 11B1 Home schema mismatch is complete: backend DTO/service and Flutter repository now share tested Home wire-shape coverage.
-- **Next pending task: 11B2 — remaining verified TypeScript errors.**
+- 11B1 Home schema contract and 11C search error sanitization are complete and tested.
+- Phase 12 (Home Marketplace) UI delivered and tested for the HomeController changes.
+- Phase 13 (Floating/Orbital Navigation + persistent CommandBar) implemented and committed.
+- Phase 14A (AI Bottom Sheet UI prototype) implemented and committed (commit f2170a7c).
+- Unit and integration tests around the AI parsing/controller passed locally after these changes.
 
 ## Immediate next action
 
-Do not start 11B2 without an explicit instruction.
+- Next pending technical milestone: Phase 14B — backend integration for AI (wire CommandBar/AI sheet to AiApiService with runtime AI_API_KEY and add robust error/cancellation handling).
+- Do not enable real backend calls until an AI_API_KEY is provided and environment/secrets are in place.
+- Recommended short tasks before Phase 14B: add a StateNotifier (AiSheetController) to replace the one-off FutureBuilder, add cancellation/timeouts for HTTP requests, and add widget tests for the Bottom Sheet.
 
-11B1 validation completed:
+11B1/11C validation summary (already passing):
 1. `backend/test/home.schema.spec.ts` passed.
-2. `npm run build` passed in `backend/`.
+2. `npm run build` passed in `backend/` when last verified.
 3. `test/core/repositories/home_repository_impl_test.dart` passed.
 
-The broader `flutter analyze` baseline still requires cleanup under the separately scoped 11B2 work; it is not part of the Home contract fix.
+Notes:
+- `flutter analyze` produces non-blocking warnings (deprecated APIs, unused imports); these should be addressed separately (low priority hygiene).
+- Last local AI-related commit: f2170a7c (AI bottom sheet wiring and safe error handling). Test run after the commit: AI-related tests passed locally.
+- Copilot Chat in VS Code had a connectivity issue earlier (ERR_CONNECTION_TIMED_OUT) — unrelated to runtime code but noted for developer UX.
 
 ## Do not assume
 - Do not assume the historical 55-test baseline is still current.
@@ -315,5 +319,33 @@ be7b5898 chore: finalize synchronized memory state
 ```
  M lib/app/shell.dart
 A  lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+?? lib/features/ai/application/ai_mock_providers.dart
+```
+
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+f2170a7c (HEAD -> main) AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
+eebecb3b feat(ui): add persistent command bar and integrate floating navigation (phase 13)\n\nPhase 13: Floating/Orbital Navigation + persistent command bar\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
+e06e1f64 eda9668e feat(ai): complete phases 10a-10d
+e580b4b7 cache
+eda9668e feat(ai): complete phases 10a-10d
+35381a1e (flint-gigantoraptor) feat(ai): complete phases 10a 10b and 10d
+d2fa72bc chore: fix automatic memory synchronization
+be7b5898 chore: finalize synchronized memory state
+5ff9bfa1 chore: add AI handoff helper
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/08_NEXT_STEPS.md
+ M lib/app/shell.dart
 ?? lib/features/ai/application/ai_mock_providers.dart
 ```
