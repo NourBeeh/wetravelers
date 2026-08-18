@@ -44,7 +44,8 @@ void main() {
     final controller = HomeController(repo);
     await Future.delayed(Duration.zero);
     expect(controller.state.status, HomeStatus.error);
-    expect(controller.state.errorMessage, contains('err'));
+    expect(controller.state.errorMessage, contains('No connection'));
+    expect(controller.state.errorMessage, isNot(contains('err')));
   });
 
   test('HomeController refresh triggers repo refresh', () async {

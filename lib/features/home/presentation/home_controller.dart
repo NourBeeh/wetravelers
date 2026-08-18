@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wetravellers/core/domain/models/home/home_section.dart';
+import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/repositories/contracts/home_repository.dart';
 
 enum HomeStatus { loading, success, empty, error, partial }
@@ -54,10 +55,11 @@ class HomeController extends StateNotifier<HomeState> {
         }
       },
       failure: (error) {
+        final message = userFacingMessage(error, subject: 'home feed');
         if (state.sections.isEmpty) {
-          state = state.copyWith(status: HomeStatus.error, errorMessage: error.toString(), isRefreshing: false);
+          state = state.copyWith(status: HomeStatus.error, errorMessage: message, isRefreshing: false);
         } else {
-          state = state.copyWith(status: HomeStatus.partial, errorMessage: error.toString(), isRefreshing: false);
+          state = state.copyWith(status: HomeStatus.partial, errorMessage: message, isRefreshing: false);
         }
       },
     );
