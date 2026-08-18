@@ -1,0 +1,1149 @@
+From c3d6391a728ecd68ee5f78772a5d2ea3957f5852 Mon Sep 17 00:00:00 2001
+From: wetravelers <MNOUR728@GMAIL.COM>
+Date: Wed, 19 Aug 2026 02:33:45 +0300
+Subject: [PATCH 1/2] fix(test): update mocks to match ApiClient RequestToken
+ signature
+
+fix test mocks to accept RequestToken? token and Duration? timeout
+---
+ PROJECT_MEMORY/03_CURRENT_STATE.md            |  38 +++
+ PROJECT_MEMORY/09_AI_HANDOFF.md               |  20 ++
+ WeTravellers_PROJECT_MEMORY_SYSTEM.zip        | Bin 28035 -> 28241 bytes
+ lib/app/shell.dart                            |   6 +-
+ lib/core/ai/ai_assistant_service.dart         |   6 +-
+ lib/core/network/api_client.dart              |  16 ++
+ lib/core/network/api_error.dart               |   5 +
+ lib/core/network/http_api_client.dart         |  31 ++-
+ lib/core/network/user_facing_message.dart     |   1 +
+ .../ai/application/ai_controller.dart         |   1 +
+ .../ai/application/ai_mock_providers.dart     |   6 +
+ lib/features/ai/data/ai_api_service.dart      |   4 +-
+ .../ai/data/mock_ai_assistant_service.dart    |   3 +-
+ .../presentation/widgets/ai_bottom_sheet.dart | 221 ++++++++++++++----
+ .../home_repository_impl_test.dart            |   6 +-
+ test/features/ai/ai_bottom_sheet_test.dart    | 218 +++++++++++++++++
+ .../features/ai/ai_controller_error_test.dart |   7 +-
+ 17 files changed, 532 insertions(+), 57 deletions(-)
+ create mode 100644 lib/features/ai/application/ai_mock_providers.dart
+ create mode 100644 test/features/ai/ai_bottom_sheet_test.dart
+
+diff --git a/PROJECT_MEMORY/03_CURRENT_STATE.md b/PROJECT_MEMORY/03_CURRENT_STATE.md
+index e0b25fff..13625958 100644
+--- a/PROJECT_MEMORY/03_CURRENT_STATE.md
++++ b/PROJECT_MEMORY/03_CURRENT_STATE.md
+@@ -349,3 +349,41 @@ M  PROJECT_MEMORY/08_NEXT_STEPS.md
+  M lib/app/shell.dart
+ ?? lib/features/ai/application/ai_mock_providers.dart
+ ```
++
++---
++## Automatic Git Sync
++- Branch: main
++- Last sync before commit
++- Repository status captured automatically
++
++### Recent commits
++```
++2cb8cc93 (HEAD -> main) PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
++f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
++eebecb3b feat(ui): add persistent command bar and integrate floating navigation (phase 13)\n\nPhase 13: Floating/Orbital Navigation + persistent command bar\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
++24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
++e06e1f64 eda9668e feat(ai): complete phases 10a-10d
++e580b4b7 cache
++eda9668e feat(ai): complete phases 10a-10d
++35381a1e (flint-gigantoraptor) feat(ai): complete phases 10a 10b and 10d
++d2fa72bc chore: fix automatic memory synchronization
++be7b5898 chore: finalize synchronized memory state
++```
++
++### Pending status
++```
++M  lib/app/shell.dart
++M  lib/core/ai/ai_assistant_service.dart
++M  lib/core/network/api_client.dart
++M  lib/core/network/api_error.dart
++M  lib/core/network/http_api_client.dart
++M  lib/core/network/user_facing_message.dart
++M  lib/features/ai/application/ai_controller.dart
++A  lib/features/ai/application/ai_mock_providers.dart
++M  lib/features/ai/data/ai_api_service.dart
++M  lib/features/ai/data/mock_ai_assistant_service.dart
++M  lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
++M  test/core/repositories/home_repository_impl_test.dart
++A  test/features/ai/ai_bottom_sheet_test.dart
++M  test/features/ai/ai_controller_error_test.dart
++```
+diff --git a/PROJECT_MEMORY/09_AI_HANDOFF.md b/PROJECT_MEMORY/09_AI_HANDOFF.md
+index eddac65a..5d86ac08 100644
+--- a/PROJECT_MEMORY/09_AI_HANDOFF.md
++++ b/PROJECT_MEMORY/09_AI_HANDOFF.md
+@@ -223,3 +223,23 @@ d2fa72bc chore: fix automatic memory synchronization
+ be7b5898 chore: finalize synchronized memory state
+ 5ff9bfa1 chore: add AI handoff helper
+ ```
++
++---
++## Automatic Git Sync
++This handoff was synchronized automatically before the latest commit.
++
++Branch: main
++
++Recent commits:
++```
++2cb8cc93 (HEAD -> main) PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
++f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
++eebecb3b feat(ui): add persistent command bar and integrate floating navigation (phase 13)\n\nPhase 13: Floating/Orbital Navigation + persistent command bar\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
++24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
++e06e1f64 eda9668e feat(ai): complete phases 10a-10d
++e580b4b7 cache
++eda9668e feat(ai): complete phases 10a-10d
++35381a1e (flint-gigantoraptor) feat(ai): complete phases 10a 10b and 10d
++d2fa72bc chore: fix automatic memory synchronization
++be7b5898 chore: finalize synchronized memory state
++```
+diff --git a/WeTravellers_PROJECT_MEMORY_SYSTEM.zip b/WeTravellers_PROJECT_MEMORY_SYSTEM.zip
+index e53f8d65ae55163d62b292861ab1336bacf99c1c..29450ee299df59f3483c7eff24a54cb8f4e82079 100644
+GIT binary patch
+delta 4796
+zcmV;t5<~5S+X2zs0gzJ;Hxv_HBJ(t%fCT^mOdpY9DhAo>glaD1k&z;Q2OWtZs3Oyr
+znp$#oKvE!pyj%{Yt$8ZBl%rntA^L=UlFpJkM79#N7ey3624qRQGrM#6ev%?zz<Zoz
+zY>8orSq^{y`4@Eh(CZAYhS%4c_TmLxCmFDqg)1pI3u#sxA@d#0ynuVdoZWWD6L&Pb
+zb#I5GUoRs6UbEDMJ?l<?M<aJInT;o%iCa$CYN9r~>vhKNtk)k;HXb!KQJ-~2-Clp<
+zb|=$O<xp4SjoFpk?T`Dz!MGf3sKMs!-C+2BFzb)UQ@0v#s`1ur;C@hhx_8y6Hd$Z{
+zBF<Cf666Abaam9v8Ky}tWRk7G!yw5JBK9ESIq;B)C<o>xg#=!IWEsZvp7?lCmScp!
+z7a~I+XgVc}AWNbr^|{Luzu;JwXo;B!1etGE$|aL{u8M@8C=`hClZ14^avG!p<vdC0
+z6ICP-A?6T@2Mkw~z%mJ!=%1^a@FdP<#zZXhb5)Kd3x&_5NMf3bA{P5JPUT?Al8YQ^
+zE96CKkW#oQMNLhAy+TaKh!2<DP{ero%Ol2Biv1`}GRb18T_q4F66Rt_b&Ee+hRszj
+zjAqCT79yuYmg)ONl)|H`IipQ@kyGlD<qw;UMGhDz#e6|qm4B~)&~@lcC&SrIe==Kx
+zr=S^4K-b@>cshklBFc}$jgZiz{E{GmTa=8lW}2qM+l<A3eBn?FMND6RX1RoiIC-oJ
+zBBTTLAZU95Gii3biaAITA+;h(9k2|mp&KpTY=B`nHN&YJ@XD|agKS4TN>t;D+<_bs
+z?(as!p9s`4W(D}PqD_bEA`DfozbV`zjL6g3nO7>gJSZEgLRr*Zk*Rx<=s4hS%{n(q
+zTYK)^&j~w!;B-imIt&zlxx_R-;POmP`j(n6M`s$OSaNXPceCzrFrgJn-@~1D2UlgE
+zHC@-AH(T|JBuvyS)@^@eIpj3D$dXw6L3FW=0}I2gmX**$Dnl;U1Q2d}kkCPlSHf1a
+zxuf0R-)kN=y?U$Nf|otFLt(usZO?!&XibL{NiwH@J@@yonp{;~+hDeFVZN`9r<>px
+z7^awM4WofR+9s#~o$45|+9k4GQYGKC4A16`=4M3^5nUw5ea0$Vn|rJom^Szc&#TR&
+zB9ua}<oe8o+8$}VRjbzn)8A$J>3Jw#5&I!(cAYnE!{4T-c70;fvMjr4w2iNr_;ufI
+zQ=nUa6FU7sk&>9Hoclp)Eyn$}Vb%VPt!m*hVB}i?Yg!)vB1Q)ayo;qgknd1DvG>i`
+zI~Jboy4^CFiTgaALqO+ksn5ln&cR8>Qu=oW0W$fLi8Dv7k%lO-y1K~0G#I@+I+6SI
+z?(Z-?ary1JJQmi_XYEF#g-?%NU&TsSIPEBZJ#qP+aCtP))mw&F^P102n2axQhvbRD
+z?~TEu0gMW0294TN!2SbTTSiY%9wC&+0-9B;H*36MJq2xgcQfi-xiIYm{qBY72e=sx
+z@5bd9c-y%tKlFyTF1+tgdg><97TFV{$H(Zg;D+cS_iXRr)mowYrRqYJ$OXw{?X6mW
+z<*}@68TA_H8SP6yCK8G%o<q!*)co=W)XTETVA^LN<B##(`ileCYun3V<_XC{80>sr
+zePKJbLO0PVc~xFt_f`&clT?I>gx7R^T(37Qv;As4^kb3JDi<-Crs3*hF65%{E@-(o
+zJBgh%b@ZA#7M%o^*)&-5*&Ufq-vKXwk+cuw3q)By|41_tv21l2(7qny4?rj`1;=xc
+ztCZrpE@YA6+d_msX6K+t)dR+rb}-A5EZ@oUq{EXA|1TXLi?%H8wK#9vPqnrGRKQu^
+zWZQoZR+cv2K7jxhNX%djxOHjTmu9U4k4g5hlkiEiC(Rz8W|b2D0Z>Z=1QY<X@dd;M
+z0>luLw+l7~U*&{qU*)s&3oIKBHxv_Hzi_~E=?ee=TsV{OWEPV{Cl?0U>x61w<&$71
+z6@M$Y5`Fhq=+u6J9qjQ1b8%A1G2j46xD=RNs!}y*W@M}|w~S_BJ5TwCbG|TNa#l-o
+zGZ@>Xaw?>X)Xv`axYcTP_gdZ3=mYyfj1&GKd|xDr{qg&M+2PIA)#!Z8uE)disL}ZF
+zfqlnS%I?GHF=Xykxc6}+!?f}7<M5PSPJg))igo_@{Xd;HbE6>kMJih5^UgtM3x6MO
+znJ28%WjyqXFFht{Kp?_Yc&*~;HoG}xaT29bI*SG4o`)YleymJ!qi`aVKzIxmsFbIo
+z(WH+LQf1s{YKqk`@ky#wwahQj7Q`u&VVtG;FKi>mit!1Pv%@F|VAlap*rQCK7=H_l
+zjH1n4g`UU4)M*ltvkEn|9I03;RN8c-2Z7P~h(xG33b7(Rh`ZIyLwS||wyDPlJccp!
+z{3Hs*nf|s(T4l&$pSvR0co3y&6tL^55b3;=YJOxJzI3dK;AsX6EH14W|KcZ}$|$rR
+zrFSP%dTu*fovlb+%i~FEtT7(I`hRO)nQ-5CxO-2AoJH=vb}CP&j6ZPcbH^8YXr?fd
+z!zoPhi6}?0NtDdltK)JGmwj{1ZZ9vc$BgX!H519~mWj~Q8KyN3<uI1lB6*Omps0wu
+zM6bj6k{sklp4egz0_)2M0k1<1d6_<7B`nFpR0aYT+r!IK``gh^H2Gx`J%30KPUnu&
+z!6|jB&&f{nBU~ZFJEpQYjuPlpkBALDNvDDZ<Oi~mzMPE5m-EK*w9?}XAWTndQoIe7
+zPBYFy(jIE~95J4V5<_eQp8}b(TjBBjot-^#t5cC6#VAdf0vH2cWfz$Os4*pY;!c@J
+z5_nzlP^R)X<Fh&a+H!cx<bP`k&ke2nj3@UZ)w#Dxk@EyOm-3<-rlYFYjuD3yFx)8*
+z?@WkGoNs*XN3bEhvn~=xra<XAe~@>^tk2j&C~nSWHO*^0GH>zr5V%<ajU`%27f-sK
+z-8SEKwS#ZqFoWt^wxv3ycoJoKymkJ=XsoEl2{BiM06%h(`7_2RsejNeA`&RPLNs<7
+zfW0ILg@xi1X4C1{(3rs27zofwCfsQ#p^634hXGM22IaC3G+7h6#1mU7EHH0_a9nez
+zMI@%(18C1>>Z1gZpTk5u0qo0?$jN{;olus`Ll?AYrox&$AEs)@9YrjRAQoymNCfOI
+z%p-RwMl<-(TAu?Xmw%(g1V@AqGKoS8m!*W82<>(;$Anjc;s(7Kqox2ROS!sN%n?|+
+zs5~^#)^m1E)O{YMav}}O>MW@;c9T4k2(4cS7mjX5lL`AeBMv>tqz@2pX>Il8Tja1P
+zgN5XB%>V`aY?aP4e48gwftY%>A|nXX7D4xc`_eP6RT%=8%zxMh_u)!!rgMv2J!o`V
+z>^AqTMS86%0N65g&{DB*TdBIubFtOvLOP5C3NTm_ODTRLpO$)V+2d4%%%}Papp&aG
+zwuiBL1{aRC;G#&$G)g4u3e9PkPi8iu%qCe~Nvi1^aJ*0hgza|XXDI=Khuok2CT=P6
+zUgm-V!zgSzK!43WrTrsMLi~$5=?RoBmlITxFK}uW>I#Foh>kZu&#{Fh$b1j+Cy%4p
+zk&F_+Cx!xs8-DbNxg-ovXKXsVlOhy4Wpz8D(TbdGCc@Wq8CDpSw4e#b6w4ezd0n6w
+z>q2L^wn76N!x7r!B?XjPYZIBIm?sS~>oAI?4=5c@xqmKk-(TaAColn}Gx#PHV2lS^
+zjZ`Yb{5<h>ZjY|6?8A%m^U>k>^y1tepPr45?2DW6re=#QEN6~Nz*GIy<rCn|N!_Dz
+z6;Vra^P?fG9NVxo3q*x=^Ib1*3jT(J$(8+nlU4@wE0m2;5Xcpv?=v?`5+J+vOaqdh
+zlla`?o_~w!3Xfob7d+^Z9IT>?_H$7uiYS|`n9qnzAST>QBg;?@5|6$$HMp=y{ofb=
+zYNFA)8DH4Pr(;`p!1VXkm^GVUk{^Z{k^lg8*)ghwCKjUYg9NlN9iWkuVUbpOZHXKO
+zniXEbPAME!=0blm*>@(qqe-oRl5RD#lFkZQC4U5ZrK^i?5Zltco9kBK-BME~0zGsF
+zJHVes#is~ET@Vjgx82=ow)dKy9oB9Sw%db#n|;>qwc86<Jvu+qYi=}~%>@g`G%qZh
+zESNWa;o@8#6SpFt3&oWDlxrV|-zj2dv})Ym-ZmVu>-6{b_t2h<hOq2QJ?AE>D&_%F
+zC4VSI{w8Ychw32riH=g?>S73SGct)VOH_|mANk(cY40GjdL0eTfnmZ~Wn-z5*1y|r
+zJ3V)2x6lYyLM0QFT)!ZN=VW`X!*?fWguKXAX7V8OQ`zKqwA5!q&<h0(cW=AjpLD!x
+zm7kuQ;-Dk(MWfeucYAHGT%HcYyvSa++ke|_@3)tTczv(84?{~4><n2Jdzv%mjcn|3
+z*V}J*x7U%S5bDrg=B<s%0{#4qvDO_r5a3l=NE6yd>9m>uArZxMt?X^2rPrPC-LB)l
+zn3f9y_5`9;YQN|5-<Hd3<fps~p@zN{Et5)ID?lCb%`O}DGUT#_KgG5WZCGPi$$#rc
+z3O^ScwxU&gO9|cU_x3uxBjyu&i%n3+)8-v^Y$3EmXN0bq&KNeh+#FP!%5qD~@xNoX
+zq;0Rl$vZIqeqgLf_99(d*ow8pCr**AKacS*7S#GhAx1C50f}zDQHC!StHWifpfdZ_
+z<#KDousqT#V7NeLnx=89wzpm;YkwL&?ns|n*Fq46K0S`(aqI(zdI!m+T^%3joztQb
+zUPLG)VRKTjhM+`l8L{CqvHT2U4TZ&N<{F|()U3qx+Cy_5sIS`Ao2P2)_|gc9g<Xrq
+z>Jj<kYJzWwX^T_6r>(<MQf(5MRvi7#%Ks2nUXyZ($|y%b3@&%4!u-7sL4Vf8SJG}>
+zxW=h(2^{^swzKW*KI^N=<_bFRSox=6Wd#t5<BhY?*~QgQR=Z=L4X?+etNcML@D@pR
+z?cwq0e7sz!XXh_A%>l;?Qrq_B$?$q)pPXKgU)Hr}pO1bdMWf5>#Uh=yeKf+aqtUl?
+z9yf+~E?9rxnoHXUH|Iy+jeqR#x9#$frf*RQtlZ<a@uD?69G`wa`YSaao(#{AN8eo>
+z{}sxN@2*D2@LuV>h5cl$e}bZWk<jKIq#;_fz<+@fy)?3rSJM_gEMT{ql*^Nrc?-5$
+z7QApbP1hEmMyc?ZOBZLE7M)P0bXLwYPo}mX-L>?i*;<420XtUWy?=U8(SN;S9JmGb
+z<rM?Un)He>;8pcXyE3(GilU&=s`Hm1RXNN1Uj61G6zOA>+-r6AguB!g2C#<qF$?=y
+z6X3a4z3N!0f+n^RS=qj?&}7o@FH)wH^Cex+n&e#B!nG`GuJds(S-!^57wmkajXG*=
+zXR@>Xv=@0r7gDw}?|=Qv8|+`+dy*Gx9T;_Sja$XMt6oo+)bQFD%WsJpy4(HTZFi^p
+zlo@U=kFSPDBf5q%JU?PLKeFSii_2^Mg&ho!^@o#-vl08@bbJDMR2=h8DsPWeR`3HA
+zXcS~i-xi!Za?`n8+_!VhMI77ViAC=d?uCd~3f4X^ZU{8~=6~+@nYM97AMt!x42I0H
+z7uUO@`TAYL{q0w6;Rx61ISY^1GD>brqT0Q)+|^*NWbXDC0F_@|V_|h=Z6nTawr&0#
+z{u~z9+y-pzYi_maNW)>&q^%8n;5D7upu7R{MYr4Q_jkIT{m=48|E3;RwdiG3?9cQI
+z(#&Z=-Io;~y?+zXn<t=Uq{7aYkjkIB*xUH(t5vTd=r*fe?CR8;!*g{PYaY+T)4}}J
+zEV}0uCz9^YS>^rXygAuobR*PzdasWV)ik?8bCXL|^zqIY?|kw9;)_>qJl5MSJlzK@
+zCX;_WA9P)3&vo~EPx)Zp9fSPBM{)7cgh!`?zIY96#eXWlqgmX5w>mwGZk5x4QAIoN
+zJoC;oZ;xkQzco3l?KsR^a=KQIVIdvmnJxS?!Q%Lo$I^CvNjG?x%IM^NSwz3dUq{#4
+z$F-|(RV?V9)*!q^*Bp4twcBF3&|%MHwceF}{&Q{J*`GZ{dEv%HeTJI!vwh&oI~<gN
+z{{v7<0|5k+acdZ}-!e8f4mT7NT_W=|p@0Pd08Af~BWXAS+3S<RYax?<X&M3|29ug;
+zTmyCp0Fzt@D3c*-A|b>O6J3%m?E|S8000*}0018V7ytkO00031005+c;tK$i$O|F`
+z1potI<&(i{A(O0X8Uy4c0F%ljB$MrGA|E#t6J5V>z;fve003M#001HY7ytkO00031
+z006XsOp`8aDgxQ-lfi2plXq(#1CcWTli)HWle}v{0nn5EYi0uiIslVVIVF>eY(N4p
+WW0TEnVgjXQlQC^f27+k-0001uIXS@q
+
+delta 4592
+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
+XjV&_A!xl7WkNo4I4Q_D$_lo}jvU|dx
+
+diff --git a/lib/app/shell.dart b/lib/app/shell.dart
+index 428497a5..0785cd42 100644
+--- a/lib/app/shell.dart
++++ b/lib/app/shell.dart
+@@ -6,6 +6,7 @@ import '../core/widgets/floating_navigation/floating_navigation.dart';
+ import '../core/widgets/command_bar/command_bar.dart';
+ import '../core/navigation/app_route.dart';
+ import '../features/ai/presentation/pages/ai_visual_shell_page.dart';
++import '../features/ai/presentation/widgets/ai_bottom_sheet.dart';
+ import '../shared/providers/app_mode_provider.dart';
+ 
+ /// The application shell.
+@@ -64,8 +65,9 @@ class WeTravellersShell extends ConsumerWidget {
+                   } else if (text.toLowerCase().contains('car') || text.toLowerCase().contains('cars')) {
+                     context.go(AppRoute.cars.path);
+                   } else {
+-                    // fallback: open AI mode
+-                    // toggling app mode is out of scope here; rely on existing AppMode controls
++                    // fallback: open AI bottom sheet with the prompt
++                    // Uses the mock AI assistant for prototypes; Phase 14B will switch to backend.
++                    showAiBottomSheet(context, text);
+                   }
+                 },
+               ),
+diff --git a/lib/core/ai/ai_assistant_service.dart b/lib/core/ai/ai_assistant_service.dart
+index 416024fb..dff9adfa 100644
+--- a/lib/core/ai/ai_assistant_service.dart
++++ b/lib/core/ai/ai_assistant_service.dart
+@@ -1,3 +1,4 @@
++import 'package:wetravellers/core/network/api_client.dart';
+ import 'package:wetravellers/features/ai/domain/ai_response.dart';
+ 
+ /// AI assistant service boundary.
+@@ -14,5 +15,8 @@ abstract interface class AiAssistantService {
+   Future<String> generateContent({required String prompt});
+ 
+   /// Requests a full structured [AiResponse] for [prompt].
+-  Future<AiResponse> query(String prompt);
++  ///
++  /// [token] optionally allows callers to cancel/ignore the request before
++  /// completion; [timeout] overrides the default client timeout for this call.
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout});
+ }
+\ No newline at end of file
+diff --git a/lib/core/network/api_client.dart b/lib/core/network/api_client.dart
+index 2771a892..c66297d0 100644
+--- a/lib/core/network/api_client.dart
++++ b/lib/core/network/api_client.dart
+@@ -18,6 +18,17 @@ class ApiResponse<T> {
+ /// Phase 1 defines the abstraction only — no concrete HTTP client or Provider
+ /// is wired yet. Implementations translate platform errors into [ApiError] and
+ /// always return an [ApiResult].
++/// Token used to allow callers to cancel an in-flight request.
++///
++/// Usage: create a token before issuing a request, pass it down to the
++/// ApiClient.post/get/... implementation and call [cancel] when the caller
++/// wants to discard the result and optionally abort handling.
++class RequestToken {
++  bool _cancelled = false;
++  void cancel() => _cancelled = true;
++  bool get isCancelled => _cancelled;
++}
++
+ abstract interface class ApiClient {
+   /// Base URL all relative paths are resolved against.
+   String get baseUrl;
+@@ -33,6 +44,7 @@ abstract interface class ApiClient {
+     Map<String, String>? queryParameters,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   });
+ 
+   Future<ApiResult<T>> post<T>(
+@@ -40,6 +52,7 @@ abstract interface class ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   });
+ 
+   Future<ApiResult<T>> put<T>(
+@@ -47,6 +60,7 @@ abstract interface class ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   });
+ 
+   Future<ApiResult<T>> patch<T>(
+@@ -54,12 +68,14 @@ abstract interface class ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   });
+ 
+   Future<ApiResult<T>> delete<T>(
+     String path, {
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   });
+ 
+   /// Translates an arbitrary thrown error into the closest [ApiError].
+diff --git a/lib/core/network/api_error.dart b/lib/core/network/api_error.dart
+index 127f5222..5caf1e0e 100644
+--- a/lib/core/network/api_error.dart
++++ b/lib/core/network/api_error.dart
+@@ -55,4 +55,9 @@ class ApiUnauthorizedError extends ApiError {
+ /// Any other, unclassified failure.
+ class ApiUnknownError extends ApiError {
+   const ApiUnknownError({super.message, super.cause});
++}
++
++/// The request was cancelled by the caller before completion.
++class ApiRequestCancelledError extends ApiError {
++  const ApiRequestCancelledError({super.message, super.cause});
+ }
+\ No newline at end of file
+diff --git a/lib/core/network/http_api_client.dart b/lib/core/network/http_api_client.dart
+index 46ca7533..806d8dc7 100644
+--- a/lib/core/network/http_api_client.dart
++++ b/lib/core/network/http_api_client.dart
+@@ -38,8 +38,9 @@ class HttpApiClient implements ApiClient {
+     Map<String, String>? queryParameters,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) async {
+-    return _request<T>('GET', path, queryParameters: queryParameters, headers: headers, timeout: timeout);
++    return _request<T>('GET', path, queryParameters: queryParameters, headers: headers, timeout: timeout, token: token);
+   }
+ 
+   @override
+@@ -48,8 +49,9 @@ class HttpApiClient implements ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) async {
+-    return _request<T>('POST', path, body: body, headers: headers, timeout: timeout);
++    return _request<T>('POST', path, body: body, headers: headers, timeout: timeout, token: token);
+   }
+ 
+   @override
+@@ -58,8 +60,9 @@ class HttpApiClient implements ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) async {
+-    return _request<T>('PUT', path, body: body, headers: headers, timeout: timeout);
++    return _request<T>('PUT', path, body: body, headers: headers, timeout: timeout, token: token);
+   }
+ 
+   @override
+@@ -68,8 +71,9 @@ class HttpApiClient implements ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) async {
+-    return _request<T>('PATCH', path, body: body, headers: headers, timeout: timeout);
++    return _request<T>('PATCH', path, body: body, headers: headers, timeout: timeout, token: token);
+   }
+ 
+   @override
+@@ -77,8 +81,9 @@ class HttpApiClient implements ApiClient {
+     String path, {
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) async {
+-    return _request<T>('DELETE', path, headers: headers, timeout: timeout);
++    return _request<T>('DELETE', path, headers: headers, timeout: timeout, token: token);
+   }
+ 
+   @override
+@@ -93,8 +98,13 @@ class HttpApiClient implements ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) async {
+     try {
++      if (token?.isCancelled == true) {
++        return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
++      }
++
+       final uri = Uri.parse(baseUrl).resolve(path);
+       final finalUri = queryParameters != null
+           ? uri.replace(queryParameters: {...uri.queryParameters, ...queryParameters})
+@@ -116,8 +126,16 @@ class HttpApiClient implements ApiClient {
+         return ApiResult.failure(ApiTimeoutError(message: 'Request timed out', cause: e));
+       }
+ 
++      if (token?.isCancelled == true) {
++        return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
++      }
++
+       final responseBody = await response.transform(utf8.decoder).join();
+ 
++      if (token?.isCancelled == true) {
++        return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
++      }
++
+       if (response.statusCode >= 200 && response.statusCode < 300) {
+         dynamic data;
+         try {
+@@ -125,6 +143,9 @@ class HttpApiClient implements ApiClient {
+         } catch (_) {
+           return ApiResult.failure(ApiParseError(message: 'Invalid JSON response', cause: responseBody));
+         }
++        if (token?.isCancelled == true) {
++          return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
++        }
+         return ApiResult.success(data as T);
+       } else {
+         final code = response.statusCode;
+diff --git a/lib/core/network/user_facing_message.dart b/lib/core/network/user_facing_message.dart
+index 84d38967..c378753f 100644
+--- a/lib/core/network/user_facing_message.dart
++++ b/lib/core/network/user_facing_message.dart
+@@ -26,6 +26,7 @@ String userFacingMessage(Object error, {String subject = 'request'}) {
+       ApiServerError() =>
+         'The service is temporarily unavailable. Please try again shortly.',
+       ApiClientError() => 'That request could not be handled. Please try again.',
++      ApiRequestCancelledError() => 'Request cancelled.',
+       ApiUnknownError() => _genericMessage,
+     };
+   }
+diff --git a/lib/features/ai/application/ai_controller.dart b/lib/features/ai/application/ai_controller.dart
+index c39a33a5..1ce87083 100644
+--- a/lib/features/ai/application/ai_controller.dart
++++ b/lib/features/ai/application/ai_controller.dart
+@@ -95,6 +95,7 @@ class AiController extends StateNotifier<AiState> {
+           'The assistant is temporarily unavailable. Please try again shortly.',
+         ApiClientError() =>
+           'That request could not be handled. Please rephrase and try again.',
++        ApiRequestCancelledError() => 'Request cancelled.',
+         ApiUnknownError() => _genericMessage,
+       };
+     }
+diff --git a/lib/features/ai/application/ai_mock_providers.dart b/lib/features/ai/application/ai_mock_providers.dart
+new file mode 100644
+index 00000000..3cf4b3ae
+--- /dev/null
++++ b/lib/features/ai/application/ai_mock_providers.dart
+@@ -0,0 +1,6 @@
++import 'package:flutter_riverpod/flutter_riverpod.dart';
++
++import '../data/mock_ai_assistant_service.dart';
++
++/// Provider for a mock, local-only AiAssistantService used by UI prototypes.
++final aiMockAssistantServiceProvider = Provider.autoDispose((ref) => const MockAiAssistantService());
+diff --git a/lib/features/ai/data/ai_api_service.dart b/lib/features/ai/data/ai_api_service.dart
+index 9d6bafeb..f6d10d4f 100644
+--- a/lib/features/ai/data/ai_api_service.dart
++++ b/lib/features/ai/data/ai_api_service.dart
+@@ -18,10 +18,12 @@ class AiApiService implements AiAssistantService {
+   static const String _queryPath = '/ai/query';
+ 
+   @override
+-  Future<AiResponse> query(String prompt) async {
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+     final result = await _client.post<Map<String, dynamic>>(
+       _queryPath,
+       body: <String, dynamic>{'prompt': prompt},
++      timeout: timeout,
++      token: token,
+     );
+ 
+     final map = result.when(
+diff --git a/lib/features/ai/data/mock_ai_assistant_service.dart b/lib/features/ai/data/mock_ai_assistant_service.dart
+index 8a15c83e..50f3deda 100644
+--- a/lib/features/ai/data/mock_ai_assistant_service.dart
++++ b/lib/features/ai/data/mock_ai_assistant_service.dart
+@@ -1,4 +1,5 @@
+ import 'package:wetravellers/core/ai/ai_assistant_service.dart';
++import 'package:wetravellers/core/network/api_client.dart';
+ import 'package:wetravellers/features/ai/domain/ai_response.dart';
+ 
+ import 'mock_ai_response_data.dart';
+@@ -16,7 +17,7 @@ class MockAiAssistantService implements AiAssistantService {
+   final MockAiResponseSource _source;
+ 
+   @override
+-  Future<AiResponse> query(String prompt) => _source.generate(prompt);
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) => _source.generate(prompt);
+ 
+   @override
+   Future<String> generateContent({required String prompt}) async {
+diff --git a/lib/features/ai/presentation/widgets/ai_bottom_sheet.dart b/lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+index 00c4cb81..eeded13e 100644
+--- a/lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
++++ b/lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+@@ -2,34 +2,165 @@ import 'package:flutter/material.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ 
+ import 'package:wetravellers/core/ai/ai_assistant_service.dart';
++import 'package:wetravellers/core/network/user_facing_message.dart';
++import 'package:wetravellers/core/network/api_client.dart';
+ import 'package:wetravellers/features/ai/application/ai_mock_providers.dart';
+ import 'package:wetravellers/features/ai/application/ai_providers.dart';
++import 'package:wetravellers/features/ai/application/ai_state.dart';
+ import 'package:wetravellers/features/ai/data/mock_ai_response_provider.dart';
++import 'package:wetravellers/features/ai/domain/ai_home_mapper.dart';
+ import 'package:wetravellers/features/ai/domain/ai_response.dart';
+ import 'package:wetravellers/features/home/presentation/widgets/home_section.dart';
+-import 'package:wetravellers/core/network/user_facing_message.dart';
+ 
+-/// Shows a draggable AI bottom sheet over the current surface.
+-Future<void> showAiBottomSheet(BuildContext context, String prompt) async {
+-  final container = ProviderScope.containerOf(context);
+-  final AiAssistantService primary = container.read(aiAssistantServiceProvider);
+-  final AiAssistantService fallback = container.read(aiMockAssistantServiceProvider);
+-  final mapper = container.read(aiHomeMapperProvider);
++class AiSheetController extends StateNotifier<AiState> {
++  AiSheetController({
++    required this.primary,
++    required this.fallback,
++    required this.mapper,
++  }) : super(const AiState());
++
++  final AiAssistantService primary;
++  final AiAssistantService fallback;
++  final AiHomeMapper mapper;
++
++  int _requestVersion = 0;
++  bool _disposed = false;
++
++  Future<void> load(String prompt) async {
++    final trimmed = prompt.trim();
++    if (trimmed.isEmpty) {
++      return;
++    }
++
++    final requestVersion = ++_requestVersion;
++    state = state.copyWith(
++      status: AiStatus.loading,
++      currentPrompt: trimmed,
++      errorMessage: null,
++    );
++
++    try {
++      final token = RequestToken();
++      final response = await _queryWithFallback(trimmed, token: token)
++          .timeout(const Duration(seconds: 30));
++      if (_disposed || requestVersion != _requestVersion) {
++        return;
++      }
++
++      final sections = mapper.toHomeSections(response);
++      state = state.copyWith(
++        status: sections.isEmpty &&
++                (response.text == null || response.text!.trim().isEmpty)
++            ? AiStatus.empty
++            : AiStatus.success,
++        currentPrompt: trimmed,
++        responseText: response.text,
++        sections: sections,
++        errorMessage: null,
++      );
++    } catch (error) {
++      if (_disposed || requestVersion != _requestVersion) {
++        return;
++      }
++      state = state.copyWith(
++        status: AiStatus.error,
++        currentPrompt: trimmed,
++        errorMessage: userFacingMessage(error, subject: 'AI assistant'),
++      );
++    }
++  }
++
++  void cancel() {
++    _requestVersion++;
++    state = const AiState();
++  }
+ 
+-  Future<AiResponse> callPrimaryThenFallback(String p) async {
++  Future<AiResponse> _queryWithFallback(String prompt, {RequestToken? token, Duration? timeout}) async {
+     try {
+-      return await primary.query(p);
+-    } catch (e) {
+-      // Try fallback mock service for UI continuity
++      return await primary.query(prompt, token: token, timeout: timeout);
++    } catch (_) {
+       try {
+-        return await fallback.query(p);
+-      } catch (e2) {
+-        // rethrow original for visibility to the UI
+-        throw e;
++        return await fallback.query(prompt, token: token, timeout: timeout);
++      } catch (error) {
++        throw error;
+       }
+     }
+   }
+ 
++  @override
++  void dispose() {
++    _disposed = true;
++    _requestVersion++;
++    super.dispose();
++  }
++}
++
++final aiSheetControllerProvider =
++    StateNotifierProvider.autoDispose.family<AiSheetController, AiState, String>(
++  (ref, prompt) {
++    final controller = AiSheetController(
++      primary: ref.watch(aiAssistantServiceProvider),
++      fallback: ref.watch(aiMockAssistantServiceProvider),
++      mapper: ref.watch(aiHomeMapperProvider),
++    );
++    Future.microtask(() => controller.load(prompt));
++    return controller;
++  },
++);
++
++class AiBottomSheetContent extends ConsumerWidget {
++  const AiBottomSheetContent({super.key, required this.prompt});
++
++  final String prompt;
++
++  @override
++  Widget build(BuildContext context, WidgetRef ref) {
++    final state = ref.watch(aiSheetControllerProvider(prompt));
++    final controller = ref.read(aiSheetControllerProvider(prompt).notifier);
++
++    final children = switch (state.status) {
++      AiStatus.loading => const [Center(child: CircularProgressIndicator())],
++      AiStatus.error => [Center(child: Text(state.errorMessage ?? 'Something went wrong. Please try again.'))],
++      AiStatus.empty => const [Center(child: Text('No suggestions right now. Try a different prompt.'))],
++      AiStatus.success => [
++          ...state.sections.map(
++            (section) => HomeSectionWidget(section: section),
++          ),
++        ],
++      AiStatus.idle => const [Center(child: CircularProgressIndicator())],
++    };
++
++    return Material(
++      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
++      clipBehavior: Clip.antiAlias,
++      child: Padding(
++        padding: const EdgeInsets.all(12.0),
++        child: Column(
++          children: [
++            if (state.status == AiStatus.error)
++              Align(
++                alignment: Alignment.centerRight,
++                child: TextButton(
++                  onPressed: () => controller.load(state.currentPrompt),
++                  child: const Text('Try again'),
++                ),
++              ),
++            Expanded(
++              child: children.length == 1 && children.first is Center
++                  ? children.first
++                  : ListView(
++                      children: children,
++                    ),
++            ),
++          ],
++        ),
++      ),
++    );
++  }
++}
++
++/// Shows a draggable AI bottom sheet over the current surface.
++Future<void> showAiBottomSheet(BuildContext context, String prompt) async {
+   await showModalBottomSheet(
+     context: context,
+     isScrollControlled: true,
+@@ -38,35 +169,39 @@ Future<void> showAiBottomSheet(BuildContext context, String prompt) async {
+       initialChildSize: 0.3,
+       minChildSize: 0.15,
+       maxChildSize: 0.9,
+-      builder: (context, scrollController) {
+-        return Material(
+-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+-          clipBehavior: Clip.antiAlias,
+-          child: Padding(
+-            padding: const EdgeInsets.all(12.0),
+-            child: FutureBuilder<AiResponse>(
+-              future: callPrimaryThenFallback(prompt) as Future<AiResponse>,
+-              builder: (context, snapshot) {
+-                if (snapshot.connectionState == ConnectionState.waiting) {
+-                  return const Center(child: CircularProgressIndicator());
+-                }
+-                if (snapshot.hasError) {
+-                  final msg = userFacingMessage(snapshot.error ?? 'unknown', subject: 'AI assistant');
+-                  return Center(child: Text(msg));
+-                }
+-                final response = snapshot.data;
+-                if (response == null || response.sections.isEmpty) {
+-                  return const Center(child: Text('No suggestions right now. Try a different prompt.'));
+-                }
+-                final sections = mapper.toHomeSections(response);
+-                return ListView.builder(
+-                  controller: scrollController,
+-                  itemCount: sections.length,
+-                  itemBuilder: (context, index) => HomeSectionWidget(section: sections[index]),
+-                );
++      builder: (sheetContext, scrollController) {
++        return Consumer(
++          builder: (consumerContext, ref, _) {
++            final state = ref.watch(aiSheetControllerProvider(prompt));
++            final sections = state.sections;
++            final content = Padding(
++              padding: const EdgeInsets.all(12.0),
++              child: switch (state.status) {
++                AiStatus.loading => const Center(child: CircularProgressIndicator()),
++                AiStatus.error => Center(
++                    child: Text(
++                      state.errorMessage ??
++                          'Something went wrong. Please try again.',
++                    ),
++                  ),
++                AiStatus.empty => const Center(
++                    child: Text('No suggestions right now. Try a different prompt.'),
++                  ),
++                AiStatus.success => ListView.builder(
++                    controller: scrollController,
++                    itemCount: sections.length,
++                    itemBuilder: (context, index) =>
++                        HomeSectionWidget(section: sections[index]),
++                  ),
++                AiStatus.idle => const Center(child: CircularProgressIndicator()),
+               },
+-            ),
+-          ),
++            );
++            return Material(
++              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
++              clipBehavior: Clip.antiAlias,
++              child: content,
++            );
++          },
+         );
+       },
+     ),
+diff --git a/test/core/repositories/home_repository_impl_test.dart b/test/core/repositories/home_repository_impl_test.dart
+index df2a3da6..2dd2e652 100644
+--- a/test/core/repositories/home_repository_impl_test.dart
++++ b/test/core/repositories/home_repository_impl_test.dart
+@@ -24,6 +24,7 @@ class _HomeApiClient implements ApiClient {
+     Map<String, String>? queryParameters,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) async => ApiResult.success(payload as T);
+ 
+   @override
+@@ -32,6 +33,7 @@ class _HomeApiClient implements ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) => _unsupported();
+ 
+   @override
+@@ -40,6 +42,7 @@ class _HomeApiClient implements ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) => _unsupported();
+ 
+   @override
+@@ -48,14 +51,15 @@ class _HomeApiClient implements ApiClient {
+     Object? body,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) => _unsupported();
+ 
+   @override
+   Future<ApiResult<T>> delete<T>(
+     String path, {
+-    Map<String, String>? queryParameters,
+     Map<String, String>? headers,
+     Duration? timeout,
++    RequestToken? token,
+   }) => _unsupported();
+ 
+   @override
+diff --git a/test/features/ai/ai_bottom_sheet_test.dart b/test/features/ai/ai_bottom_sheet_test.dart
+new file mode 100644
+index 00000000..4549b321
+--- /dev/null
++++ b/test/features/ai/ai_bottom_sheet_test.dart
+@@ -0,0 +1,218 @@
++import 'dart:async';
++
++import 'package:flutter/material.dart';
++import 'package:flutter_riverpod/flutter_riverpod.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++import 'package:wetravellers/core/ai/ai_assistant_service.dart';
++import 'package:wetravellers/core/network/api_client.dart';
++import 'package:wetravellers/core/domain/models/home/home_types.dart';
++import 'package:wetravellers/core/network/api_error.dart';
++import 'package:wetravellers/features/ai/application/ai_mock_providers.dart';
++import 'package:wetravellers/features/ai/application/ai_state.dart';
++import 'package:wetravellers/features/ai/data/mock_ai_assistant_service.dart';
++import 'package:wetravellers/features/ai/data/mock_ai_response_provider.dart';
++import 'package:wetravellers/features/ai/domain/ai_item.dart';
++import 'package:wetravellers/features/ai/domain/ai_response.dart';
++import 'package:wetravellers/features/ai/domain/ai_section.dart';
++import 'package:wetravellers/features/ai/presentation/widgets/ai_bottom_sheet.dart';
++
++class _FakeAiService implements AiAssistantService {
++  _FakeAiService({this.response, this.error});
++
++  final AiResponse? response;
++  final Object? error;
++
++  @override
++  Future<String> generateContent({required String prompt}) async =>
++      response?.text ?? '';
++
++  @override
++  Future<String> generateDescription({
++    required String offerId,
++    required String type,
++  }) async => 'Generated description';
++
++  @override
++  Future<List<String>> recommend({required String context}) async => const [];
++
++  @override
++  Future<List<String>> compareOffers({required List<String> offerIds}) async =>
++      const [];
++
++  @override
++  Future<String> generateOfferSummary({required String offerId}) async =>
++      'Summary';
++
++  @override
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
++    if (error != null) {
++      throw error!;
++    }
++    return response ?? const AiResponse();
++  }
++}
++
++class _FallbackService extends MockAiAssistantService {
++  _FallbackService({this.response, this.error});
++
++  final AiResponse? response;
++  final Object? error;
++
++  @override
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
++    if (error != null) {
++      throw error!;
++    }
++    return response ?? const AiResponse();
++  }
++}
++
++void main() {
++  testWidgets('AI bottom sheet renders success state', (tester) async {
++    final fakeService = _FakeAiService(
++      response: AiResponse(
++        text: 'Two great stays',
++        sections: [
++          AiSection(
++            id: 'recommended',
++            title: 'Recommended stays',
++            items: [
++              AiItem(
++                id: 'hotel-1',
++                type: HomeCardType.hotel,
++                title: 'Seaside Hotel',
++                price: 129,
++                currency: 'USD',
++              ),
++            ],
++          ),
++        ],
++      ),
++    );
++
++    await tester.pumpWidget(
++      ProviderScope(
++        overrides: [
++          aiAssistantServiceProvider.overrideWithValue(fakeService),
++          aiMockAssistantServiceProvider.overrideWithValue(
++            _FallbackService(response: fakeService.response),
++          ),
++        ],
++        child: const MaterialApp(
++          home: Scaffold(
++            body: AiBottomSheetContent(prompt: 'find hotels in Rome'),
++          ),
++        ),
++      ),
++    );
++
++    await tester.pump();
++    expect(find.text('Recommended stays'), findsOneWidget);
++    expect(find.text('Seaside Hotel'), findsOneWidget);
++  });
++
++  testWidgets('AI bottom sheet shows a sanitized error state', (tester) async {
++    final fakeService = _FakeAiService(
++      error: const ApiNetworkError(message: 'SocketException: boom:3000'),
++    );
++
++    await tester.pumpWidget(
++      ProviderScope(
++        overrides: [
++          aiAssistantServiceProvider.overrideWithValue(fakeService),
++          aiMockAssistantServiceProvider.overrideWithValue(
++            _FallbackService(error: fakeService.error),
++          ),
++        ],
++        child: const MaterialApp(
++          home: Scaffold(
++            body: AiBottomSheetContent(prompt: 'find hotels in Rome'),
++          ),
++        ),
++      ),
++    );
++
++    await tester.pump();
++    expect(
++      find.text('No connection. Check your internet and try again.'),
++      findsOneWidget,
++    );
++    expect(find.textContaining('SocketException'), findsNothing);
++  });
++
++  testWidgets('AI bottom sheet cancellation stops stale updates', (tester) async {
++    final completer = Completer<AiResponse>();
++    final fakeService = _FakeAiService();
++    final delayedService = _DelayedAiService(completer);
++    late ProviderContainer container;
++
++    await tester.pumpWidget(
++      ProviderScope(
++        overrides: [
++          aiAssistantServiceProvider.overrideWithValue(delayedService),
++          aiMockAssistantServiceProvider.overrideWithValue(
++            _FallbackService(response: fakeService.response),
++          ),
++        ],
++        child: Builder(
++          builder: (context) {
++            container = ProviderScope.containerOf(context, listen: false);
++            return const MaterialApp(
++              home: Scaffold(
++                body: AiBottomSheetContent(prompt: 'find hotels in Rome'),
++              ),
++            );
++          },
++        ),
++      ),
++    );
++
++    final controller = container.read(aiSheetControllerProvider('find hotels in Rome').notifier);
++    controller.cancel();
++    completer.complete(
++      AiResponse(
++        text: 'Late result',
++        sections: [
++          AiSection(
++            id: 'late-section',
++            title: 'Late section',
++            items: const [],
++          ),
++        ],
++      ),
++    );
++
++    await tester.pump();
++    expect(controller.state.status, AiStatus.idle);
++    expect(find.byType(CircularProgressIndicator), findsOneWidget);
++  });
++}
++
++class _DelayedAiService implements AiAssistantService {
++  _DelayedAiService(this._completer);
++
++  final Completer<AiResponse> _completer;
++
++  @override
++  Future<String> generateContent({required String prompt}) async => '';
++
++  @override
++  Future<String> generateDescription({
++    required String offerId,
++    required String type,
++  }) async => '';
++
++  @override
++  Future<List<String>> recommend({required String context}) async => const [];
++
++  @override
++  Future<List<String>> compareOffers({required List<String> offerIds}) async =>
++      const [];
++
++  @override
++  Future<String> generateOfferSummary({required String offerId}) async => '';
++
++  @override
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) => _completer.future;
++}
+diff --git a/test/features/ai/ai_controller_error_test.dart b/test/features/ai/ai_controller_error_test.dart
+index 31c9a024..fb3c108c 100644
+--- a/test/features/ai/ai_controller_error_test.dart
++++ b/test/features/ai/ai_controller_error_test.dart
+@@ -1,6 +1,7 @@
+ import 'package:flutter_test/flutter_test.dart';
+ 
+ import 'package:wetravellers/core/ai/ai_assistant_service.dart';
++import 'package:wetravellers/core/network/api_client.dart';
+ import 'package:wetravellers/core/domain/models/home/home_types.dart';
+ import 'package:wetravellers/core/network/api_error.dart';
+ import 'package:wetravellers/features/ai/application/ai_controller.dart';
+@@ -37,7 +38,7 @@ class _ThrowingAiService implements AiAssistantService {
+   int calls = 0;
+ 
+   @override
+-  Future<AiResponse> query(String prompt) async {
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+     calls++;
+     throw error;
+   }
+@@ -67,7 +68,7 @@ class _FailThenSucceedAiService implements AiAssistantService {
+   final List<String> prompts = <String>[];
+ 
+   @override
+-  Future<AiResponse> query(String prompt) async {
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+     calls++;
+     prompts.add(prompt);
+     if (calls == 1) {
+@@ -106,7 +107,7 @@ class _StaticAiService implements AiAssistantService {
+   int calls = 0;
+ 
+   @override
+-  Future<AiResponse> query(String prompt) async {
++  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+     calls++;
+     return response;
+   }
+-- 
+2.53.0
+

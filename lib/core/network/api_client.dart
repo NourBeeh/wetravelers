@@ -25,7 +25,30 @@ class ApiResponse<T> {
 /// wants to discard the result and optionally abort handling.
 class RequestToken {
   bool _cancelled = false;
-  void cancel() => _cancelled = true;
+  void Function()? _abortHandler;
+
+  /// Attach a per-request abort handler. Implementations call this to register
+  /// a function that will be invoked when [cancel] is called.
+  void attachAbortHandler(void Function()? handler) {
+    _abortHandler = handler;
+    // If the token was already cancelled, invoke the handler immediately so
+    // implementations can react (e.g. abort an in-flight request).
+    if (_cancelled) {
+      try {
+        _abortHandler?.call();
+      } catch (_) {}
+    }
+  }
+
+  /// Cancel the token and invoke any attached abort handler.
+  void cancel() {
+    if (_cancelled) return;
+    _cancelled = true;
+    try {
+      _abortHandler?.call();
+    } catch (_) {}
+  }
+
   bool get isCancelled => _cancelled;
 }
 

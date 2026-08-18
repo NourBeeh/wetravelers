@@ -5,20 +5,86 @@ import 'api_client.dart';
 import 'api_error.dart';
 import 'api_result.dart';
 
+/// Lightweight wrapper that allows aborting a single in-flight request.
+///
+/// It holds the request object plus the subscription used to read the
+/// response body. Calling [abort] cancels the subscription, attempts to
+/// detach+destroy the underlying socket (when available) and completes
+/// an internal abort future used to unblock any readers.
+class CancelableRequest {
+  final HttpClientRequest request;
+  HttpClientResponse? response;
+  StreamSubscription<String>? subscription;
+  final void Function()? onAbort;
+  final Completer<void> _abortCompleter = Completer<void>();
+  bool _aborted = false;
+
+  CancelableRequest(this.request, {this.onAbort});
+
+  bool get isAborted => _aborted;
+  Future<void> get abortFuture => _abortCompleter.future;
+
+  void setResponse(HttpClientResponse resp) => response = resp;
+
+  void setSubscription(StreamSubscription<String> sub) => subscription = sub;
+
+  void abort() {
+    if (_aborted) return;
+    _aborted = true;
+    try {
+      subscription?.cancel();
+    } catch (_) {}
+    try {
+      final detached = response?.detachSocket();
+      if (detached != null) {
+        // detachSocket may return a Future<Socket> in some SDK versions. Try
+        // to treat it as a Future first; if that fails, attempt a direct
+        // destroy on the resulting object.
+        try {
+          (detached as dynamic).then((s) {
+            try {
+              s.destroy();
+            } catch (_) {}
+          }).catchError((_) {});
+        } catch (_) {
+          try {
+            (detached as dynamic).destroy();
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+    try {
+      onAbort?.call();
+    } catch (_) {}
+    if (!_abortCompleter.isCompleted) _abortCompleter.complete();
+  }
+}
+
 class HttpApiClient implements ApiClient {
   /// Compile-time override (e.g. `--dart-define=API_BASE_URL=http://x:3000`).
   static const String _configuredBaseUrl = String.fromEnvironment('API_BASE_URL');
 
+  final HttpClient _client;
+  final String? _baseUrlOverride;
+  final void Function()? _onAbortCallback;
+
+  /// Optional test hooks (inject a custom [HttpClient], override [baseUrl]
+  /// and receive an [onAbort] callback). These are intentionally optional so
+  /// production callers can continue to use the default no-arg constructor.
+  HttpApiClient({HttpClient? client, String? baseUrlOverride, void Function()? onAbort})
+      : _client = client ?? HttpClient(),
+        _baseUrlOverride = baseUrlOverride,
+        _onAbortCallback = onAbort;
+
   @override
   String get baseUrl {
+    if (_baseUrlOverride != null) return _baseUrlOverride!;
     if (_configuredBaseUrl.isNotEmpty) {
       return _configuredBaseUrl;
     }
     // Android emulators reach the host machine via 10.0.2.2; desktop/Linux
     // (and iOS simulators) use localhost. Kept overridable via API_BASE_URL.
-    return Platform.isAndroid
-        ? 'http://10.0.2.2:3000'
-        : 'http://localhost:3000';
+    return Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
   }
 
   @override
@@ -26,11 +92,9 @@ class HttpApiClient implements ApiClient {
 
   @override
   Map<String, String> get defaultHeaders => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
-
-  final HttpClient _client = HttpClient();
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
 
   @override
   Future<ApiResult<T>> get<T>(
@@ -111,6 +175,11 @@ class HttpApiClient implements ApiClient {
           : uri;
 
       final request = await _client.openUrl(method, finalUri);
+
+      // Wrap the raw request so it can be aborted if needed.
+      final cancelable = CancelableRequest(request, onAbort: _onAbortCallback);
+      token?.attachAbortHandler(cancelable.abort);
+
       final mergedHeaders = {...defaultHeaders, ...?headers};
       mergedHeaders.forEach((k, v) => request.headers.set(k, v));
 
@@ -126,11 +195,37 @@ class HttpApiClient implements ApiClient {
         return ApiResult.failure(ApiTimeoutError(message: 'Request timed out', cause: e));
       }
 
-      if (token?.isCancelled == true) {
+      // Record the response so abort can detach the socket if requested.
+      cancelable.setResponse(response);
+
+      if (token?.isCancelled == true || cancelable.isAborted) {
+        // If cancellation was requested while waiting for headers, honor it.
         return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
       }
 
-      final responseBody = await response.transform(utf8.decoder).join();
+      // Read the body using a subscription so it can be cancelled mid-stream.
+      final buffer = StringBuffer();
+      final bodyCompleter = Completer<String>();
+      final sub = response.transform(utf8.decoder).listen(
+        (chunk) => buffer.write(chunk),
+        onError: (e, st) => bodyCompleter.completeError(e, st),
+        onDone: () => bodyCompleter.complete(buffer.toString()),
+        cancelOnError: true,
+      );
+      cancelable.setSubscription(sub);
+
+      // Wait for either the body to be read or an abort to occur.
+      await Future.any([bodyCompleter.future, cancelable.abortFuture]);
+
+      if (token?.isCancelled == true || cancelable.isAborted) {
+        // Ensure the subscription is cancelled and return a cancelled error.
+        try {
+          await sub.cancel();
+        } catch (_) {}
+        return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
+      }
+
+      final responseBody = await bodyCompleter.future;
 
       if (token?.isCancelled == true) {
         return ApiResult.failure(const ApiRequestCancelledError(message: 'Request cancelled by caller'));
