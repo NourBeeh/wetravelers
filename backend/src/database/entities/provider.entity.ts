@@ -3,23 +3,23 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 @Entity('providers')
 export class Provider {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true })
-  providerKey: string;
+  providerKey!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ type: 'jsonb', nullable: true })
   config?: Record<string, any>;
 
   @Column({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

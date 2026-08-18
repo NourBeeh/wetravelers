@@ -1,7 +1,7 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**Phase 9 complete. Phase 10 not started.**
+**AI Phases 1–9 complete. Phase 10 sub-phases 10A–10D complete.**
 
 ## Last confirmed AI state
 - AI visual shell exists.
@@ -15,8 +15,13 @@
 - OpenAI-compatible real provider is bound.
 - Runtime requires `AI_API_KEY`.
 - No live request was confirmed without a real key.
+- Phase 10 sub-phases 10A–10D are complete (commit `eda9668e`).
+- Future product/UX vision is recorded as a roadmap in `08_NEXT_STEPS.md`.
 
 ## Immediate next action
+
+> **Addendum (2026-08-18):** Phase 10 has since been executed as sub-phases 10A–10D and is complete. The next action is the future product/UX roadmap in `08_NEXT_STEPS.md`.
+
 Before starting Phase 10:
 1. inspect actual repository state,
 2. run `git status`,
@@ -164,4 +169,58 @@ c8455f1d chore: fix automatic memory bundle
 M  backend/src/common/cache/cache.provider.ts
 M  backend/src/modules/cache/cache.module.ts
 M  backend/src/modules/cache/cache.service.ts
+```
+
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+e580b4b7 (HEAD -> main) cache
+eda9668e feat(ai): complete phases 10a-10d
+35381a1e (flint-gigantoraptor) feat(ai): complete phases 10a 10b and 10d
+d2fa72bc chore: fix automatic memory synchronization
+be7b5898 chore: finalize synchronized memory state
+5ff9bfa1 chore: add AI handoff helper
+606ede31 test: verify automatic memory sync
+720b3c67 chore: improve project memory sync
+3cba7f13 docs: add multi-agent project memory system
+c8455f1d chore: fix automatic memory bundle
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/01_MASTER_MEMORY.md
+M  PROJECT_MEMORY/02_AGENT_MEMORY.md
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  PROJECT_MEMORY/08_NEXT_STEPS.md
+M  PROJECT_MEMORY/10_DEEPSEEK_CONTEXT.md
+M  WeTravellers_MEMORY_BUNDLE_V4_2026-08-15/docs/project_memory/ACTIVE_CONTEXT.md
+M  WeTravellers_MEMORY_BUNDLE_V4_2026-08-15/docs/project_memory/CHANGELOG.md
+M  WeTravellers_MEMORY_BUNDLE_V4_2026-08-15/docs/project_memory/PHASE_REGISTRY.md
+M  backend/.env.example
+A  backend/docker-compose.yml
+M  backend/src/common/dto/auth.dto.ts
+M  backend/src/common/dto/car.search.dto.ts
+M  backend/src/common/dto/flight.search.dto.ts
+M  backend/src/common/dto/hotel.search.dto.ts
+M  backend/src/database/entities/audit_log.entity.ts
+M  backend/src/database/entities/home_card.entity.ts
+M  backend/src/database/entities/home_section.entity.ts
+M  backend/src/database/entities/offer.entity.ts
+M  backend/src/database/entities/provider.entity.ts
+M  backend/src/database/entities/session.entity.ts
+M  backend/src/database/entities/user.entity.ts
+M  backend/src/modules/home/home.service.ts
+A  lib/core/network/user_facing_message.dart
+M  lib/features/search/application/controllers/car_search_controller.dart
+M  lib/features/search/application/controllers/flight_search_controller.dart
+M  lib/features/search/application/controllers/hotel_search_controller.dart
+A  test/features/search/car_search_controller_test.dart
+A  test/features/search/flight_search_controller_test.dart
+A  test/features/search/hotel_search_controller_test.dart
 ```

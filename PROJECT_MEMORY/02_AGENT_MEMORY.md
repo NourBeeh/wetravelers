@@ -6,8 +6,8 @@ You are the implementation agent. Work only on the requested task.
 ## Current known state
 - Flutter 3.44.8 / Dart 3.12.2 (verify locally).
 - Architecture: feature-first + Riverpod + GoRouter + Repository→UseCase→Controller.
-- AI Phases 1–9 are reported complete.
-- Phase 10 is not started.
+- AI Phases 1–9 are reported complete; Phase 10 sub-phases 10A–10D are complete.
+- Future product/UX vision is recorded as a roadmap in `08_NEXT_STEPS.md` (no new phase numbers).
 - NestJS backend lives under `backend/`.
 - Current AI backend provider is OpenAI-compatible REST, bound through `AI_PROVIDER`.
 - Flutter AI consumes normalized `AiResponse` and maps to existing Home cards.

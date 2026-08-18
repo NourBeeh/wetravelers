@@ -2,13 +2,13 @@ import { IsString, IsDateString, IsOptional, IsInt, Min } from 'class-validator'
 
 export class HotelSearchDto {
   @IsString()
-  city: string;
+  city!: string;
 
   @IsDateString()
-  checkIn: Date;
+  checkIn!: Date;
 
   @IsDateString()
-  checkOut: Date;
+  checkOut!: Date;
 
   @IsOptional()
   @IsInt()

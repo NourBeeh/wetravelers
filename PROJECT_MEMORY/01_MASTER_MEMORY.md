@@ -2,7 +2,7 @@
 
 > **Purpose:** The authoritative handoff document for any analytical/architectural AI that must understand the project without access to previous chats.
 >
-> **Last known project state:** Phase 9 complete. Phase 10 not started.
+> **Last known project state:** AI Phases 1–9 complete. Phase 10 sub-phases 10A–10D complete. Future product/UX vision added to the roadmap (see Section 11).
 >
 > **Important:** This document is compiled from the project history available to the current assistant. It is not a live filesystem scan. Any item marked "verify" should be checked against the repository before making changes.
 
@@ -63,7 +63,8 @@ The executor must:
 - Phases 1–9: completed according to the latest project reports.
 - Current workstream: AI architecture and AI provider integration.
 - Phase 9: real OpenAI-compatible provider in NestJS.
-- Phase 10: **not started**.
+- Phase 10 sub-phases 10A–10D: **completed** (response hardening, live integration verification, provider configuration/fallback policy, AI contract tests).
+- Future product/UX vision is recorded in the roadmap (Section 11).
 - Flutter AI UI exists and can consume the normalized AI contract.
 - NestJS has `POST /ai/query`.
 - Real provider is configured through an abstraction and environment variables.
@@ -396,7 +397,9 @@ Provider identity should not leak into the user-facing AI response contract unle
 
 ## 10. Phase 10 Candidate Work
 
-Phase 10 was not started. Candidate objectives should be decided only after inspecting the current repository.
+> **Addendum (2026-08-18):** The Phase 10 candidates below were executed as sub-phases **10A–10D** and are **complete** (see `03_CURRENT_STATE.md` for the commit record). The original candidate text is preserved additively below for history. Future product/UX direction is tracked in Section 11.
+
+Phase 10 was not started when this candidate list was written; it has since been superseded by the completed sub-phases 10A–10D. Candidate objectives should be decided only after inspecting the current repository.
 
 Likely topics:
 1. harden LLM JSON parsing/normalization,
@@ -409,14 +412,85 @@ Likely topics:
 
 Do not automatically implement all candidates as one phase.
 
-## 11. Validation Baseline
+## 11. Future Product / UX Vision (Roadmap)
+
+> **Status:** Future product/UX direction (added 2026-08-18). Roadmap/memory only — additive and non-destructive. Preserves completed AI phases 1–9 and 10A–10D. Introduces **no new phase numbers**; the numbered list below is implementation order only.
+
+### Home
+Home = Marketplace + Discovery.
+
+Sections:
+- Hero / Inspiration
+- Recommended
+- Hotels
+- Flights
+- Cars
+- Packages / Tours
+- Experiences / Deals
+- Continue browsing
+
+Use horizontal carousels and clear visual hierarchy. Do not give every section equal weight.
+
+### Header
+Top-right:
+- Notifications
+- Profile
+
+Settings lives inside Profile.
+
+### AI
+AI = Universal Search + Travel Assistant, not a separate normal chat page.
+
+Bottom of screen:
+- AI search/input
+- Floating Navigation button
+
+AI input context:
+- Home → global travel assistant
+- Hotels → hotel context
+- Flights → flight context
+- Cars → car context
+
+### AI Results
+Show AI results in a draggable Bottom Sheet over the current page:
+- collapsed
+- half
+- expanded
+
+Swipe up/down to expand/collapse/close.
+
+Results must use the existing Card Engine, not a separate AI card UI:
+
+```text
+AI Response → existing mapper/models → existing Card UI
+```
+
+### AI Sessions
+Persist conversations as sessions.
+User can reopen a session and continue with the same history/context.
+
+### Navigation
+Use Floating/Orbital Navigation instead of a permanent bottom bar.
+Keep it limited to ~5–7 main actions.
+
+### Future implementation order
+1. Home Marketplace layout
+2. Unified cards
+3. Floating Navigation
+4. AI Bottom Sheet
+5. AI session persistence
+6. Context-aware AI
+7. AI → existing Card Engine
+8. UX polish
+
+## 12. Validation Baseline
 
 Last broad Flutter project report:
 - Flutter analyze: 0 errors (warnings/info only).
 - Flutter tests: 55 tests passed.
 This is a historical baseline and must be re-run before relying on it.
 
-## 12. Handoff Rule
+## 13. Handoff Rule
 
 If another AI receives this file:
 - Do not assume the current filesystem exactly matches every historical report.

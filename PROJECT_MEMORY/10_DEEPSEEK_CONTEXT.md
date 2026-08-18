@@ -4,7 +4,7 @@
 WeTravellers — Flutter travel application + NestJS backend.
 
 ## Current checkpoint
-AI Phase 9 complete. Phase 10 not started.
+AI Phases 1–9 complete; Phase 10 sub-phases 10A–10D complete. Future product/UX vision is in the roadmap (08_NEXT_STEPS.md).
 
 ## Stack
 - Flutter / Dart

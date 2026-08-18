@@ -3,29 +3,29 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 @Entity('offers')
 export class Offer {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  providerId: string;
+  providerId!: string;
 
   @Column()
-  type: string;
+  type!: string;
 
   @Column({ type: 'jsonb' })
-  data: Record<string, any>;
+  data!: Record<string, any>;
 
   @Column({ type: 'jsonb', nullable: true })
   price?: Record<string, any>;
 
   @Column({ default: true })
-  isVisible: boolean;
+  isVisible!: boolean;
 
   @Column({ nullable: true })
   validUntil?: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

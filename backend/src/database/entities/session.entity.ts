@@ -4,30 +4,30 @@ import { User } from './user.entity';
 @Entity('sessions')
 export class Session {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user!: User;
 
   @Column()
-  accessTokenHash: string;
+  accessTokenHash!: string;
 
   @Column()
-  refreshTokenHash: string;
+  refreshTokenHash!: string;
 
   @Column()
-  expiresAt: Date;
+  expiresAt!: Date;
 
   @Column({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

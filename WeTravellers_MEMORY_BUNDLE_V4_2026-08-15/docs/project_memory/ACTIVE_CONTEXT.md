@@ -7,8 +7,8 @@ Updated: 2026-08-15
 - Dart: 3.12.2
 - Architecture: feature-first + Riverpod + GoRouter + Repository → UseCase → Controller
 - Reported baseline: 55 Flutter tests pass; `flutter analyze` = 0 errors (warnings/info only).
-- Current AI track: Phase 9 COMPLETE.
-- Next: Phase 10 NOT STARTED.
+- Current AI track: Phases 1–9 COMPLETE; Phase 10 sub-phases 10A–10D COMPLETE.
+- Next: future product/UX roadmap (live memory `PROJECT_MEMORY/08_NEXT_STEPS.md`) — no new phase numbers.
 - Booking execution/payment: explicitly NOT STARTED.
 
 ## AI pipeline
@@ -33,4 +33,4 @@ Runtime env:
 - Do not start the next phase without an explicit phase instruction.
 
 ## Immediate next action
-Design/execute Phase 10 only after its exact scope is provided and the current project state is verified.
+Design/execute Phase 10 only after its exact scope is provided and the current project state is verified. (Addendum 2026-08-18: Phase 10 is complete as 10A–10D; next work is the future product/UX roadmap.)

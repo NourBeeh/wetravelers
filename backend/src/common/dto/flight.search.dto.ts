@@ -2,13 +2,13 @@ import { IsString, IsDateString, IsOptional, IsInt, Min } from 'class-validator'
 
 export class FlightSearchDto {
   @IsString()
-  origin: string;
+  origin!: string;
 
   @IsString()
-  destination: string;
+  destination!: string;
 
   @IsDateString()
-  departure: Date;
+  departure!: Date;
 
   @IsOptional()
   @IsDateString()

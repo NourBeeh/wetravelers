@@ -2,11 +2,11 @@ import { IsString, IsDateString } from 'class-validator';
 
 export class CarSearchDto {
   @IsString()
-  pickupLocation: string;
+  pickupLocation!: string;
 
   @IsDateString()
-  pickupTime: Date;
+  pickupTime!: Date;
 
   @IsDateString()
-  dropoffTime: Date;
+  dropoffTime!: Date;
 }

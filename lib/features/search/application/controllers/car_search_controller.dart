@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wetravellers/core/domain/models/search/car_search_params.dart';
 import 'package:wetravellers/core/domain/models/offers/car_offer.dart';
+import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/repositories/contracts/car_repository.dart';
 
 enum CarSearchStatus { idle, loading, success, empty, error }
@@ -34,7 +35,10 @@ class CarSearchController extends StateNotifier<CarSearchState> {
           state = state.copyWith(status: CarSearchStatus.success, results: offers);
         }
       },
-      failure: (e) => state = state.copyWith(status: CarSearchStatus.error, errorMessage: e.toString()),
+      failure: (e) => state = state.copyWith(
+        status: CarSearchStatus.error,
+        errorMessage: userFacingMessage(e, subject: 'car search'),
+      ),
     );
   }
 }

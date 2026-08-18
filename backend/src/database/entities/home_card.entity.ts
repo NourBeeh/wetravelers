@@ -3,29 +3,29 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 @Entity('home_cards')
 export class HomeCard {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  sectionId: string;
+  sectionId!: string;
 
   @Column()
-  cardType: string;
+  cardType!: string;
 
   @Column({ type: 'jsonb' })
-  content: Record<string, any>;
+  content!: Record<string, any>;
 
   @Column({ type: 'int' })
-  order: number;
+  order!: number;
 
   @Column({ default: true })
-  isVisible: boolean;
+  isVisible!: boolean;
 
   @Column({ nullable: true })
   expiresAt?: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

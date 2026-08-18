@@ -3,29 +3,29 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 @Entity('home_sections')
 export class HomeSection {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  title: string;
+  title!: string;
 
   @Column({ nullable: true })
   subtitle?: string;
 
   @Column()
-  layout: string;
+  layout!: string;
 
   @Column({ type: 'int' })
-  order: number;
+  order!: number;
 
   @Column({ default: true })
-  isVisible: boolean;
+  isVisible!: boolean;
 
   @Column({ nullable: true })
   expiresAt?: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

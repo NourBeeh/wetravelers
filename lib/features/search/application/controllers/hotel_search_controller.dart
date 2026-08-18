@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wetravellers/core/domain/models/search/hotel_search_params.dart';
 import 'package:wetravellers/core/domain/models/offers/hotel_offer.dart';
+import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/repositories/contracts/hotel_repository.dart';
 
 enum HotelSearchStatus { idle, loading, success, empty, error }
@@ -35,7 +36,10 @@ class HotelSearchController extends StateNotifier<HotelSearchState> {
           state = state.copyWith(status: HotelSearchStatus.success, results: offers);
         }
       },
-      failure: (e) => state = state.copyWith(status: HotelSearchStatus.error, errorMessage: e.toString()),
+      failure: (e) => state = state.copyWith(
+        status: HotelSearchStatus.error,
+        errorMessage: userFacingMessage(e, subject: 'hotel search'),
+      ),
     );
   }
 }

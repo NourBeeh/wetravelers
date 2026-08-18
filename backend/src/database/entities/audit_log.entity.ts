@@ -3,17 +3,17 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeor
 @Entity('audit_logs')
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ nullable: true })
   userId?: string;
 
   @Column()
-  action: string;
+  action!: string;
 
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wetravellers/core/domain/models/search/flight_search_params.dart';
 import 'package:wetravellers/core/domain/models/offers/flight_offer.dart';
+import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/usecases/search_flights_usecase.dart';
 
 enum SearchStatus { idle, loading, success, empty, error }
@@ -55,7 +56,10 @@ class FlightSearchController extends StateNotifier<FlightSearchState> {
         }
       },
       failure: (error) {
-        state = state.copyWith(status: SearchStatus.error, errorMessage: error.toString());
+        state = state.copyWith(
+          status: SearchStatus.error,
+          errorMessage: userFacingMessage(error, subject: 'flight search'),
+        );
       },
     );
   }
