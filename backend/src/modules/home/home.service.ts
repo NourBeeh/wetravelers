@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { HomeCard } from '../../database/entities/home_card.entity';
 import { HomeSection } from '../../database/entities/home_section.entity';
+import { HomeCardDto, HomeSectionDto } from '../../common/dto/home.dto';
 
 /**
  * Reads the home feed from the persisted entities.
@@ -30,7 +31,7 @@ export class HomeService {
     private readonly cardRepo: Repository<HomeCard>,
   ) {}
 
-  async getSections() {
+  async getSections(): Promise<HomeSectionDto[]> {
     const sections = await this.sectionRepo.find({
       where: { isVisible: true },
       order: { order: 'ASC' },
@@ -86,29 +87,50 @@ export class HomeService {
  * simply become `undefined` and drop out of the JSON response — which is what
  * the client already treats as "field not provided".
  */
-function flattenCard(card: HomeCard) {
+function flattenCard(card: HomeCard): HomeCardDto {
   const content: Record<string, unknown> = card.content ?? {};
+  const action = content.actionLabel ?? content.action;
   return {
     id: card.id,
     type: card.cardType,
-    title: content.title,
-    subtitle: content.subtitle,
-    description: content.description,
-    imageUrl: content.imageUrl,
-    price: content.price,
-    currency: content.currency,
-    rating: content.rating,
-    reviewCount: content.reviewCount,
-    badge: content.badge,
-    highlights: content.highlights,
-    tags: content.tags,
-    // The client reads `action` for its action label; `actionLabel` is kept as
-    // the pre-existing alias so the response shape does not change.
-    action: content.action,
-    actionLabel: content.action,
-    rawPrice: content.rawPrice,
-    metadata: content.metadata,
+    title: asString(content.title),
+    subtitle: asString(content.subtitle),
+    description: asString(content.description),
+    imageUrl: asString(content.imageUrl),
+    price: asNumber(content.price),
+    currency: asString(content.currency),
+    rating: asNumber(content.rating),
+    reviewCount: asNumber(content.reviewCount),
+    badge: asString(content.badge),
+    highlights: asStringArray(content.highlights),
+    tags: asStringArray(content.tags),
+    // Accept the persisted legacy `actionLabel` key, but expose both supported
+    // wire aliases so existing Flutter clients receive the same label.
+    action: typeof action === 'string' ? action : undefined,
+    actionLabel: typeof action === 'string' ? action : undefined,
+    rawPrice: asNumber(content.rawPrice),
+    metadata: asRecord(content.metadata),
     expiration: card.expiresAt,
     visibility: card.isVisible,
   };
+}
+
+function asString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function asNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function asStringArray(value: unknown): string[] | undefined {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string')
+    ? value
+    : undefined;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined;
 }

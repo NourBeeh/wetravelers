@@ -1,7 +1,7 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**AI Phases 1–9 complete. Phase 10 sub-phases 10A–10D complete.**
+**AI Phases 1–10 complete. Phase 11 is active.**
 
 ## Last confirmed AI state
 - AI visual shell exists.
@@ -16,18 +16,20 @@
 - Runtime requires `AI_API_KEY`.
 - No live request was confirmed without a real key.
 - Phase 10 sub-phases 10A–10D are complete (commit `eda9668e`).
-- Future product/UX vision is recorded as a roadmap in `08_NEXT_STEPS.md`.
+- Phase 11A cache/local-database foundation is complete according to the latest repository history.
+- 11B1 Home schema mismatch is complete: backend DTO/service and Flutter repository now share tested Home wire-shape coverage.
+- **Next pending task: 11B2 — remaining verified TypeScript errors.**
 
 ## Immediate next action
 
-> **Addendum (2026-08-18):** Phase 10 has since been executed as sub-phases 10A–10D and is complete. The next action is the future product/UX roadmap in `08_NEXT_STEPS.md`.
+Do not start 11B2 without an explicit instruction.
 
-Before starting Phase 10:
-1. inspect actual repository state,
-2. run `git status`,
-3. inspect AI module/provider/controller,
-4. run Flutter and backend validation,
-5. compare results with `01_MASTER_MEMORY.md`.
+11B1 validation completed:
+1. `backend/test/home.schema.spec.ts` passed.
+2. `npm run build` passed in `backend/`.
+3. `test/core/repositories/home_repository_impl_test.dart` passed.
+
+The broader `flutter analyze` baseline still requires cleanup under the separately scoped 11B2 work; it is not part of the Home contract fix.
 
 ## Do not assume
 - Do not assume the historical 55-test baseline is still current.
@@ -223,4 +225,38 @@ M  lib/features/search/application/controllers/hotel_search_controller.dart
 A  test/features/search/car_search_controller_test.dart
 A  test/features/search/flight_search_controller_test.dart
 A  test/features/search/hotel_search_controller_test.dart
+```
+
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+e06e1f64 (HEAD -> main) eda9668e feat(ai): complete phases 10a-10d
+e580b4b7 cache
+eda9668e feat(ai): complete phases 10a-10d
+35381a1e (flint-gigantoraptor) feat(ai): complete phases 10a 10b and 10d
+d2fa72bc chore: fix automatic memory synchronization
+be7b5898 chore: finalize synchronized memory state
+5ff9bfa1 chore: add AI handoff helper
+606ede31 test: verify automatic memory sync
+720b3c67 chore: improve project memory sync
+3cba7f13 docs: add multi-agent project memory system
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/01_MASTER_MEMORY.md
+M  PROJECT_MEMORY/02_AGENT_MEMORY.md
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  PROJECT_MEMORY/08_NEXT_STEPS.md
+M  PROJECT_MEMORY/10_DEEPSEEK_CONTEXT.md
+M  backend/src/common/dto/home.dto.ts
+M  backend/src/modules/home/home.service.ts
+A  backend/test/home.schema.spec.ts
+A  test/core/repositories/home_repository_impl_test.dart
 ```

@@ -4,7 +4,7 @@
 WeTravellers — Flutter travel application + NestJS backend.
 
 ## Current checkpoint
-AI Phases 1–9 complete; Phase 10 sub-phases 10A–10D complete. Future product/UX vision is in the roadmap (08_NEXT_STEPS.md).
+AI Phases 1–10 and 11B1 are complete. Phase 11 remains active; **11B2 — remaining verified TypeScript errors** is next pending explicit approval.
 
 ## Stack
 - Flutter / Dart
@@ -49,5 +49,5 @@ At the end report:
 - remaining warnings/errors
 - stop at the requested phase
 
-## Current next-step candidates
-Phase 10 is not yet selected. Wait for the explicit execution prompt.
+## Current execution boundary
+11B1 is complete. Implement only **11B2 — remaining verified TypeScript errors** when explicitly requested, then stop. The remaining order is 11C → 12 → 13 → 14 → 15; see `08_NEXT_STEPS.md`.

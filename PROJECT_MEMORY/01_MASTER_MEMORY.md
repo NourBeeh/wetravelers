@@ -2,7 +2,7 @@
 
 > **Purpose:** The authoritative handoff document for any analytical/architectural AI that must understand the project without access to previous chats.
 >
-> **Last known project state:** AI Phases 1–9 complete. Phase 10 sub-phases 10A–10D complete. Future product/UX vision added to the roadmap (see Section 11).
+> **Last known project state:** AI Phases 1–10 and 11B1 are complete. Phase 11 remains active; **11B2 — remaining verified TypeScript errors** is next, pending explicit approval. The sequenced roadmap is in Section 12.
 >
 > **Important:** This document is compiled from the project history available to the current assistant. It is not a live filesystem scan. Any item marked "verify" should be checked against the repository before making changes.
 
@@ -61,10 +61,10 @@ The executor must:
 ## 4. Current State Snapshot
 
 - Phases 1–9: completed according to the latest project reports.
-- Current workstream: AI architecture and AI provider integration.
+- Current workstream: Phase 11 backend/data-contract stabilization. 11B1 Home schema mismatch is complete; 11B2 is next.
 - Phase 9: real OpenAI-compatible provider in NestJS.
 - Phase 10 sub-phases 10A–10D: **completed** (response hardening, live integration verification, provider configuration/fallback policy, AI contract tests).
-- Future product/UX vision is recorded in the roadmap (Section 11).
+- The product/UX and release-readiness roadmap is recorded in Section 12.
 - Flutter AI UI exists and can consume the normalized AI contract.
 - NestJS has `POST /ai/query`.
 - Real provider is configured through an abstraction and environment variables.
@@ -397,7 +397,7 @@ Provider identity should not leak into the user-facing AI response contract unle
 
 ## 10. Phase 10 Candidate Work
 
-> **Addendum (2026-08-18):** The Phase 10 candidates below were executed as sub-phases **10A–10D** and are **complete** (see `03_CURRENT_STATE.md` for the commit record). The original candidate text is preserved additively below for history. Future product/UX direction is tracked in Section 11.
+> **Addendum (2026-08-18):** The Phase 10 candidates below were executed as sub-phases **10A–10D** and are **complete** (see `03_CURRENT_STATE.md` for the commit record). The original candidate text is preserved additively below for history. The active Phase 11 and future product/UX direction are tracked in Sections 11–13.
 
 Phase 10 was not started when this candidate list was written; it has since been superseded by the completed sub-phases 10A–10D. Candidate objectives should be decided only after inspecting the current repository.
 
@@ -412,9 +412,57 @@ Likely topics:
 
 Do not automatically implement all candidates as one phase.
 
-## 11. Future Product / UX Vision (Roadmap)
+## 11. Phase 11 — Stabilization
 
-> **Status:** Future product/UX direction (added 2026-08-18). Roadmap/memory only — additive and non-destructive. Preserves completed AI phases 1–9 and 10A–10D. Introduces **no new phase numbers**; the numbered list below is implementation order only.
+### 11A — Local database/cache foundation
+Completed according to the latest repository history.
+
+### 11B1 — Home schema mismatch
+**Status: Complete (2026-08-18).**
+
+The Home service now explicitly maps persisted `HomeSection`/`HomeCard` fields into the Flutter wire schema, including flattened `content`, `cardType → type`, visibility/expiry fields, legacy `actionLabel`, and typed presentation values. The backend DTO now records fields actually emitted, and backend/Flutter contract tests cover the shape. The HomeCard/HomeSection engine was preserved.
+
+### 11B2 — Remaining TypeScript errors
+Pending after 11B1. Resolve only TypeScript errors that remain in the actual repository after a fresh build; do not perform unrelated refactors merely because historical memory mentioned errors.
+
+### 11C — Search error sanitization
+Pending after 11B2. Ensure flight, hotel, and car search failures never expose raw server/provider/network text to users; preserve diagnostic detail only in safe internal handling and tests.
+
+## 12. Approved Product, UX, and Release Roadmap
+
+> **Sequencing decision (2026-08-18):** Work remains small and phase-scoped. Phase 11B1 is first. Do not begin a later item without an explicit instruction.
+
+### Ordered implementation phases
+
+1. **11B1 — Home schema mismatch** ✓ complete
+2. **11B2 — Remaining TypeScript errors** ← next; requires explicit instruction
+3. **11C — Search error sanitization**
+4. **12 — Home Marketplace UI**
+5. **13 — Floating Navigation**
+6. **14 — AI Bottom Sheet + Sessions**
+7. **15 — AI context + Card Engine integration**
+8. **16 — Real identity, profile, and persisted authenticated sessions**
+9. **17 — End-to-end booking/payment foundation and Bag synchronization**
+10. **18 — Unified Trip Bag, external additions/imports, readiness, Wallet, and Price Watch**
+11. **19 — Live Travel Companion: Today, Map, Travel Mode, and event-based notifications**
+12. **20 — Production readiness and launch**
+13. **21 — Trusted Group Trips: discovery, membership, shared plans, safety, and reviews**
+
+The detailed phase outcomes, external dependencies, consent rules, dynamic product flow, and unified UI specification are authoritative in `08_NEXT_STEPS.md`.
+
+### Release-readiness gates retained from the technical review
+
+These are product-critical gaps now represented by Phases 16–20. They remain gates, not permission to expand the current phase scope.
+
+1. **Authentication:** replace the local/placeholder login path with a real, tested authentication journey.
+2. **Booking and payment:** implement matching backend booking endpoints and connect the Flutter booking/payment flow end to end.
+3. **Complete the core user journey:** replace remaining placeholder pages required for login → discovery/search → offer → booking → bag.
+4. **Codebase hygiene:** make `flutter analyze` clean and remove tracked dependency artifacts such as `backend/node_modules` from version control through a safe, separately approved migration.
+5. **Production operations:** configure environment separation, restricted CORS, database migrations/backups, monitoring, and a CI pipeline.
+
+## 13. Future Product / UX Vision (Roadmap)
+
+> **Status:** Future product/UX direction (added 2026-08-18). Roadmap/memory only — additive and non-destructive. Preserves completed AI phases 1–10. Its planned work is now represented by the approved phase order in Section 12.
 
 ### Home
 Home = Marketplace + Discovery.
@@ -444,6 +492,56 @@ AI = Universal Search + Travel Assistant, not a separate normal chat page.
 Bottom of screen:
 - AI search/input
 - Floating Navigation button
+
+#### Unified search experience — approved UX direction
+- The application header keeps the product identity at left and Notifications + Profile at right.
+- Profile is the entry point for authentication, profile, settings, and session/account actions; unauthenticated users see login/create-account actions.
+- A persistent bottom command bar is available throughout the routed experience. It is the entry point to the travel assistant and does not force the user into a dedicated chat screen.
+- The command bar also exposes manual Floating/Orbital Navigation so users can enter Flights, Hotels, Cars, Packages, Trips/Bag, and other primary surfaces at any time.
+- AI search and manual search are equal paths: natural-language input discovers and proposes filters/results, while manual pages provide precise direct control.
+- The assistant inherits the current page context (Home = trip discovery; Flights/Hotels/Cars = scoped search; Bag = current-trip help).
+- Users can move in both directions: AI-extracted filters can populate the manual search form, and a manual result can be sent to the assistant for explanation, comparison, or alternatives.
+- Results remain existing Home/Card Engine cards. AI responses should appear as a draggable bottom sheet over the current surface, not as a second navigation hierarchy.
+
+#### Interaction details to preserve during implementation
+- Before the user types, the command bar may offer contextual starter prompts such as plan a trip, cheapest flight, weekend hotel, or continue my trip.
+- Natural-language intent determines the appropriate path: a route/date query prepares Flight search; accommodation language scopes to Hotels; broad destination/duration input begins trip planning; comparison language operates on the visible results.
+- AI output must be actionable, not text-only: extracted filters are editable chips and offer actions include Use in manual search, Show alternatives, Compare, and Save to trip.
+- Manual search pages expose a lightweight “Help me choose” entry point that opens the AI sheet over the current results rather than navigating away.
+- Offer cards may expose Explain why this fits, Cheaper alternatives, Compare, and Add to trip actions. The assistant explains ranking, but live provider/search data remains the source of price and availability.
+- AI should explain its recommendation criteria (for example budget, rating, location, and dates) and distinguish search results from AI interpretation.
+- AI sessions represent trips, not only chat logs: a session can retain title, context, filters, saved offers, and conversation history (for example family trip, honeymoon, or business trip).
+- In Bag, the assistant summarizes the active itinerary, answers booking-policy questions, surfaces travel reminders, and proposes relevant complementary offers.
+
+#### Travel Companion / During-trip Intelligence — approved product direction
+- Bag evolves from a booking list into the live travel hub: **Today**, **Itinerary**, **Map**, and **Wallet**.
+- Today prioritizes the next time-sensitive action: an upcoming flight, transfer, hotel check-in, activity, or reservation, with distance, estimated arrival time, and a Start directions action.
+- The persistent Travel/Today command bar includes a contextual **Add to trip** action. When a user dismisses, postpones, or has not yet completed a relevant need, it lets them immediately add a booking, transfer, activity, note, document, or planned offer to the current trip without leaving the current screen.
+- The quick-add menu is context-aware: before an arrival it can prioritize transfer or accommodation; between itinerary items it can prioritize an activity, meal, or note; before departure it can prioritize return transport, document, or check-in follow-up. It always also provides a generic Add item option.
+- Itinerary displays every trip place and booking as a timeline. Each item has its address, map position, distance from the user, suggested departure time, and an external-map handoff for active turn-by-turn navigation.
+- Map shows the user’s opted-in location, saved trip places, and the next recommended route. It must work as a trip context/map surface, not attempt to replace the native map app’s navigation experience.
+- Wallet keeps booking references, QR codes, selected travel documents, insurance details, and essential itinerary data for offline access where technically feasible.
+- AI uses current trip context, optional location, time, reservations, traveler count, and budget to give short actionable guidance: departure timing, delayed-flight adjustments, nearby alternatives, weather-aware replanning, and explanation of next steps.
+- The system may create travel events: nearing an appointment, arrival at a saved place, flight/hotel/booking changes, weather disruption, schedule conflict, or departure from a planned route. These events may update the itinerary and send a relevant notification.
+- A notification or Today card for an unresolved gap includes a direct action (for example Add transfer, Add return, Add document, or Mark not needed). Ignoring a notification never removes the gap permanently; it remains available in the trip readiness checklist and quick-add entry point.
+- Background work is event-driven rather than continuous AI execution: platform location/geofence, time, and provider updates create a short-lived event; the app then evaluates whether a useful notification or plan update is warranted.
+- Travel Mode is explicit and trip-scoped. Users can choose location access scope, disable it at any time, use manual “I’m here” confirmation instead, and control which trip companions can see status. Do not treat location sharing as required for core travel features.
+- Notifications must be high-signal and rate-limited: for example suggested airport departure time, gate/delay change, nearby reservation, severe weather disruption, or a meaningful itinerary conflict—not every movement.
+- Optional companion/safety capabilities include arrival check-ins, selected trusted-contact status updates, emergency information (hotel, insurer, embassy/local emergency contacts), and a quick safety check-in flow.
+- Local assistance can recommend contextual useful services such as transfers, eSIM, pharmacies, ATMs, supermarkets, restaurants, and accessible/family-friendly options. Availability, cost, and provider facts must be clearly distinguished from AI recommendations.
+
+#### Unified Trip Bag, external imports, and price watch — approved product direction
+- Bag presents one user-owned **Trip** model, never separate “internal trip” and “external trip” experiences. A trip contains a unified list of **TripItem** entries for flights, stays, cars, trains, activities, transfers, and other relevant services.
+- The single user action is **Add to trip**. It can search/book inside the app, add a saved in-app offer before booking, add an external booking manually, or import shared confirmation content/PDF, forwarded email, calendar entry, or QR/booking code.
+- Confirmed in-app bookings add themselves automatically. External extraction always creates a reviewable draft; it never silently marks an item as confirmed. All sources create the same TripItem shape.
+- A TripItem carries an internal source for reliability/actions—`inAppConfirmed`, `inAppPlanned`, `externalImported`, or `manual`—but the source must not split the user’s trip into separate surfaces. Its user-visible lifecycle can be planned, needs review, confirmed, cancelled, or completed.
+- Each item appears in Today, Itinerary, Map, and Wallet as appropriate. The unified itinerary is the context used for assistance, map directions, notifications, and readiness evaluation.
+- Price Watch has a domain foundation (`WatchItem`) but needs future application, persistence, API, and UI work. It should support target-price and percentage-drop alerts, pause/remove controls, and a clear distinction between live provider price and AI recommendation.
+- Price Watch can follow an unbooked offer, alternatives for a planned trip, or a booked cancellable offer when the policy permits rebooking savings. Never imply a saving is actionable before cancellation/change conditions are checked.
+- Every trip has a **Trip Readiness / Missing items indicator**, not a vague completion percentage. It evaluates all TripItems together, regardless of source, and shows confirmed essentials and actionable gaps based on trip type, dates, destination, travelers, and user choices.
+- Examples of gaps: flight without accommodation, accommodation without arrival/transfer plan, missing return trip, traveler details incomplete, check-in not completed, travel documents/visa/insurance to review, no eSIM/connection plan, or schedule conflicts. A gap can be marked not needed or completed manually.
+- The readiness indicator must not shame or block the user. It is a prioritized checklist with explanations, optional recommendations, and direct actions such as Search hotel, Add external booking, Add to trip, Set price watch, or Mark as not needed.
+- AI treats the trip as one whole plan: it can identify gaps across internal and external items, help confirm an imported return flight, recommend a transfer for an externally booked hotel, calculate departure guidance, and monitor suitable alternatives without forcing the user to care where each booking originated.
 
 AI input context:
 - Home → global travel assistant

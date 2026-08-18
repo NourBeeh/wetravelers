@@ -8,10 +8,13 @@ export interface HomeCardDto {
   price?: number;
   currency?: string;
   rating?: number;
+  reviewCount?: number;
   badge?: string;
   highlights?: string[];
   tags?: string[];
   action?: string;
+  actionLabel?: string;
+  rawPrice?: number;
   metadata?: Record<string, any>;
   expiration?: Date;
   visibility?: boolean;
@@ -23,6 +26,7 @@ export interface HomeSectionDto {
   subtitle?: string;
   layout: string;
   cards: HomeCardDto[];
+  isPaginated?: boolean;
   metadata?: Record<string, any>;
   expiration?: Date;
   visibility?: boolean;
