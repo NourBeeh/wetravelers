@@ -441,3 +441,55 @@ M  lib/core/network/api_client.dart
 M  lib/core/network/http_api_client.dart
 A  test/core/network/http_api_client_abort_test.dart
 ```
+
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+d708d8b1 (HEAD -> main) feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
+2cb8cc93 PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
+f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
+eebecb3b feat(ui): add persistent command bar and integrate floating navigation (phase 13)\n\nPhase 13: Floating/Orbital Navigation + persistent command bar\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
+e06e1f64 eda9668e feat(ai): complete phases 10a-10d
+e580b4b7 cache
+eda9668e feat(ai): complete phases 10a-10d
+```
+
+### Pending status
+```
+
+```
+
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+d708d8b1 (HEAD -> main) feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
+2cb8cc93 PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
+f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
+eebecb3b feat(ui): add persistent command bar and integrate floating navigation (phase 13)\n\nPhase 13: Floating/Orbital Navigation + persistent command bar\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
+e06e1f64 eda9668e feat(ai): complete phases 10a-10d
+e580b4b7 cache
+eda9668e feat(ai): complete phases 10a-10d
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/09_AI_HANDOFF.md
+M  WeTravellers_PROJECT_MEMORY_SYSTEM.zip
+```
