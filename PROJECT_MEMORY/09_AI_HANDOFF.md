@@ -25,6 +25,13 @@ Produce:
 ## Important
 Do not give an execution agent a giant historical dump when a focused task prompt is enough.
 
+## Verified handoff — 2026-08-19
+
+- **Verified state:** Phase 14B complete. Phases 1–14 (1–10, 11A, 11B1, 11B2, 11C, 12, 13, 14A, 14B) are done; backend `tsc` clean, backend tests 84/84, Flutter AI/CommandBar tests pass.
+- **Exact next phase:** **15 — Context-aware AI + Card Engine integration**. Do not start it or any later phase unless explicitly requested.
+- Point new agents to `03_CURRENT_STATE.md` + `08_NEXT_STEPS.md` for the verified checkpoint and roadmap.
+- Live AI runs through the OpenAI-compatible provider (OpenRouter `openrouter/free`); `.env` is local-only and must never be committed.
+
 
 
 
@@ -342,4 +349,24 @@ eebecb3b feat(ui): add persistent command bar and integrate floating navigation 
 24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
 e06e1f64 eda9668e feat(ai): complete phases 10a-10d
 e580b4b7 cache
+```
+
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+ac559b37 (HEAD -> main) chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
+2cb8cc93 PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
+f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
+eebecb3b feat(ui): add persistent command bar and integrate floating navigation (phase 13)\n\nPhase 13: Floating/Orbital Navigation + persistent command bar\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
+e06e1f64 eda9668e feat(ai): complete phases 10a-10d
 ```

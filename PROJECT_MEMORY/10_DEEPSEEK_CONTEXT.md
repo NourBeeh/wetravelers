@@ -4,7 +4,7 @@
 WeTravellers — Flutter travel application + NestJS backend.
 
 ## Current checkpoint
-AI Phases 1–10 and 11B1 are complete. Phase 11 remains active; **11B2 — remaining verified TypeScript errors** is next pending explicit approval.
+AI Phases 1–10, 11A, 11B1, 11B2, 11C, 12, 13, 14A and 14B are complete. Live AI works via the OpenAI-compatible provider (tested with OpenRouter). Next = **Phase 15 — Context-aware AI + Card Engine integration** — only when explicitly requested.
 
 ## Stack
 - Flutter / Dart
@@ -50,4 +50,4 @@ At the end report:
 - stop at the requested phase
 
 ## Current execution boundary
-11B1 is complete. Implement only **11B2 — remaining verified TypeScript errors** when explicitly requested, then stop. The remaining order is 11C → 12 → 13 → 14 → 15; see `08_NEXT_STEPS.md`.
+Phases 11A, 11B1, 11B2, 11C, 12, 13, 14A and 14B are complete. Implement only **Phase 15 — Context-aware AI + Card Engine integration** when explicitly requested, then stop. Later phases 16–21 remain listed but not started; see `08_NEXT_STEPS.md`. Keep the hard rules: no delete/rename, no secrets in code or memory, minimal scoped work.

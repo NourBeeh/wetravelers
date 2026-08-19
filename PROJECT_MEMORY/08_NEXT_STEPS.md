@@ -2,16 +2,16 @@
 
 ## Integrated delivery roadmap
 
-> **Current position: Phase 13 implemented. Next pending phase: Phase 14 (UI prototype done — Phase 14B: backend integration pending).** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
+> **Current position: Phases 12, 13 and 14 (14A UI + 14B wiring/timeouts) complete. Next pending phase: Phase 15 — Context-aware AI + Card Engine integration.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
 
 | Phase | Outcome | External need at this phase |
 |---|---|---|
 | 11B1 | Home schema contract fixed and tested | Complete — none |
-| 11B2 | Re-run TypeScript build; fix only verified remaining errors, or close cleanly | None |
-| 11C | Safe, consistent search errors for flights/hotels/cars | None |
-| 12 | Home Marketplace: header, discovery hierarchy, reusable cards | None |
-| 13 | Floating/Orbital Navigation plus persistent command-bar shell and manual search access | None |
-| 14 | AI Bottom Sheet: collapsed/half/full states, local session UX, actionable filter chips | Existing AI backend configuration only; persistent cross-device sessions wait for Phase 16 |
+| 11B2 | Re-run TypeScript build; fix only verified remaining errors, or close cleanly | Complete — none |
+| 11C | Safe, consistent search errors for flights/hotels/cars | Complete — none |
+| 12 | Home Marketplace: header, discovery hierarchy, reusable cards | Complete — none |
+| 13 | Floating/Orbital Navigation plus persistent command-bar shell and manual search access | Complete — none |
+| 14 | AI Bottom Sheet (14A UI prototype) + CommandBar wiring/timeouts (14B) | Complete — live AI tested via OpenRouter; persistent cross-device sessions wait for Phase 16 |
 | 15 | Context-aware AI and Card Engine integration: current page, results, compare/explain/add-to-trip actions | Configured AI provider/key; no new provider is required for the first version |
 | 16 | Real identity: login, profile, settings, authenticated persisted sessions | Auth backend completion, database migrations, secure token lifecycle; transactional email only if password reset/verification is included |
 | 17 | Real booking/payment foundation: matching backend booking API, confirmation, idempotency, Bag synchronization | Provider/aggregator contracts and payment-service choice only when money collection is enabled |

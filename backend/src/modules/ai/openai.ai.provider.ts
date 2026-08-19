@@ -31,7 +31,16 @@ const ALLOWED_LAYOUTS: ReadonlySet<AiSectionDto['layout']> = new Set([
 
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
 const DEFAULT_MODEL = 'gpt-4o-mini';
-const REQUEST_TIMEOUT_MS = 30_000;
+// The free OpenRouter router (`openrouter/free`) queues behind free models and
+// can take well over 30s; 90s gives it headroom while still bounding the call.
+const REQUEST_TIMEOUT_MS = 90_000;
+
+/** True when [cause] is the abort raised by `AbortSignal.timeout`. */
+function isRequestTimeout(cause: unknown): boolean {
+  if (!cause || typeof cause !== 'object') return false;
+  const name = (cause as { name?: unknown }).name;
+  return name === 'TimeoutError' || name === 'AbortError';
+}
 
 /**
  * Instructs the model to answer with ONLY plain JSON matching the
@@ -115,9 +124,8 @@ export class OpenAiAiProvider implements AiProvider {
       );
     }
 
-    let response: Response;
     try {
-      response = await fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,42 +141,52 @@ export class OpenAiAiProvider implements AiProvider {
         }),
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
+
+      if (!response.ok) {
+        // 5xx is transient and may be retried elsewhere; 4xx means the request
+        // itself was rejected, so another provider would fail the same way.
+        throw new AiProviderFailure(
+          `AI provider request failed (HTTP ${response.status}).`,
+          {
+            category: response.status >= 500 ? 'upstream_5xx' : 'upstream_4xx',
+            upstreamStatus: response.status,
+          },
+        );
+      }
+
+      const payload = (await response.json()) as {
+        choices?: Array<{ message?: { content?: unknown } }>;
+      };
+      const content: unknown = payload?.choices?.[0]?.message?.content;
+      if (typeof content !== 'string' || content.trim().length === 0) {
+        throw new AiProviderFailure(
+          'AI provider returned an empty completion.',
+          { category: 'empty_completion', upstreamStatus: response.status },
+        );
+      }
+      return normalizeAiResponse(content);
     } catch (cause) {
-      // Connection refused, DNS failure, TLS failure or the abort timeout.
-      // The cause is deliberately not interpolated: it can carry the resolved
-      // host and port. Both cases are transient, so a fallback is allowed.
-      const timedOut = cause instanceof Error && cause.name === 'TimeoutError';
-      throw new AiProviderFailure(
-        timedOut
-          ? 'AI provider request timed out.'
-          : 'AI provider could not be reached.',
-        { category: timedOut ? 'timeout' : 'network' },
-      );
+      // A failure already classified by this provider (HTTP status, empty
+      // completion) is re-thrown untouched.
+      if (cause instanceof AiProviderFailure) {
+        throw cause;
+      }
+      // AbortSignal.timeout can fire while waiting for headers or while
+      // reading the body (response.json()). Both surface as Timeout/Abort
+      // errors, so classify them as `timeout` — a retryable category that lets
+      // the configured fallback provider serve the request instead of failing.
+      if (isRequestTimeout(cause)) {
+        throw new AiProviderFailure('AI provider request timed out.', {
+          category: 'timeout',
+        });
+      }
+      // Connection refused, DNS failure, TLS failure. The cause is deliberately
+      // not interpolated: it can carry the resolved host and port. Both cases
+      // are transient, so a fallback is allowed.
+      throw new AiProviderFailure('AI provider could not be reached.', {
+        category: 'network',
+      });
     }
-
-    if (!response.ok) {
-      // 5xx is transient and may be retried elsewhere; 4xx means the request
-      // itself was rejected, so another provider would fail the same way.
-      throw new AiProviderFailure(
-        `AI provider request failed (HTTP ${response.status}).`,
-        {
-          category: response.status >= 500 ? 'upstream_5xx' : 'upstream_4xx',
-          upstreamStatus: response.status,
-        },
-      );
-    }
-
-    const payload = (await response.json()) as {
-      choices?: Array<{ message?: { content?: unknown } }>;
-    };
-    const content: unknown = payload?.choices?.[0]?.message?.content;
-    if (typeof content !== 'string' || content.trim().length === 0) {
-      throw new AiProviderFailure(
-        'AI provider returned an empty completion.',
-        { category: 'empty_completion', upstreamStatus: response.status },
-      );
-    }
-    return normalizeAiResponse(content);
   }
 }
 

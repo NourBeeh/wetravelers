@@ -1,7 +1,7 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**AI Phases 1–10 complete. Phases 11B1, 11C, Phase 12 and Phase 13 implemented. Phase 14 UI prototype added.**
+**AI Phases 1–10 complete. Phases 11A–11C, 12, 13, 14A and 14B complete. Live AI works via an OpenAI-compatible provider (tested with OpenRouter). Next pending phase: Phase 15 — Context-aware AI + Card Engine integration.**
 
 ## Last confirmed AI state
 - AI visual shell exists.
@@ -17,13 +17,19 @@
 - Phase 12 (Home Marketplace) UI delivered and tested for the HomeController changes.
 - Phase 13 (Floating/Orbital Navigation + persistent CommandBar) implemented and committed.
 - Phase 14A (AI Bottom Sheet UI prototype) implemented and committed (commit f2170a7c).
+- Phase 14B complete: CommandBar Ask button + TextField submit now read/trim/clear the input (CommandBar is a StatefulWidget with its own TextEditingController); CommandBar wired via `onSubmitted` to search heuristics or `showAiBottomSheet`.
+- Backend AI provider timeout raised to 90s (`REQUEST_TIMEOUT_MS`); timeout/abort errors are now classified as retryable `timeout` so the configured Mock fallback serves the request instead of failing silently.
+- Flutter AI sheet timeout aligned to 90s to match the slow/free OpenRouter provider.
+
 - Unit and integration tests around the AI parsing/controller passed locally after these changes.
 
 ## Immediate next action
 
-- Next pending technical milestone: Phase 14B — backend integration for AI (wire CommandBar/AI sheet to AiApiService with runtime AI_API_KEY and add robust error/cancellation handling).
-- Do not enable real backend calls until an AI_API_KEY is provided and environment/secrets are in place.
-- Recommended short tasks before Phase 14B: add a StateNotifier (AiSheetController) to replace the one-off FutureBuilder, add cancellation/timeouts for HTTP requests, and add widget tests for the Bottom Sheet.
+- Next pending phase: **Phase 15 — Context-aware AI + Card Engine integration** (current page/result context, Help-me-choose, Explain/Compare/Alternatives/Add-to-trip card actions, manual search filter application). Do not start it without an explicit instruction.
+- Phase 14B is complete: CommandBar wired to `showAiBottomSheet`, backend AI timeout raised to 90s, Flutter sheet timeout aligned to 90s, and timeout failures classified as retryable so the Mock fallback engages instead of failing silently.
+- Live AI works via the OpenAI-compatible provider (tested with OpenRouter, `openrouter/free`).
+- `.env` is local only; do not assume live credentials exist in git.
+- Do not assume booking/payment execution is production-ready.
 
 11B1/11C validation summary (already passing):
 1. `backend/test/home.schema.spec.ts` passed.
@@ -517,4 +523,40 @@ e580b4b7 cache
 ### Pending status
 ```
 M  backend/src/modules/ai/ai.module.ts
+```
+
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+ac559b37 (HEAD -> main) chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
+2cb8cc93 PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
+f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
+eebecb3b feat(ui): add persistent command bar and integrate floating navigation (phase 13)\n\nPhase 13: Floating/Orbital Navigation + persistent command bar\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
+e06e1f64 eda9668e feat(ai): complete phases 10a-10d
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/01_MASTER_MEMORY.md
+M  PROJECT_MEMORY/02_AGENT_MEMORY.md
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  PROJECT_MEMORY/08_NEXT_STEPS.md
+M  PROJECT_MEMORY/09_AI_HANDOFF.md
+M  PROJECT_MEMORY/10_DEEPSEEK_CONTEXT.md
+ D WeTravellers_MEMORY_BUNDLE_V4_2026-08-15.zip
+M  backend/src/modules/ai/openai.ai.provider.ts
+M  lib/core/widgets/command_bar/command_bar.dart
+M  lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+A  test/core/widgets/command_bar_test.dart
 ```

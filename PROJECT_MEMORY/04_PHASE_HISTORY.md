@@ -14,12 +14,12 @@
 | 10 | Complete (10A–10D) | Response hardening, live integration, provider config/fallback, AI contract tests |
 | 11A | Complete | Local database/cache foundation |
 | 11B1 | Complete | Home schema mapped and contract-tested end to end |
-| 11B2 | Next (pending approval) | Resolve remaining verified TypeScript errors |
-| 11C | Pending | Search error sanitization |
-| 12 | Pending | Home Marketplace UI |
-| 13 | Pending | Floating Navigation |
-| 14 | Pending | AI Bottom Sheet + Sessions |
-| 15 | Pending | AI context + Card Engine integration |
+| 11B2 | Complete | Remaining verified TypeScript errors resolved (backend tsc build clean) |
+| 11C | Complete | Search error sanitization |
+| 12 | Complete | Home Marketplace UI |
+| 13 | Complete | Floating Navigation + persistent CommandBar |
+| 14 | Complete (14A UI + 14B wiring/timeouts) | AI Bottom Sheet + CommandBar wiring + 90s timeout hardening; Mock fallback now engages on timeout |
+| 15 | Next (pending approval) | AI context + Card Engine integration |
 | 16 | Pending | Authentication, profile, and persisted sessions |
 | 17 | Pending | End-to-end booking/payment and Bag synchronization |
 | 18 | Pending | Unified Trip Bag, imports, readiness, Wallet, Price Watch |
@@ -30,6 +30,9 @@
 ### Phase discipline
 Each phase is intentionally small. Never start the next phase without an explicit instruction.
 
-### Notes (addendum 2026-08-18)
+### Notes (addendum 2026-08-19)
 - Phase 10 was executed as sub-phases 10A–10D and is complete (commit `eda9668e`).
-- Phase 11B1 completed on 2026-08-18. 11B2 is next and remains pending until explicitly started.
+- Phases 11A, 11B1, 11B2 and 11C completed; 11B2's remaining TypeScript errors resolved (backend `tsc` build clean).
+- Phase 12 (Home Marketplace) and Phase 13 (Floating/Orbital Navigation + persistent CommandBar) completed and committed.
+- Phase 14 completed as 14A (AI Bottom Sheet UI prototype, commit `f2170a7c`) + 14B (CommandBar Ask/TextField wiring, backend AI timeout 90s, timeout classified as retryable so Mock fallback engages, Flutter sheet timeout aligned to 90s). Live AI verified via OpenRouter (`openrouter/free`).
+- Phase 15 is next and remains pending until explicitly started.

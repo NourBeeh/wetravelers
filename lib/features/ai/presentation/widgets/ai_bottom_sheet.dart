@@ -42,7 +42,7 @@ class AiSheetController extends StateNotifier<AiState> {
     try {
       final token = RequestToken();
       final response = await _queryWithFallback(trimmed, token: token)
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 90));
       if (_disposed || requestVersion != _requestVersion) {
         return;
       }

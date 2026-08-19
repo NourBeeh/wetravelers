@@ -6,10 +6,11 @@ You are the implementation agent. Work only on the requested task.
 ## Current known state
 - Flutter 3.44.8 / Dart 3.12.2 (verify locally).
 - Architecture: feature-first + Riverpod + GoRouter + Repository→UseCase→Controller.
-- AI Phases 1–10 are complete; Phase 11 is active.
-- 11B1 Home schema mismatch is complete and contract-tested. **11B2 — remaining verified TypeScript errors** is next; do not start it, 11C, or Phases 12–15 without an explicit task prompt.
+- AI Phases 1–10 are complete; Phases 11A, 11B1, 11B2, 11C, 12, 13, 14A and 14B are complete too. Live AI works via an OpenAI-compatible provider (tested with OpenRouter, `openrouter/free`). **Phase 15 — Context-aware AI + Card Engine integration** is next; do not start it or any later phase without an explicit task prompt.
 - NestJS backend lives under `backend/`.
 - Current AI backend provider is OpenAI-compatible REST, bound through `AI_PROVIDER`.
+- Backend AI request timeout is 90s and timeout failures are classified as retryable so the Mock fallback engages. Flutter AI sheet timeout is aligned to 90s.
+- CommandBar (Ask button + TextField) is wired to `showAiBottomSheet` via `onSubmitted`; search heuristics preserved in `shell.dart`.
 - Flutter AI consumes normalized `AiResponse` and maps to existing Home cards.
 
 ## Mandatory rules
