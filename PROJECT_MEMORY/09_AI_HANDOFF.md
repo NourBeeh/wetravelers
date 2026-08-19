@@ -323,3 +323,23 @@ e06e1f64 eda9668e feat(ai): complete phases 10a-10d
 e580b4b7 cache
 eda9668e feat(ai): complete phases 10a-10d
 ```
+
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+e41a3f1e (HEAD -> main) test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
+2cb8cc93 PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
+f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
+eebecb3b feat(ui): add persistent command bar and integrate floating navigation (phase 13)\n\nPhase 13: Floating/Orbital Navigation + persistent command bar\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+24574c62 UPGRADE UI AND UX GROPS AND  BAG AND HOME WITH AI
+e06e1f64 eda9668e feat(ai): complete phases 10a-10d
+e580b4b7 cache
+```

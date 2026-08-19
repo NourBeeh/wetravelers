@@ -51,7 +51,26 @@ export function resolveFallbackProvider(config: ConfigService): AiProvider | nul
   controllers: [AiController],
   providers: [
     AiService,
-    { provide: AI_PROVIDER, useClass: OpenAiAiProvider },
+    // Select the primary provider at runtime: prefer a configured OpenAI-compatible
+    // provider when an API key exists; fall back to the local Mock provider during
+    // development when AI_API_KEY is not set. This keeps the /ai/query route usable
+    // in local/dev without leaking secrets or requiring env changes.
+    {
+      provide: AI_PROVIDER,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const key = config.get<string>('AI_API_KEY');
+        if (key && key.trim() !== '') {
+          // Use OpenAI-compatible provider when key exists; the provider itself
+          // will validate other settings and throw a clear AiProviderFailure if
+          // misconfigured.
+          return new OpenAiAiProvider(config);
+        }
+        // No API key: serve Mock provider locally so the mobile client can
+        // integrate end-to-end during development.
+        return new MockAiProvider();
+      },
+    },
     {
       provide: AI_FALLBACK_PROVIDER,
       inject: [ConfigService],
