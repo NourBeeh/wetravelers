@@ -63,6 +63,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const CarSearchPage(),
           ),
           GoRoute(
+            path: '/packages',
+            name: 'packages',
+            builder: (context, state) => const PlaceholderPageScaffold(routeName: 'packages'),
+          ),
+          GoRoute(
+            path: '/transfers',
+            name: 'transfers',
+            builder: (context, state) => const PlaceholderPageScaffold(routeName: 'transfers'),
+          ),
+          GoRoute(
             path: '/groups',
             name: 'groups',
             builder: (context, state) => const PlaceholderPageScaffold(routeName: 'groups'),

@@ -9,12 +9,12 @@ export class DuffelController {
           async searchFlights(
             @Body() body: { origin: string; destination: string; departureDate: string; passengers: number },
           ) {
-            return this.duffelService.searchFlights(
-              body.origin,
-              body.destination,
-              body.departureDate,
-              body.passengers,
-            );
+            return this.duffelService.searchFlights({
+              origin: body.origin,
+              destination: body.destination,
+              departure: new Date(body.departureDate),
+              passengers: body.passengers,
+            });
           }
 
   @Post('create-booking')

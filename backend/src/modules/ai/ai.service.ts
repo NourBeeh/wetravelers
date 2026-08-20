@@ -132,7 +132,7 @@ export class AiService {
     const { isTravelSearch, searchData } = this.extractTravelSearchData(prompt);
     if (isTravelSearch && searchData && searchData.origin && searchData.destination) {
       try {
-        const flights = await this.duffelService.searchFlights(
+        const flights = await this.duffelService.searchFlightsLegacy(
           searchData.origin,
           searchData.destination,
           searchData.departureDate,

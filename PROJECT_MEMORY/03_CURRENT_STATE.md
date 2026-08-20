@@ -1149,3 +1149,39 @@ M  backend/.env.example
 M  backend/src/modules/ai/ai.module.ts
 M  backend/src/modules/duffel/duffel.service.ts
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+64f604dd (HEAD -> main) error
+1f42e833 duffel install
+005231e5 new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
+6e239c6a clean
+6d98c980 ok
+d53d9d52 feat(ai): complete phase 14B command bar wiring and AI timeout hardening
+ac559b37 chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+```
+
+### Pending status
+```
+M  backend/.env.example
+M  backend/src/modules/ai/ai.service.ts
+M  backend/src/modules/duffel/duffel.controller.ts
+M  backend/src/modules/duffel/duffel.service.ts
+M  backend/src/modules/providers/providers.module.ts
+M  lib/app/router/go_router_config.dart
+M  lib/app/shell.dart
+M  lib/core/navigation/app_route.dart
+A  lib/features/ai/domain/search_intent_parser.dart
+M  lib/features/search/presentation/pages/car_search_page.dart
+M  lib/features/search/presentation/pages/flight_search_page.dart
+M  lib/features/search/presentation/pages/hotel_search_page.dart
+M  lib/features/search/presentation/widgets/flight_search_form.dart
+```

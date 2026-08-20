@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wetravellers/features/search/application/providers/search_providers.dart';
 import 'package:wetravellers/features/search/application/controllers/flight_search_controller.dart';
 import 'package:wetravellers/features/search/presentation/widgets/flight_search_form.dart';
@@ -23,11 +24,23 @@ class FlightSearchPage extends ConsumerWidget {
     final state = ref.watch(flightSearchControllerProvider);
     final sort = ref.watch(flightSortProvider);
     final filters = ref.watch(flightFiltersProvider);
+    
+    // Extract initial search parameters from GoRouter state
+    final goRouterState = GoRouterState.of(context);
+    final extra = goRouterState.extra as Map<String, dynamic>?;
+    final initialOrigin = extra?['origin'] as String?;
+    final initialDestination = extra?['destination'] as String?;
+    final initialDeparture = extra?['departureDate'] as DateTime?;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Flights')),
       body: Column(
         children: [
-          const FlightSearchForm(),
+          FlightSearchForm(
+            initialOrigin: initialOrigin,
+            initialDestination: initialDestination,
+            initialDeparture: initialDeparture,
+          ),
           const Divider(height: 1),
           Padding(
             padding: EdgeInsets.all(AppSpacing.sm),
@@ -122,4 +135,3 @@ class FlightSearchPage extends ConsumerWidget {
     }
   }
 }
-

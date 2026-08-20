@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wetravellers/core/domain/models/search/car_search_params.dart';
 import 'package:wetravellers/features/search/application/providers/hotel_car_providers.dart';
 import 'package:wetravellers/features/search/application/controllers/car_search_controller.dart';
@@ -12,11 +13,23 @@ class CarSearchPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(carSearchControllerProvider);
+    
+    // Extract initial search parameters from GoRouter state
+    final goRouterState = GoRouterState.of(context);
+    final extra = goRouterState.extra as Map<String, dynamic>?;
+    final initialPickupLocation = extra?['pickupLocation'] as String?;
+    final initialDropoffLocation = extra?['dropoffLocation'] as String?;
+    final initialPickupDate = extra?['pickupDate'] as DateTime?;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Cars')),
       body: Column(
         children: [
-          const CarSearchFormWidget(),
+          CarSearchFormWidget(
+            initialPickupLocation: initialPickupLocation,
+            initialDropoffLocation: initialDropoffLocation,
+            initialPickupTime: initialPickupDate,
+          ),
           const Divider(height: 1),
           Expanded(child: _buildBody(state)),
         ],
@@ -41,16 +54,42 @@ class CarSearchPage extends ConsumerWidget {
 }
 
 class CarSearchFormWidget extends ConsumerStatefulWidget {
-  const CarSearchFormWidget({super.key});
+  final String? initialPickupLocation;
+  final String? initialDropoffLocation;
+  final DateTime? initialPickupTime;
+
+  const CarSearchFormWidget({
+    super.key,
+    this.initialPickupLocation,
+    this.initialDropoffLocation,
+    this.initialPickupTime,
+  });
+  
   @override
   ConsumerState<CarSearchFormWidget> createState() => _CarSearchFormWidgetState();
 }
 
 class _CarSearchFormWidgetState extends ConsumerState<CarSearchFormWidget> {
-  final _pickup = TextEditingController();
-  final _dropoff = TextEditingController();
-  DateTime _pickupTime = DateTime.now().add(const Duration(days: 1));
-  DateTime _dropoffTime = DateTime.now().add(const Duration(days: 2));
+  late final TextEditingController _pickup;
+  late final TextEditingController _dropoff;
+  late DateTime _pickupTime;
+  late DateTime _dropoffTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _pickup = TextEditingController(text: widget.initialPickupLocation ?? '');
+    _dropoff = TextEditingController(text: widget.initialDropoffLocation ?? '');
+    _pickupTime = widget.initialPickupTime ?? DateTime.now().add(const Duration(days: 1));
+    _dropoffTime = DateTime.now().add(const Duration(days: 2));
+  }
+
+  @override
+  void dispose() {
+    _pickup.dispose();
+    _dropoff.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

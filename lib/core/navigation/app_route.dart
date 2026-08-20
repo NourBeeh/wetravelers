@@ -10,11 +10,13 @@ enum AppRoute {
   flights('Flights', Icons.flight_outlined, Icons.flight),
   hotels('Hotels', Icons.hotel_outlined, Icons.hotel),
   cars('Cars', Icons.directions_car_outlined, Icons.directions_car),
+  packages('Tour programs', Icons.card_travel_outlined, Icons.card_travel),
+  transfers('Airport transfer', Icons.airport_shuttle_outlined, Icons.airport_shuttle),
   groups('Groups', Icons.groups_outlined, Icons.groups),
   bag('Bag', Icons.shopping_bag_outlined, Icons.shopping_bag),
   ai('AI', Icons.auto_awesome_outlined, Icons.auto_awesome),
   notifications('Notifications', Icons.notifications_none, Icons.notifications),
-  profile('Profile', Icons.person_outline, Icons.person),
+  profile('Profile', Icons.person_outlined, Icons.person),
   settings('Settings', Icons.settings_outlined, Icons.settings),
   auth('Sign in', Icons.login_rounded, Icons.login_rounded);
 
@@ -35,6 +37,8 @@ enum AppRoute {
     AppRoute.flights,
     AppRoute.hotels,
     AppRoute.cars,
+    AppRoute.packages,
+    AppRoute.transfers,
     AppRoute.groups,
     AppRoute.bag,
     AppRoute.ai,

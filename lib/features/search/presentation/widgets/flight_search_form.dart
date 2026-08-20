@@ -5,16 +5,40 @@ import 'package:wetravellers/features/search/application/providers/search_provid
 import 'package:wetravellers/core/theme/app_spacing.dart';
 
 class FlightSearchForm extends ConsumerStatefulWidget {
-  const FlightSearchForm({super.key});
+  final String? initialOrigin;
+  final String? initialDestination;
+  final DateTime? initialDeparture;
+
+  const FlightSearchForm({
+    super.key,
+    this.initialOrigin,
+    this.initialDestination,
+    this.initialDeparture,
+  });
 
   @override
   ConsumerState<FlightSearchForm> createState() => _FlightSearchFormState();
 }
 
 class _FlightSearchFormState extends ConsumerState<FlightSearchForm> {
-  final _originCtrl = TextEditingController();
-  final _destCtrl = TextEditingController();
-  DateTime _departure = DateTime.now().add(const Duration(days: 7));
+  late final TextEditingController _originCtrl;
+  late final TextEditingController _destCtrl;
+  late DateTime _departure;
+
+  @override
+  void initState() {
+    super.initState();
+    _originCtrl = TextEditingController(text: widget.initialOrigin ?? '');
+    _destCtrl = TextEditingController(text: widget.initialDestination ?? '');
+    _departure = widget.initialDeparture ?? DateTime.now().add(const Duration(days: 7));
+  }
+
+  @override
+  void dispose() {
+    _originCtrl.dispose();
+    _destCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

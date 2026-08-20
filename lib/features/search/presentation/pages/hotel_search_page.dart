@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wetravellers/core/domain/models/search/hotel_search_params.dart';
 import 'package:wetravellers/features/search/application/providers/hotel_car_providers.dart';
 import 'package:wetravellers/features/search/application/controllers/hotel_search_controller.dart';
@@ -12,11 +13,23 @@ class HotelSearchPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(hotelSearchControllerProvider);
+    
+    // Extract initial search parameters from GoRouter state
+    final goRouterState = GoRouterState.of(context);
+    final extra = goRouterState.extra as Map<String, dynamic>?;
+    final initialCity = extra?['city'] as String?;
+    final initialCheckIn = extra?['checkIn'] as DateTime?;
+    final initialCheckOut = extra?['checkOut'] as DateTime?;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Hotels')),
       body: Column(
         children: [
-          HotelSearchFormWidget(),
+          HotelSearchFormWidget(
+            initialDestination: initialCity,
+            initialCheckIn: initialCheckIn,
+            initialCheckOut: initialCheckOut,
+          ),
           const Divider(height: 1),
           Expanded(
             child: _buildBody(context, state, ref),
@@ -49,17 +62,41 @@ class HotelSearchPage extends ConsumerWidget {
 }
 
 class HotelSearchFormWidget extends ConsumerStatefulWidget {
-  const HotelSearchFormWidget({super.key});
+  final String? initialDestination;
+  final DateTime? initialCheckIn;
+  final DateTime? initialCheckOut;
+
+  const HotelSearchFormWidget({
+    super.key,
+    this.initialDestination,
+    this.initialCheckIn,
+    this.initialCheckOut,
+  });
+  
   @override
   ConsumerState<HotelSearchFormWidget> createState() => _HotelSearchFormWidgetState();
 }
 
 class _HotelSearchFormWidgetState extends ConsumerState<HotelSearchFormWidget> {
-  final _dest = TextEditingController();
-  DateTime _in = DateTime.now().add(const Duration(days: 7));
-  DateTime _out = DateTime.now().add(const Duration(days: 10));
+  late final TextEditingController _dest;
+  late DateTime _in;
+  late DateTime _out;
   int _rooms = 1;
   int _adults = 2;
+
+  @override
+  void initState() {
+    super.initState();
+    _dest = TextEditingController(text: widget.initialDestination ?? '');
+    _in = widget.initialCheckIn ?? DateTime.now().add(const Duration(days: 7));
+    _out = widget.initialCheckOut ?? DateTime.now().add(const Duration(days: 10));
+  }
+
+  @override
+  void dispose() {
+    _dest.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
