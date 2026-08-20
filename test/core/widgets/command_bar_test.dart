@@ -4,7 +4,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wetravellers/core/widgets/command_bar/command_bar.dart';
 
 void main() {
-  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+  Widget wrap(Widget child) => MaterialApp(
+      home: Scaffold(
+        body: SizedBox.expand(
+          child: Column(
+            children: [
+              const Spacer(),
+              Row(
+                children: [
+                  IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
+                  const SizedBox(width: 8),
+                  Expanded(child: child),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
 
   group('CommandBar', () {
     testWidgets('Ask button submits trimmed text and clears the field',

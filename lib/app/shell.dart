@@ -8,7 +8,7 @@ import '../features/ai/domain/ai_query_context.dart';
 import '../features/ai/domain/search_intent_parser.dart';
 import '../features/ai/presentation/pages/ai_visual_shell_page.dart';
 import '../features/ai/presentation/widgets/ai_bottom_sheet.dart';
-import '../shared/providers/app_mode_provider.dart;
+import '../shared/providers/app_mode_provider.dart';
 
 /// The unified application shell.
 ///
@@ -213,28 +213,21 @@ class _WeTravellersShellState extends ConsumerState<WeTravellersShell> with Sing
                 ),
               ),
             ),
-          // Persistent bottom bar with AI input and nav toggle
-          if (appMode == AppMode.normal)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
-                child: SizedBox(
-                  height: 80,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+          // AI mode covers the routed surface with the living AI shell. The
+          // routed page stays mounted underneath so switching back is lossless.
+          if (appMode == AppMode.ai)
+            const Positioned.fill(child: AiVisualShellPage()),
+        ],
+      ),
+      // Persistent bottom bar with AI input and nav toggle - Scaffold.bottomNavigationBar
+      bottomNavigationBar: appMode == AppMode.normal
+          ? SafeArea(
+              child: Material(
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                  child: SizedBox(
+                    height: 64,
                     child: Row(
                       children: [
                         // Navigation toggle button
@@ -248,13 +241,13 @@ class _WeTravellersShellState extends ConsumerState<WeTravellersShell> with Sing
                           tooltip: 'Toggle navigation',
                         ),
                         const SizedBox(width: 8),
-                        // AI Command bar
+                        // AI Command bar - gets bounded width via Expanded
                         Expanded(
                           child: CommandBar(
                             onSubmitted: (text) {
-                                    // Parse search intent from natural language query
+                              // Parse search intent from natural language query
                               final parsedIntent = SearchIntentParser.parse(text);
-                              
+
                               if (parsedIntent.isValid) {
                                 // Navigate to the appropriate search page with parsed parameters
                                 if (parsedIntent.service == 'flight') {
@@ -290,13 +283,8 @@ class _WeTravellersShellState extends ConsumerState<WeTravellersShell> with Sing
                   ),
                 ),
               ),
-            ),
-          // AI mode covers the routed surface with the living AI shell. The
-          // routed page stays mounted underneath so switching back is lossless.
-          if (appMode == AppMode.ai)
-            const Positioned.fill(child: AiVisualShellPage()),
-        ],
-      ),
+            )
+          : null,
     );
   }
 }

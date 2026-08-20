@@ -30,43 +30,38 @@ class _CommandBarState extends State<CommandBar> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      left: true,
-      right: true,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Material(
-          elevation: 6,
-          borderRadius: BorderRadius.circular(12),
-          color: Theme.of(context).colorScheme.surface,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    onSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      hintText: 'Search flights, hotels, cars or ask the assistant',
-                      border: InputBorder.none,
-                    ),
+    return SizedBox(
+      height: 56,
+      child: Material(
+        elevation: 6,
+        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  onSubmitted: (_) => _submit(),
+                  decoration: InputDecoration(
+                    hintText: 'Search flights, hotels, cars or ask the assistant',
+                    border: InputBorder.none,
                   ),
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.mic_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-                const SizedBox(width: 4),
-                FilledButton(
-                  onPressed: _submit,
-                  child: const Text('Ask'),
-                ),
-              ],
-            ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.mic_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(width: 4),
+              FilledButton(
+                onPressed: _submit,
+                child: const Text('Ask'),
+              ),
+            ],
           ),
         ),
       ),

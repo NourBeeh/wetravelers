@@ -1185,3 +1185,32 @@ M  lib/features/search/presentation/pages/flight_search_page.dart
 M  lib/features/search/presentation/pages/hotel_search_page.dart
 M  lib/features/search/presentation/widgets/flight_search_form.dart
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+076ee52c (HEAD -> main) All Duffel Env Fix Requirements Met
+64f604dd error
+1f42e833 duffel install
+005231e5 new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
+6e239c6a clean
+6d98c980 ok
+d53d9d52 feat(ai): complete phase 14B command bar wiring and AI timeout hardening
+ac559b37 chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+```
+
+### Pending status
+```
+M  lib/app/shell.dart
+M  lib/core/theme/app_theme.dart
+M  lib/core/widgets/command_bar/command_bar.dart
+M  pubspec.lock
+M  pubspec.yaml
+M  test/core/widgets/command_bar_test.dart
+```
