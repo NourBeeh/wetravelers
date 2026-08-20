@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:wetravellers/core/ai/ai_assistant_service.dart';
 import 'package:wetravellers/core/network/api_error.dart';
+import 'package:wetravellers/core/domain/models/home/home_section.dart';
 
 import '../domain/ai_home_mapper.dart';
+import '../domain/ai_query_context.dart';
 import 'ai_state.dart';
 
 /// Bridges [AiState] to the AI response pipeline.
@@ -24,7 +26,13 @@ class AiController extends StateNotifier<AiState> {
 
   /// Runs [prompt] through the assistant service, maps the result into
   /// renderable home sections and publishes a new [AiState].
-  Future<void> submit(String prompt) async {
+  /// Phase 15B Stage 4: Accepts optional context, auto-builds from home sections if not provided.
+  Future<void> submit(String prompt, {
+    AiQueryContext? context,
+    List<HomeSection> currentHomeSections = const [],
+    Map<String, double>? geolocation,
+    Map<String, String>? travelDates,
+  }) async {
     final trimmed = prompt.trim();
     if (trimmed.isEmpty) {
       return;
@@ -35,8 +43,15 @@ class AiController extends StateNotifier<AiState> {
       currentPrompt: trimmed,
     );
 
+    // Build context automatically if not provided and we have home sections
+    final AiQueryContext finalContext = context ?? _mapper.extractContextFromHomeSections(
+      currentHomeSections,
+      geolocation: geolocation,
+      travelDates: travelDates,
+    );
+
     try {
-      final response = await _service.query(trimmed);
+      final response = await _service.query(trimmed, context: finalContext);
       final sections = _mapper.toHomeSections(response);
       final text = response.text;
 
@@ -63,7 +78,18 @@ class AiController extends StateNotifier<AiState> {
   }
 
   /// Re-runs the last prompt (used by the error-state retry action).
-  Future<void> retry() => submit(state.currentPrompt);
+  Future<void> retry({
+    AiQueryContext? context,
+    List<HomeSection> currentHomeSections = const [],
+    Map<String, double>? geolocation,
+    Map<String, String>? travelDates,
+  }) => submit(
+    state.currentPrompt,
+    context: context,
+    currentHomeSections: currentHomeSections,
+    geolocation: geolocation,
+    travelDates: travelDates,
+  );
 
   /// Returns the controller to its pristine idle state.
   void reset() => state = const AiState();

@@ -15,6 +15,7 @@ import 'package:wetravellers/features/ai/data/mock_ai_response_provider.dart';
 import 'package:wetravellers/features/ai/domain/ai_item.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/ai/domain/ai_section.dart';
+import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 import 'package:wetravellers/features/ai/presentation/widgets/ai_bottom_sheet.dart';
 
 class _FakeAiService implements AiAssistantService {
@@ -45,7 +46,7 @@ class _FakeAiService implements AiAssistantService {
       'Summary';
 
   @override
-  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
     if (error != null) {
       throw error!;
     }
@@ -60,7 +61,7 @@ class _FallbackService extends MockAiAssistantService {
   final Object? error;
 
   @override
-  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
     if (error != null) {
       throw error!;
     }
@@ -168,7 +169,7 @@ void main() {
       ),
     );
 
-    final controller = container.read(aiSheetControllerProvider('find hotels in Rome').notifier);
+    final controller = container.read(aiSheetControllerProvider((prompt: 'find hotels in Rome', context: null)).notifier);
     controller.cancel();
     completer.complete(
       AiResponse(
@@ -214,5 +215,5 @@ class _DelayedAiService implements AiAssistantService {
   Future<String> generateOfferSummary({required String offerId}) async => '';
 
   @override
-  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) => _completer.future;
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) => _completer.future;
 }

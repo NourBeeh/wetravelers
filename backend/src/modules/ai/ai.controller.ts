@@ -10,6 +10,6 @@ export class AiController {
   /** POST /ai/query → normalized, provider-agnostic AiResponseDto. */
   @Post('query')
   async query(@Body() dto: AiQueryDto): Promise<AiResponseDto> {
-    return this.aiService.query(dto.prompt);
+    return this.aiService.query(dto.prompt, dto.context);
   }
 }

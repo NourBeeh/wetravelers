@@ -1,6 +1,7 @@
 import 'package:wetravellers/core/ai/ai_assistant_service.dart';
 import 'package:wetravellers/core/network/api_client.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
+import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 
 /// Real HTTP implementation of [AiAssistantService].
 ///
@@ -18,10 +19,15 @@ class AiApiService implements AiAssistantService {
   static const String _queryPath = '/ai/query';
 
   @override
-  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
+    final body = <String, dynamic>{'prompt': prompt};
+    if (context != null) {
+      body['context'] = context.toMap();
+    }
+    
     final result = await _client.post<Map<String, dynamic>>(
       _queryPath,
-      body: <String, dynamic>{'prompt': prompt},
+      body: body,
       timeout: timeout,
       token: token,
     );

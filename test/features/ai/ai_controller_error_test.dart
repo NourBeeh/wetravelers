@@ -9,6 +9,7 @@ import 'package:wetravellers/features/ai/application/ai_state.dart';
 import 'package:wetravellers/features/ai/domain/ai_home_mapper.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/ai/domain/ai_section.dart';
+import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 
 /// Phase 10A-F — `AiController` error boundary.
 ///
@@ -38,7 +39,7 @@ class _ThrowingAiService implements AiAssistantService {
   int calls = 0;
 
   @override
-  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
     calls++;
     throw error;
   }
@@ -68,7 +69,7 @@ class _FailThenSucceedAiService implements AiAssistantService {
   final List<String> prompts = <String>[];
 
   @override
-  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
     calls++;
     prompts.add(prompt);
     if (calls == 1) {
@@ -107,7 +108,7 @@ class _StaticAiService implements AiAssistantService {
   int calls = 0;
 
   @override
-  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) async {
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
     calls++;
     return response;
   }

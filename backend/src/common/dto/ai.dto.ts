@@ -1,4 +1,49 @@
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength, IsOptional, IsObject, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+/** Geolocation coordinates for context-aware AI queries */
+export class GeolocationDto {
+  @IsOptional()
+  lat?: number;
+  
+  @IsOptional()
+  lng?: number;
+}
+
+/** Travel date range for context-aware AI queries */
+export class TravelDatesDto {
+  @IsOptional()
+  from?: string; // ISO 8601 date string
+  
+  @IsOptional()
+  to?: string; // ISO 8601 date string
+}
+
+/** Full context object for AI queries, matching Flutter's AiQueryContext */
+export class AiContextDto {
+  @IsString()
+  route!: string;
+  
+  @IsOptional()
+  @IsString()
+  screenTitle?: string;
+  
+  @IsOptional()
+  selectedOfferIds?: string[];
+  
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => GeolocationDto)
+  geolocation?: GeolocationDto;
+  
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => TravelDatesDto)
+  travelDates?: TravelDatesDto;
+  
+  @IsOptional()
+  metadata?: Record<string, any>;
+}
 
 /** POST /ai/query request body. White-listed by the global ValidationPipe. */
 export class AiQueryDto {
@@ -6,6 +51,11 @@ export class AiQueryDto {
   @IsNotEmpty({ message: 'prompt must not be empty' })
   @MaxLength(4000, { message: 'prompt must be at most 4000 characters' })
   prompt!: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AiContextDto)
+  context?: AiContextDto;
 }
 
 /**

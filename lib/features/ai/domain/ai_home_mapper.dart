@@ -6,6 +6,7 @@ import 'package:wetravellers/core/domain/models/home/home_section.dart';
 import 'ai_item.dart';
 import 'ai_response.dart';
 import 'ai_section.dart';
+import 'ai_query_context.dart';
 
 /// Maps the AI response contract onto the home *rendering* models.
 ///
@@ -22,6 +23,33 @@ class AiHomeMapper {
     return List<HomeSection>.generate(sections.length, (index) {
       return _toHomeSection(sections[index], sectionIndex: index);
     });
+  }
+
+  /// Extracts context from current home sections to pass to AI queries.
+  /// Phase 15B Stage 3: Collects visible item IDs and metadata from the home feed
+  /// to build a rich context for the AI assistant, keeping the HomeCard engine decoupled.
+  AiQueryContext extractContextFromHomeSections(List<HomeSection> sections, {
+    String? route,
+    String? screenTitle,
+    Map<String, double>? geolocation,
+    Map<String, String>? travelDates,
+  }) {
+    final selectedOfferIds = sections.expand((section) => section.items.map((item) => item.id)).toList();
+    
+    final metadata = <String, dynamic>{
+      'totalSections': sections.length,
+      'totalItems': sections.fold<int>(0, (sum, section) => sum + section.items.length),
+      'sectionTypes': sections.map((s) => s.layout.name).toSet().toList(),
+    };
+
+    return AiQueryContext(
+      route: route ?? '/home',
+      screenTitle: screenTitle ?? 'Home Feed',
+      selectedOfferIds: selectedOfferIds,
+      geolocation: geolocation,
+      travelDates: travelDates,
+      metadata: metadata,
+    );
   }
 
   HomeSection _toHomeSection(AiSection section, {required int sectionIndex}) {

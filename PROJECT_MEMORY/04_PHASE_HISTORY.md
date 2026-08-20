@@ -20,13 +20,16 @@
 | 13 | Complete | Floating Navigation + persistent CommandBar |
 | 14 | Complete (14A UI + 14B wiring/timeouts) | AI Bottom Sheet + CommandBar wiring + 90s timeout hardening; Mock fallback now engages on timeout |
 | 15A | Complete | Context-aware AI foundation: AiQueryContext model, service contract extended with optional context, context wired from shell/AI sheet path, backend supports context injection into prompts |
-| 15B | Next (pending approval) | Context-aware AI + Card Engine integration deep polish |
-| 16 | Pending | Authentication, profile, and persisted sessions |
-| 17 | Pending | End-to-end booking/payment and Bag synchronization |
-| 18 | Pending | Unified Trip Bag, imports, readiness, Wallet, Price Watch |
-| 19 | Pending | Live Travel Companion, Map, Travel Mode, event notifications |
-| 20 | Pending | Production readiness and launch |
-| 21 | Pending | Trusted Group Trips: members, shared plans, safety, reviews |
+| 15B | Next (pending approval) | Context-aware AI + Card Engine integration deep polish + improved prompt engineering with geolocation/date context |
+| 16 | Pending | Offline support foundation (Hive/Isar cache for offers, AI responses cache) |
+| 17 | Pending | Authentication, profile, and persisted sessions |
+| 18 | Pending | PROJECT_MEMORY cloud sync (auto-backup of memory files to external storage) + analytics foundation (AI query tracking) |
+| 19 | Pending | End-to-end booking/payment and Bag synchronization |
+| 20 | Pending | Unified Trip Bag, imports, readiness, Wallet, Price Watch |
+| 21 | Pending | Accessibility improvements (screen reader support, text scaling compliance) |
+| 22 | Pending | Live Travel Companion, Map, Travel Mode, event notifications |
+| 23 | Pending | Production readiness and launch (performance optimization, security hardening) |
+| 24 | Pending | Trusted Group Trips: members, shared plans, safety, reviews |
 
 ### Phase discipline
 Each phase is intentionally small. Never start the next phase without an explicit instruction.

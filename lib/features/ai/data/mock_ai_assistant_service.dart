@@ -1,5 +1,6 @@
 import 'package:wetravellers/core/ai/ai_assistant_service.dart';
 import 'package:wetravellers/core/network/api_client.dart';
+import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
 
 import 'mock_ai_response_data.dart';
@@ -17,7 +18,7 @@ class MockAiAssistantService implements AiAssistantService {
   final MockAiResponseSource _source;
 
   @override
-  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout}) => _source.generate(prompt);
+  Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) => _source.generate(prompt);
 
   @override
   Future<String> generateContent({required String prompt}) async {

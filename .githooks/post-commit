@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+LOG_FILE="$PROJECT_ROOT/.githooks/hooks.log"
+
+# Log start timestamp
+echo "=== $(date '+%Y-%m-%d %H:%M:%S') - post-commit hook started ===" >> "$LOG_FILE"
+
+COMMIT_HASH="$(git rev-parse --short HEAD)"
+COMMIT_MESSAGE="$(git log -1 --format=%s)"
+
+echo "Commit: $COMMIT_HASH - $COMMIT_MESSAGE" >> "$LOG_FILE"
+
+echo "[WeTravellers] post-commit: commit completed $COMMIT_HASH"
+echo "[WeTravellers] post-commit: done. Details in .githooks/hooks.log"
+echo "=== post-commit hook completed successfully ===" >> "$LOG_FILE"
+
+exit 0

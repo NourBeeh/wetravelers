@@ -9,6 +9,7 @@ import 'package:wetravellers/features/ai/application/ai_providers.dart';
 import 'package:wetravellers/features/ai/application/ai_state.dart';
 import 'package:wetravellers/features/ai/data/mock_ai_response_provider.dart';
 import 'package:wetravellers/features/ai/domain/ai_home_mapper.dart';
+import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_section.dart';
 
@@ -26,7 +27,7 @@ class AiSheetController extends StateNotifier<AiState> {
   int _requestVersion = 0;
   bool _disposed = false;
 
-  Future<void> load(String prompt) async {
+  Future<void> load(String prompt, {AiQueryContext? context}) async {
     final trimmed = prompt.trim();
     if (trimmed.isEmpty) {
       return;
@@ -41,7 +42,7 @@ class AiSheetController extends StateNotifier<AiState> {
 
     try {
       final token = RequestToken();
-      final response = await _queryWithFallback(trimmed, token: token)
+      final response = await _queryWithFallback(trimmed, token: token, context: context)
           .timeout(const Duration(seconds: 90));
       if (_disposed || requestVersion != _requestVersion) {
         return;
@@ -75,12 +76,12 @@ class AiSheetController extends StateNotifier<AiState> {
     state = const AiState();
   }
 
-  Future<AiResponse> _queryWithFallback(String prompt, {RequestToken? token, Duration? timeout}) async {
+  Future<AiResponse> _queryWithFallback(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
     try {
-      return await primary.query(prompt, token: token, timeout: timeout);
+      return await primary.query(prompt, token: token, timeout: timeout, context: context);
     } catch (_) {
       try {
-        return await fallback.query(prompt, token: token, timeout: timeout);
+        return await fallback.query(prompt, token: token, timeout: timeout, context: context);
       } catch (error) {
         throw error;
       }
@@ -96,27 +97,28 @@ class AiSheetController extends StateNotifier<AiState> {
 }
 
 final aiSheetControllerProvider =
-    StateNotifierProvider.autoDispose.family<AiSheetController, AiState, String>(
-  (ref, prompt) {
+    StateNotifierProvider.autoDispose.family<AiSheetController, AiState, ({String prompt, AiQueryContext? context})>(
+  (ref, args) {
     final controller = AiSheetController(
       primary: ref.watch(aiAssistantServiceProvider),
       fallback: ref.watch(aiMockAssistantServiceProvider),
       mapper: ref.watch(aiHomeMapperProvider),
     );
-    Future.microtask(() => controller.load(prompt));
+    Future.microtask(() => controller.load(args.prompt, context: args.context));
     return controller;
   },
 );
 
 class AiBottomSheetContent extends ConsumerWidget {
-  const AiBottomSheetContent({super.key, required this.prompt});
+  const AiBottomSheetContent({super.key, required this.prompt, this.aiContext});
 
   final String prompt;
+  final AiQueryContext? aiContext;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(aiSheetControllerProvider(prompt));
-    final controller = ref.read(aiSheetControllerProvider(prompt).notifier);
+    final state = ref.watch(aiSheetControllerProvider((prompt: prompt, context: aiContext)));
+    final controller = ref.read(aiSheetControllerProvider((prompt: prompt, context: aiContext)).notifier);
 
     final children = switch (state.status) {
       AiStatus.loading => const [Center(child: CircularProgressIndicator())],
@@ -160,7 +162,7 @@ class AiBottomSheetContent extends ConsumerWidget {
 }
 
 /// Shows a draggable AI bottom sheet over the current surface.
-Future<void> showAiBottomSheet(BuildContext context, String prompt) async {
+Future<void> showAiBottomSheet(BuildContext context, String prompt, {AiQueryContext? aiContext}) async {
   await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -172,7 +174,7 @@ Future<void> showAiBottomSheet(BuildContext context, String prompt) async {
       builder: (sheetContext, scrollController) {
         return Consumer(
           builder: (consumerContext, ref, _) {
-            final state = ref.watch(aiSheetControllerProvider(prompt));
+            final state = ref.watch(aiSheetControllerProvider((prompt: prompt, context: aiContext)));
             final sections = state.sections;
             final content = Padding(
               padding: const EdgeInsets.all(12.0),
@@ -199,7 +201,7 @@ Future<void> showAiBottomSheet(BuildContext context, String prompt) async {
             return Material(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               clipBehavior: Clip.antiAlias,
-              child: content,
+              child: AiBottomSheetContent(prompt: prompt, aiContext: aiContext),
             );
           },
         );

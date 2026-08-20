@@ -5,7 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 
-import { AiResponseDto } from '../../common/dto/ai.dto';
+import { AiResponseDto, AiContextDto } from '../../common/dto/ai.dto';
 import {
   AI_FALLBACK_PROVIDER,
   AI_PROVIDER,
@@ -77,10 +77,31 @@ export class AiService {
 
   private readonly logger = new Logger(AiService.name);
 
-  async query(prompt: string): Promise<AiResponseDto> {
+  async query(prompt: string, context?: AiContextDto | null): Promise<AiResponseDto> {
     const startedAt = Date.now();
+    // Prepend context to the prompt if it exists, enhance context-aware prompt for geolocation/travelDates
+    let fullPrompt = prompt;
+    if (context) {
+      const contextParts: string[] = [];
+      contextParts.push(`route: ${context.route}`);
+      if (context.screenTitle) contextParts.push(`screenTitle: ${context.screenTitle}`);
+      if (context.geolocation?.lat && context.geolocation?.lng) {
+        contextParts.push(`userLocation: lat ${context.geolocation.lat}, lng ${context.geolocation.lng}`);
+      }
+      if (context.travelDates?.from && context.travelDates?.to) {
+        contextParts.push(`travelPeriod: from ${context.travelDates.from} to ${context.travelDates.to}`);
+      }
+      if (context.selectedOfferIds?.length) contextParts.push(`selectedOffers: ${context.selectedOfferIds.join(', ')}`);
+      if (context.metadata && Object.keys(context.metadata).length) {
+        contextParts.push(`metadata: ${JSON.stringify(context.metadata)}`);
+      }
+      
+      const contextStr = contextParts.join('\n');
+      fullPrompt = `Current application context:\n${contextStr}\n\nUser's actual query: ${prompt}`;
+    }
+
     try {
-      const response = await this.provider.generate(prompt);
+      const response = await this.provider.generate(fullPrompt);
       this.record({
         provider: this.provider.providerId,
         fallbackUsed: false,
@@ -101,7 +122,7 @@ export class AiService {
       if (this.fallback === null || !isFallbackEligible(error)) {
         throw error;
       }
-      return this.queryFallback(prompt);
+      return this.queryFallback(fullPrompt);
     }
   }
 
