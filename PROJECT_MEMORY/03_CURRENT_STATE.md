@@ -1,7 +1,7 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**AI Phases 1–10 complete. Phases 11A–11C, 12, 13, 14A and 14B complete. Live AI works via an OpenAI-compatible provider (tested with OpenRouter). Next pending phase: Phase 15 — Context-aware AI + Card Engine integration.**
+**AI Phases 1–10 complete. Phases 11A–11C, 12, 13, 14A, 14B and 15A complete. Live AI works via an OpenAI-compatible provider (tested with OpenRouter). Phase 15A (Context-aware AI foundation) implemented successfully. Next pending phase: Phase 15B — Context-aware AI + Card Engine integration deep polish.**
 
 ## Last confirmed AI state
 - AI visual shell exists.
@@ -621,4 +621,73 @@ D  WeTravellers_MEMORY_BUNDLE_V4_2026-08-15/docs/project_memory/PHASE_REGISTRY.m
 D  WeTravellers_MEMORY_BUNDLE_V4_2026-08-15/docs/project_memory/PROJECT_MANIFEST.json
 D  WeTravellers_MEMORY_BUNDLE_V4_2026-08-15/tools/update_project_memory.py
 A  lib/features/ai/domain/ai_query_context.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+6e239c6a (HEAD -> main) clean
+6d98c980 ok
+d53d9d52 feat(ai): complete phase 14B command bar wiring and AI timeout hardening
+ac559b37 chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
+2cb8cc93 PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
+f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
+```
+
+### Pending status
+```
+ M .githooks/post-commit
+ M .githooks/pre-commit
+ M backend/src/common/dto/ai.dto.ts
+ M backend/src/modules/ai/ai.controller.ts
+ M backend/src/modules/ai/ai.service.ts
+ M lib/app/shell.dart
+ M lib/core/ai/ai_assistant_service.dart
+ M lib/features/ai/data/ai_api_service.dart
+ M lib/features/ai/data/mock_ai_assistant_service.dart
+ M lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+```---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+6e239c6a (HEAD -> main) clean
+6d98c980 ok
+d53d9d52 feat(ai): complete phase 14B command bar wiring and AI timeout hardening
+ac559b37 chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
+2cb8cc93 PROJECT_MEMORY: update current state and next steps after Phase 12/13/14A work
+f2170a7c AI: bottom sheet — primary/fallback service, typed FutureBuilder, user-facing errors
+```
+
+### Pending status
+```
+D  .githooks/post-commit
+M  .githooks/pre-commit
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  PROJECT_MEMORY/09_AI_HANDOFF.md
+M  WeTravellers_PROJECT_MEMORY_SYSTEM.zip
+ M backend/src/common/dto/ai.dto.ts
+ M backend/src/modules/ai/ai.controller.ts
+ M backend/src/modules/ai/ai.service.ts
+ M lib/app/shell.dart
+ M lib/core/ai/ai_assistant_service.dart
+ M lib/features/ai/data/ai_api_service.dart
+ M lib/features/ai/data/mock_ai_assistant_service.dart
+ M lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
 ```

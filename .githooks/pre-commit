@@ -6,18 +6,30 @@ MEMORY_DIR="$PROJECT_ROOT/PROJECT_MEMORY"
 MEMORY_ZIP="$PROJECT_ROOT/WeTravellers_PROJECT_MEMORY_SYSTEM.zip"
 STATUS_FILE="$MEMORY_DIR/03_CURRENT_STATE.md"
 GIT_STATUS_FILE="$MEMORY_DIR/09_AI_HANDOFF.md"
+LOG_FILE="$PROJECT_ROOT/.githooks/hooks.log"
+
+# Create log file if it doesn't exist
+touch "$LOG_FILE"
+
+# Log start timestamp
+echo "=== $(date '+%Y-%m-%d %H:%M:%S') - pre-commit hook started ===" >> "$LOG_FILE"
 
 if [ ! -d "$MEMORY_DIR" ]; then
-    echo "[WeTravellers] PROJECT_MEMORY not found. Skipping memory sync."
+    echo "[WeTravellers] pre-commit: PROJECT_MEMORY not found. Skipping memory sync."
+    echo "PROJECT_MEMORY directory not found, skipping sync" >> "$LOG_FILE"
     exit 0
 fi
 
 BRANCH="$(git branch --show-current)"
+# Capture git data but don't print to terminal - only log
 RECENT_COMMITS="$(git log -10 --oneline --decorate 2>/dev/null || true)"
 PROJECT_STATUS="$(git status --short)"
+echo "Branch: $BRANCH" >> "$LOG_FILE"
+echo "Captured recent commits" >> "$LOG_FILE"
+echo "Captured project status" >> "$LOG_FILE"
 
+# Write to memory files (this is the core sync functionality)
 cat >> "$STATUS_FILE" <<STATUS
-
 ---
 ## Automatic Git Sync
 - Branch: $BRANCH
@@ -34,9 +46,9 @@ $RECENT_COMMITS
 $PROJECT_STATUS
 \`\`\`
 STATUS
+echo "Updated status file: $STATUS_FILE" >> "$LOG_FILE"
 
 cat >> "$GIT_STATUS_FILE" <<STATUS
-
 ---
 ## Automatic Git Sync
 This handoff was synchronized automatically before the latest commit.
@@ -48,17 +60,23 @@ Recent commits:
 $RECENT_COMMITS
 \`\`\`
 STATUS
+echo "Updated handoff file: $GIT_STATUS_FILE" >> "$LOG_FILE"
 
 cd "$PROJECT_ROOT"
 
 TEMP_ZIP="$MEMORY_ZIP.tmp"
 
-zip -qr "$TEMP_ZIP" "PROJECT_MEMORY"
+# Zip operations - redirect output to log
+zip -qr "$TEMP_ZIP" "PROJECT_MEMORY" 2>> "$LOG_FILE"
 mv -f "$TEMP_ZIP" "$MEMORY_ZIP"
+echo "Created memory bundle: $MEMORY_ZIP" >> "$LOG_FILE"
 
-git add "$MEMORY_DIR" "$MEMORY_ZIP"
+# Stage memory files
+git add "$MEMORY_DIR" "$MEMORY_ZIP" 2>> "$LOG_FILE"
+echo "Staged memory files for commit" >> "$LOG_FILE"
 
-echo "[WeTravellers] Memory state synchronized."
-echo "[WeTravellers] Memory bundle prepared for commit."
+echo "[WeTravellers] pre-commit: memory sync ok"
+echo "[WeTravellers] pre-commit: done. Details in .githooks/hooks.log"
+echo "=== pre-commit hook completed successfully ===" >> "$LOG_FILE"
 
 exit 0

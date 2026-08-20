@@ -19,7 +19,8 @@
 | 12 | Complete | Home Marketplace UI |
 | 13 | Complete | Floating Navigation + persistent CommandBar |
 | 14 | Complete (14A UI + 14B wiring/timeouts) | AI Bottom Sheet + CommandBar wiring + 90s timeout hardening; Mock fallback now engages on timeout |
-| 15 | Next (pending approval) | AI context + Card Engine integration |
+| 15A | Complete | Context-aware AI foundation: AiQueryContext model, service contract extended with optional context, context wired from shell/AI sheet path, backend supports context injection into prompts |
+| 15B | Next (pending approval) | Context-aware AI + Card Engine integration deep polish |
 | 16 | Pending | Authentication, profile, and persisted sessions |
 | 17 | Pending | End-to-end booking/payment and Bag synchronization |
 | 18 | Pending | Unified Trip Bag, imports, readiness, Wallet, Price Watch |
