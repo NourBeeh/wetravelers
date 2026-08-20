@@ -13,6 +13,12 @@ import '../shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Phase 15C: real authentication arrives in a later phase. Until then the
+/// auth repository is a local stub, so a mandatory login redirect would lock
+/// unauthenticated users out of the app. The login route stays registered and
+/// this flag re-enables the redirect once real identity work lands.
+const bool _authRedirectEnabled = false;
+
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authUser = ref.watch(authUserProvider);
 
@@ -20,9 +26,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
+      if (!_authRedirectEnabled) {
+        return null;
+      }
       final isLoggedIn = authUser != null;
       final isLoginRoute = state.matchedLocation == '/login';
-      
+
       if (!isLoggedIn && !isLoginRoute) {
         return '/login';
       }

@@ -45,6 +45,7 @@ dependencies:
 
   # Platform secure storage for iOS Keychain / Android Keystore / Linux libsecret
   flutter_secure_storage: ^9.2.2
+  hive: ^2.2.3
 
 dependency_overrides:
   flutter_secure_storage_linux: 1.1.0
