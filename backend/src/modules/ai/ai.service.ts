@@ -4,6 +4,7 @@ import {
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { DuffelService } from '../duffel/duffel.service';
 
 import { AiResponseDto, AiContextDto } from '../../common/dto/ai.dto';
 import {
@@ -73,7 +74,34 @@ export class AiService {
   constructor(
     @Inject(AI_PROVIDER) private readonly provider: AiProvider,
     @Inject(AI_FALLBACK_PROVIDER) private readonly fallback: AiProvider | null,
+    private readonly duffelService: DuffelService,
   ) {}
+
+  // استخراج بيانات البحث عن سفر من النص العربي
+  private extractTravelSearchData(prompt: string): { isTravelSearch: boolean; searchData?: any } {
+    const travelKeywords = ['طيران', 'رحلة', 'سفر', 'حجز', 'أريد طيران', 'عايز طيران', 'ابغى سفر', 'حجز تذكرة'];
+    const isTravelSearch = travelKeywords.some(keyword => prompt.includes(keyword));
+    
+    if (!isTravelSearch) return { isTravelSearch: false };
+
+    const citiesPattern = /من\s*([\u0600-\u06FF\w]+)\s*إلى\s*([\u0600-\u06FF\w]+)/;
+    const datePattern = /في\s*(\d{4}-\d{2}-\d{2})|يوم\s*(\d{1,2})\s*(\w+)/;
+    
+    const citiesMatch = prompt.match(citiesPattern);
+    const dateMatch = prompt.match(datePattern);
+
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 7); // إفتراضي: بعد أسبوع
+
+    const searchData = {
+      origin: citiesMatch?.[1] || '',
+      destination: citiesMatch?.[2] || '',
+      departureDate: dateMatch?.[1] || defaultDate.toISOString().split('T')[0],
+      passengers: 1,
+    };
+
+    return { isTravelSearch: true, searchData };
+  }
 
   private readonly logger = new Logger(AiService.name);
 
@@ -98,6 +126,49 @@ export class AiService {
       
       const contextStr = contextParts.join('\n');
       fullPrompt = `Current application context:\n${contextStr}\n\nUser's actual query: ${prompt}`;
+    }
+
+    // التحقق إذا كان الطلب بحث عن سفر
+    const { isTravelSearch, searchData } = this.extractTravelSearchData(prompt);
+    if (isTravelSearch && searchData && searchData.origin && searchData.destination) {
+      try {
+        const flights = await this.duffelService.searchFlights(
+          searchData.origin,
+          searchData.destination,
+          searchData.departureDate,
+          searchData.passengers,
+        );
+
+        // تحويل النتائج لتنسيق AiResponseDto
+        const flightItems = (flights.offers || []).map((offer: any) => ({
+          id: offer.id,
+          type: 'flight',
+          title: `${searchData.origin} → ${searchData.destination}`,
+          subtitle: offer.origin_city || 'رحلة جوية',
+          price: parseFloat(offer.total_amount),
+          currency: offer.currency,
+        }));
+
+        this.record({
+          provider: this.provider.providerId,
+          fallbackUsed: false,
+          outcome: 'success',
+          latencyMs: Date.now() - startedAt,
+        });
+
+        return {
+          text: `تم العثور على ${flightItems.length} رحلة متاحة من ${searchData.origin} إلى ${searchData.destination}!`,
+          sections: [{
+            id: 'flight-results',
+            title: 'الرحلات المتاحة',
+            layout: 'vertical',
+            items: flightItems,
+          }],
+          metadata: { searchData, flightCount: flightItems.length },
+        };
+      } catch (searchError) {
+        this.logger.error(`Failed to search flights: ${(searchError as Error).message}`);
+      }
     }
 
     try {

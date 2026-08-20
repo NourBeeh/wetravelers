@@ -176,8 +176,9 @@ Future<void> showAiBottomSheet(BuildContext context, String prompt, {AiQueryCont
           builder: (consumerContext, ref, _) {
             final state = ref.watch(aiSheetControllerProvider((prompt: prompt, context: aiContext)));
             final sections = state.sections;
-            final content = Padding(
-              padding: const EdgeInsets.all(12.0),
+            return Material(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              clipBehavior: Clip.antiAlias,
               child: switch (state.status) {
                 AiStatus.loading => const Center(child: CircularProgressIndicator()),
                 AiStatus.error => Center(
@@ -197,11 +198,6 @@ Future<void> showAiBottomSheet(BuildContext context, String prompt, {AiQueryCont
                   ),
                 AiStatus.idle => const Center(child: CircularProgressIndicator()),
               },
-            );
-            return Material(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              clipBehavior: Clip.antiAlias,
-              child: AiBottomSheetContent(prompt: prompt, aiContext: aiContext),
             );
           },
         );

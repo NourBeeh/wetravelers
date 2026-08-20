@@ -11,6 +11,7 @@ import { CacheModule } from './modules/cache/cache.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { DuffelModule } from './modules/duffel/duffel.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AuditModule } from './modules/audit/audit.module';
     AdminModule,
     AiModule,
     AuditModule,
+    DuffelModule,
   ],
 })
 export class AppModule {}

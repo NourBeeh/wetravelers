@@ -49,13 +49,19 @@ Notes:
 - Stage 4: Updated `AiController.submit()` to build context automatically from current home sections and pass it to the AI service
 - Stage 5: Validated core functionality works with zero errors in lib/ directory, only test files require minor updates
 
-## Phase 15C — Urgent: Fix all remaining issues (NEXT PENDING PHASE)
-**Goal**: Resolve all 7 remaining test errors and code hygiene issues to bring `flutter analyze` to zero errors.
-**Sub-stages**:
-1.  Stage 1: Update all mock AI services in test files to include the new `AiQueryContext? context` parameter in their `query()` method
-2.  Stage 2: Fix the argument type error in `ai_bottom_sheet_test.dart` line 171 to match the new provider signature
-3.  Stage 3: Run full test suite to verify all AI-related tests pass
-4.  Stage 4: Address non-critical hygiene issues (optional, for code quality)
+## Phase 15C — Urgent: Fix all remaining issues (IN PROGRESS)
+**Goal**: Resolve all 51 original build errors and remaining code hygiene issues to bring `flutter analyze` to zero errors.
+**Completed sub-stages**:
+1.  ✅ Stage 1: Update all mock AI services in test files to include the new `AiQueryContext? context` parameter in their `query()` method
+2.  ✅ Stage 2: Fix the argument type error in `ai_bottom_sheet_test.dart` line 171 to match the new provider signature
+3.  ✅ Stage 3: Run full test suite to verify all AI-related tests pass
+4.  ✅ Fixed default AppMode in app_mode_provider.dart from ai to normal to enable main page access
+5.  ✅ Fixed dead code issue in ai_bottom_sheet.dart (removed unreachable return statement)
+6.  ✅ All original 51 build errors are RESOLVED - now only 42 non-blocking warnings/info issues remain
+
+**Remaining sub-stages**:
+1.  Fix routing redirect logic in go_router_config.dart to bypass login page for unauthenticated users
+2.  Address remaining code hygiene issues (unused imports, dead code, minor lint warnings)
 
 ## Do not assume
 - Do not assume the historical 55-test baseline is still current.
@@ -744,4 +750,376 @@ M  lib/features/ai/domain/ai_query_context.dart
 M  lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
 M  test/features/ai/ai_bottom_sheet_test.dart
 M  test/features/ai/ai_controller_error_test.dart
+```---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+005231e5 (HEAD -> main) new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
+6e239c6a clean
+6d98c980 ok
+d53d9d52 feat(ai): complete phase 14B command bar wiring and AI timeout hardening
+ac559b37 chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+A  analysis_report.txt
+M  backend/node_modules/.package-lock.json
+A  backend/node_modules/@duffel/api/LICENSE
+A  backend/node_modules/@duffel/api/README.md
+A  backend/node_modules/@duffel/api/dist/Cars/Bookings/Bookings.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/Bookings/Bookings.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/Bookings/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/Cars.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/Cars.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/CarsTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/Quotes/Quotes.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/Quotes/Quotes.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/Quotes/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Cars/mocks.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/PaymentIntents/PaymentIntents.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/PaymentIntents/PaymentIntents.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/PaymentIntents/PaymentIntentsType.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/PaymentIntents/index.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/PaymentIntents/mockPaymentIntents.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/Refunds/Refunds.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/Refunds/Refunds.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/Refunds/RefundsType.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/Refunds/index.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/Refunds/mockRefunds.d.ts
+A  backend/node_modules/@duffel/api/dist/DuffelPayments/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Identity/ComponentClientKeys.d.ts
+A  backend/node_modules/@duffel/api/dist/Identity/CustomerUserGroups.d.ts
+A  backend/node_modules/@duffel/api/dist/Identity/CustomerUsers.d.ts
+A  backend/node_modules/@duffel/api/dist/Identity/Identity.d.ts
+A  backend/node_modules/@duffel/api/dist/Identity/Identity.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Identity/IdentityTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/Links/Sessions/Sessions.d.ts
+A  backend/node_modules/@duffel/api/dist/Links/Sessions/Sessions.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Links/Sessions/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Links/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Payments/Cards/Cards.d.ts
+A  backend/node_modules/@duffel/api/dist/Payments/Cards/Cards.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Payments/Cards/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Payments/ThreeDSecureSessions/ThreeDSecureSessions.d.ts
+A  backend/node_modules/@duffel/api/dist/Payments/ThreeDSecureSessions/ThreeDSecureSessions.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Payments/ThreeDSecureSessions/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Payments/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Places/Suggestions/Suggestions.d.ts
+A  backend/node_modules/@duffel/api/dist/Places/Suggestions/Suggestions.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Places/Suggestions/SuggestionsType.d.ts
+A  backend/node_modules/@duffel/api/dist/Places/Suggestions/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Places/Suggestions/mockSuggestions.d.ts
+A  backend/node_modules/@duffel/api/dist/Places/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Accommodation/Accommodation.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Accommodation/Accommodation.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Accommodation/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Bookings/Bookings.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Bookings/Bookings.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Bookings/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Brands/Brands.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Brands/Brands.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Brands/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/LoyaltyProgrammes/LoyaltyProgrammes.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/LoyaltyProgrammes/LoyaltyProgrammes.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/LoyaltyProgrammes/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/NegotiatedRates/NegotiatedRates.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/NegotiatedRates/NegotiatedRates.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/NegotiatedRates/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Quotes/Quotes.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Quotes/Quotes.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Quotes/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/SearchResults/SearchResults.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/SearchResults/SearchResults.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/SearchResults/index.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Stays.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/Stays.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/StaysTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/Stays/mocks.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/AirlineInitiatedChanges/AirlineInitiatedChanges.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/AirlineInitiatedChanges/AirlineInitiatedChanges.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/AirlineInitiatedChanges/AirlineInitiatedChangesTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/AirlineInitiatedChanges/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/AirlineInitiatedChanges/mockAirlineInitiatedChanges.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/BatchOfferRequests/BatchOfferRequests.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/BatchOfferRequests/BatchOfferRequests.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/BatchOfferRequests/BatchOfferRequestsTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/BatchOfferRequests/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/BatchOfferRequests/mockBatchOfferRequest.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Identity/ComponentClientKey/ComponentClientKeys.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Identity/ComponentClientKey/ComponentClientKeys.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Identity/ComponentClientKey/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Identity/ComponentClientKey/mockComponentClientKey.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Identity/ComponentClientKey/types.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Identity/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OfferRequests/OfferRequests.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OfferRequests/OfferRequests.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OfferRequests/OfferRequestsTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OfferRequests/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OfferRequests/mockOfferRequest.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Offers/OfferTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Offers/Offers.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Offers/Offers.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Offers/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Offers/mockOffer.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Offers/mockPartialOffer.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderCancellations/OrderCancellations.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderCancellations/OrderCancellations.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderCancellations/OrderCancellationsTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderCancellations/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderCancellations/mockOrderCancellations.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeOffers/OrderChangeOfferTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeOffers/OrderChangeOffers.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeOffers/OrderChangeOffers.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeOffers/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeOffers/mockOrderChangeOffer.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeRequests/OrderChangeRequests.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeRequests/OrderChangeRequestsTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeRequests/OrderRequestChanges.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeRequests/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChangeRequests/mockOrderChangeRequests.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChanges/OrderChanges.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChanges/OrderChanges.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChanges/OrderChangesTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChanges/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/OrderChanges/mockOrderChanges.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Orders/Orders.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Orders/Orders.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Orders/OrdersTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Orders/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Orders/mockOrders.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/PartialOfferRequests/PartialOfferRequestTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/PartialOfferRequests/PartialOfferRequests.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/PartialOfferRequests/PartialOfferRequests.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/PartialOfferRequests/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/PartialOfferRequests/mockPartialOfferRequest.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Payments/Payments.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Payments/Payments.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Payments/PaymentsTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Payments/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/Payments/mockPayment.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/SeatMaps/SeatMapTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/SeatMaps/SeatMaps.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/SeatMaps/SeatMaps.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/SeatMaps/index.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/SeatMaps/mockSeatMap.d.ts
+A  backend/node_modules/@duffel/api/dist/booking/index.d.ts
+A  backend/node_modules/@duffel/api/dist/functions/hasAvailableSeatService.d.ts
+A  backend/node_modules/@duffel/api/dist/functions/hasAvailableSeatService.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/functions/hasService.d.ts
+A  backend/node_modules/@duffel/api/dist/functions/hasService.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/index.es.js
+A  backend/node_modules/@duffel/api/dist/index.es.js.map
+A  backend/node_modules/@duffel/api/dist/index.js
+A  backend/node_modules/@duffel/api/dist/index.js.map
+A  backend/node_modules/@duffel/api/dist/notifications/Webhooks/Webhooks.d.ts
+A  backend/node_modules/@duffel/api/dist/notifications/Webhooks/Webhooks.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/notifications/Webhooks/WebhooksType.d.ts
+A  backend/node_modules/@duffel/api/dist/notifications/Webhooks/index.d.ts
+A  backend/node_modules/@duffel/api/dist/notifications/Webhooks/mockWebhooks.d.ts
+A  backend/node_modules/@duffel/api/dist/notifications/index.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Aircraft/Aircraft.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Aircraft/Aircraft.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Aircraft/AircraftTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Aircraft/index.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Aircraft/mockAircraft.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airlines/Airlines.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airlines/Airlines.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airlines/AirlinesTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airlines/index.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airlines/mockAirline.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airports/Airports.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airports/Airports.spec.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airports/AirportsTypes.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airports/index.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/Airports/mockAirport.d.ts
+A  backend/node_modules/@duffel/api/dist/supportingResources/index.d.ts
+A  backend/node_modules/@duffel/api/dist/typings.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/LICENSE
+A  backend/node_modules/@duffel/api/node_modules/@types/node/README.md
+A  backend/node_modules/@duffel/api/node_modules/@types/node/assert.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/assert/strict.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/async_hooks.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/buffer.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/child_process.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/cluster.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/console.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/constants.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/crypto.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/dgram.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/diagnostics_channel.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/dns.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/dns/promises.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/domain.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/events.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/fs.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/fs/promises.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/globals.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/globals.global.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/http.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/http2.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/https.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/index.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/inspector.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/module.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/net.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/os.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/package.json
+A  backend/node_modules/@duffel/api/node_modules/@types/node/path.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/perf_hooks.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/process.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/punycode.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/querystring.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/readline.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/repl.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/stream.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/stream/consumers.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/stream/promises.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/stream/web.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/string_decoder.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/test.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/timers.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/timers/promises.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/tls.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/trace_events.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/tty.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/url.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/util.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/v8.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/vm.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/wasi.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/worker_threads.d.ts
+A  backend/node_modules/@duffel/api/node_modules/@types/node/zlib.d.ts
+A  backend/node_modules/@duffel/api/package.json
+A  backend/node_modules/@nestjs/throttler/LICENSE
+A  backend/node_modules/@nestjs/throttler/README.md
+A  backend/node_modules/@nestjs/throttler/dist/hash.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/hash.js
+A  backend/node_modules/@nestjs/throttler/dist/hash.js.map
+A  backend/node_modules/@nestjs/throttler/dist/index.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/index.js
+A  backend/node_modules/@nestjs/throttler/dist/index.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler-module-options.interface.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler-module-options.interface.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler-module-options.interface.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage-options.interface.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage-options.interface.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage-options.interface.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage-record.interface.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage-record.interface.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage-record.interface.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage.interface.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage.interface.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler-storage.interface.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler.constants.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler.constants.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler.constants.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler.decorator.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler.decorator.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler.decorator.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler.exception.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler.exception.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler.exception.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler.guard.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler.guard.interface.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler.guard.interface.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler.guard.interface.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler.guard.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler.guard.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler.module.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler.module.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler.module.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler.providers.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler.providers.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler.providers.js.map
+A  backend/node_modules/@nestjs/throttler/dist/throttler.service.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/throttler.service.js
+A  backend/node_modules/@nestjs/throttler/dist/throttler.service.js.map
+A  backend/node_modules/@nestjs/throttler/dist/tsconfig.build.tsbuildinfo
+A  backend/node_modules/@nestjs/throttler/dist/utilities.d.ts
+A  backend/node_modules/@nestjs/throttler/dist/utilities.js
+A  backend/node_modules/@nestjs/throttler/dist/utilities.js.map
+A  backend/node_modules/@nestjs/throttler/package.json
+A  backend/node_modules/@types/node-fetch/LICENSE
+A  backend/node_modules/@types/node-fetch/README.md
+A  backend/node_modules/@types/node-fetch/externals.d.ts
+A  backend/node_modules/@types/node-fetch/index.d.ts
+A  backend/node_modules/@types/node-fetch/package.json
+A  backend/node_modules/asynckit/LICENSE
+A  backend/node_modules/asynckit/README.md
+A  backend/node_modules/asynckit/bench.js
+A  backend/node_modules/asynckit/index.js
+A  backend/node_modules/asynckit/lib/abort.js
+A  backend/node_modules/asynckit/lib/async.js
+A  backend/node_modules/asynckit/lib/defer.js
+A  backend/node_modules/asynckit/lib/iterate.js
+A  backend/node_modules/asynckit/lib/readable_asynckit.js
+A  backend/node_modules/asynckit/lib/readable_parallel.js
+A  backend/node_modules/asynckit/lib/readable_serial.js
+A  backend/node_modules/asynckit/lib/readable_serial_ordered.js
+A  backend/node_modules/asynckit/lib/state.js
+A  backend/node_modules/asynckit/lib/streamify.js
+A  backend/node_modules/asynckit/lib/terminator.js
+A  backend/node_modules/asynckit/package.json
+A  backend/node_modules/asynckit/parallel.js
+A  backend/node_modules/asynckit/serial.js
+A  backend/node_modules/asynckit/serialOrdered.js
+A  backend/node_modules/asynckit/stream.js
+A  backend/node_modules/combined-stream/License
+A  backend/node_modules/combined-stream/Readme.md
+A  backend/node_modules/combined-stream/lib/combined_stream.js
+A  backend/node_modules/combined-stream/package.json
+A  backend/node_modules/combined-stream/yarn.lock
+A  backend/node_modules/delayed-stream/.npmignore
+A  backend/node_modules/delayed-stream/License
+A  backend/node_modules/delayed-stream/Makefile
+A  backend/node_modules/delayed-stream/Readme.md
+A  backend/node_modules/delayed-stream/lib/delayed_stream.js
+A  backend/node_modules/delayed-stream/package.json
+A  backend/node_modules/es-set-tostringtag/.eslintrc
+A  backend/node_modules/es-set-tostringtag/.nycrc
+A  backend/node_modules/es-set-tostringtag/CHANGELOG.md
+A  backend/node_modules/es-set-tostringtag/LICENSE
+A  backend/node_modules/es-set-tostringtag/README.md
+A  backend/node_modules/es-set-tostringtag/index.d.ts
+A  backend/node_modules/es-set-tostringtag/index.js
+A  backend/node_modules/es-set-tostringtag/package.json
+A  backend/node_modules/es-set-tostringtag/test/index.js
+A  backend/node_modules/es-set-tostringtag/tsconfig.json
+A  backend/node_modules/form-data/CHANGELOG.md
+A  backend/node_modules/form-data/License
+A  backend/node_modules/form-data/README.md
+A  backend/node_modules/form-data/index.d.ts
+A  backend/node_modules/form-data/lib/browser.js
+A  backend/node_modules/form-data/lib/form_data.js
+A  backend/node_modules/form-data/lib/populate.js
+A  backend/node_modules/form-data/package.json
+M  backend/package-lock.json
+M  backend/package.json
+M  backend/src/app.module.ts
+M  backend/src/modules/ai/ai.module.ts
+M  backend/src/modules/ai/ai.service.ts
+A  backend/src/modules/duffel/duffel.controller.ts
+A  backend/src/modules/duffel/duffel.module.ts
+A  backend/src/modules/duffel/duffel.service.ts
+M  lib/core/mappers/offer_mapper_fixed.dart
+M  lib/core/network/http_api_client.dart
+M  lib/core/ui/accessible_button.dart
+M  lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+M  lib/features/booking/application/booking_controller.dart
+M  lib/features/booking/application/booking_providers.dart
+M  lib/features/search/application/controllers/hotel_search_controller.dart
+M  lib/features/search/application/sort_utils.dart
+M  lib/shared/providers/app_mode_provider.dart
+M  test/features/ai/ai_bottom_sheet_test.dart
 ```

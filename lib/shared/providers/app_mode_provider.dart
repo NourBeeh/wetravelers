@@ -12,5 +12,5 @@ enum AppMode { ai, normal }
 /// to [AppMode.normal]; the single circular AI/Normal toggle lands in a later
 /// phase, so this phase only wires the state.
 final appModeProvider = StateProvider<AppMode>((ref) {
-  return AppMode.ai;
+  return AppMode.normal;
 });

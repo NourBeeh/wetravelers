@@ -4,8 +4,6 @@ import 'package:wetravellers/features/booking/domain/booking_record.dart';
 import 'package:wetravellers/features/booking/application/prepare_booking_usecase.dart';
 import 'package:wetravellers/features/booking/application/revalidate_booking_usecase.dart';
 import 'package:wetravellers/features/booking/application/confirm_booking_usecase.dart';
-import 'package:wetravellers/features/booking/application/idempotency_store.dart';
-import 'package:wetravellers/features/booking/domain/booking_preparation.dart';
 import 'package:wetravellers/features/booking/domain/booking_preparation.dart' as prep;
 import 'package:wetravellers/features/bag/application/bag_controller.dart';
 
@@ -60,18 +58,13 @@ class BookingController extends StateNotifier<BookingState> {
       success: (record) {
         final authoritativePrice = record.authoritativePrice;
         final changed = authoritativePrice != oldPrice;
-        final available = true;
-        if (!available) {
-          state = state.copyWith(phase: BookingPhase.unavailable, record: record);
-          return;
-        }
         if (changed) {
           final revalidation = prep.PriceRevalidationResult(
             authoritativePrice: authoritativePrice,
             oldPrice: oldPrice,
             currency: record.currency,
             priceChanged: true,
-            available: available,
+            available: true,
             providerId: record.providerId,
             offerId: record.offerId,
           );

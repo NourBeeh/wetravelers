@@ -26,7 +26,7 @@ class HotelSearchController extends StateNotifier<HotelSearchState> {
       city: params.destination,
       checkIn: params.checkIn,
       checkOut: params.checkOut,
-      guests: params.adults ?? 1,
+      guests: params.adults,
     );
     result.when(
       success: (offers) {

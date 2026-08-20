@@ -1,0 +1,36 @@
+Analyzing wetravellers...                                       
+
+   info • Use an initializing formal to assign a parameter to a field. Try using an initialing formal ('this._baseUrlOverride') to initialize the field • lib/core/network/http_api_client.dart:76:9 • prefer_initializing_formals
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/core/ui/app_image.dart:27:25 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/core/ui/app_image.dart:27:29 • unnecessary_underscores
+   info • Use an initializing formal to assign a parameter to a field. Try using an initialing formal ('this._service') to initialize the field • lib/features/ai/application/ai_controller.dart:20:9 • prefer_initializing_formals
+   info • Use an initializing formal to assign a parameter to a field. Try using an initialing formal ('this._mapper') to initialize the field • lib/features/ai/application/ai_controller.dart:21:9 • prefer_initializing_formals
+   info • Use an initializing formal to assign a parameter to a field. Try using an initialing formal ('this._source') to initialize the field • lib/features/ai/data/mock_ai_assistant_service.dart:16:8 • prefer_initializing_formals
+   info • Use 'rethrow' to rethrow a caught exception. Try replacing the 'throw' with a 'rethrow' • lib/features/ai/presentation/widgets/ai_bottom_sheet.dart:86:9 • use_rethrow_when_possible
+   info • The constant name 'offer_not_found' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:2:3 • constant_identifier_names
+   info • The constant name 'provider_unavailable' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:3:3 • constant_identifier_names
+   info • The constant name 'price_changed' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:4:3 • constant_identifier_names
+   info • The constant name 'no_availability' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:5:3 • constant_identifier_names
+   info • The constant name 'booking_expired' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:6:3 • constant_identifier_names
+   info • The constant name 'validation_failed' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:7:3 • constant_identifier_names
+   info • The constant name 'provider_error' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:9:3 • constant_identifier_names
+   info • The constant name 'duplicate_request' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:10:3 • constant_identifier_names
+   info • The constant name 'unknown_error' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style • lib/features/booking/domain/booking_error.dart:11:3 • constant_identifier_names
+   info • Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' • lib/features/home/presentation/widgets/hotel_card.dart:22:7 • use_null_aware_elements
+   info • Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' • lib/features/home/presentation/widgets/hotel_card.dart:23:7 • use_null_aware_elements
+warning • This default clause is covered by the previous cases. Try removing the default clause, or restructuring the preceding patterns • lib/features/search/application/sort_utils.dart:29:5 • unreachable_switch_default
+warning • Unused import: 'package:wetravellers/features/bag/presentation/pages/trip_details_page.dart'. Try removing the import directive • lib/features/search/presentation/pages/booking_review_page.dart:6:8 • unused_import
+warning • The '!' will have no effect because the receiver can't be null. Try removing the '!' operator • lib/features/search/presentation/pages/booking_review_page.dart:97:97 • unnecessary_non_null_assertion
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/features/search/presentation/pages/car_search_page.dart:32:64 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/features/search/presentation/pages/flight_search_page.dart:67:28 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/features/search/presentation/pages/hotel_search_page.dart:36:28 • unnecessary_underscores
+   info • The private field _rooms could be 'final'. Try making the field 'final' • lib/features/search/presentation/pages/hotel_search_page.dart:61:7 • prefer_final_fields
+   info • The private field _adults could be 'final'. Try making the field 'final' • lib/features/search/presentation/pages/hotel_search_page.dart:62:7 • prefer_final_fields
+warning • Unused import: 'package:wetravellers/features/bag/domain/trip.dart'. Try removing the import directive • test/features/bag/phase7c_sync_test.dart:7:8 • unused_import
+warning • Unused import: 'package:wetravellers/core/repositories/contracts/booking_repository.dart'. Try removing the import directive • test/features/booking/phase7a1_provider_wiring_test.dart:8:8 • unused_import
+warning • Unused import: 'package:wetravellers/core/network/http_api_client.dart'. Try removing the import directive • test/features/booking/phase7a1_provider_wiring_test.dart:10:8 • unused_import
+warning • Unused import: 'package:wetravellers/features/booking/application/prepare_booking_usecase.dart'. Try removing the import directive • test/features/booking/phase7a_booking_test.dart:3:8 • unused_import
+warning • Unused import: 'package:wetravellers/features/booking/application/revalidate_booking_usecase.dart'. Try removing the import directive • test/features/booking/phase7a_booking_test.dart:4:8 • unused_import
+warning • Unused import: 'package:wetravellers/features/booking/application/idempotency_store.dart'. Try removing the import directive • test/features/booking/phase7b_confirm_test.dart:11:8 • unused_import
+
+32 issues found. (ran in 5.0s)

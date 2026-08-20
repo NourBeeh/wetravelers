@@ -44,7 +44,9 @@ List<HotelOffer> sortHotels(List<HotelOffer> list, SortOption option) {
     case SortOption.rating:
       items.sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
       break;
-    default:
+    case SortOption.recommended:
+    case SortOption.duration:
+    case SortOption.stops:
       break;
   }
   return items;
@@ -59,7 +61,10 @@ List<CarOffer> sortCars(List<CarOffer> list, SortOption option) {
     case SortOption.priceHighLow:
       items.sort((a, b) => b.price.compareTo(a.price));
       break;
-    default:
+    case SortOption.recommended:
+    case SortOption.rating:
+    case SortOption.duration:
+    case SortOption.stops:
       break;
   }
   return items;

@@ -30,7 +30,7 @@ BaseOffer? mapOffer(Map<String, dynamic> j) {
   final availability = j['availability'];
   final validUntil = _parse(j['validUntil']);
   final rawMeta = j['metadata'];
-  final Map<String,dynamic> metadata = rawMeta is Map ? Map<String,dynamic>.from(rawMeta as Map) : const <String,dynamic>{};
+  final Map<String,dynamic> metadata = rawMeta is Map<String, dynamic> ? Map<String,dynamic>.from(rawMeta) : const <String,dynamic>{};
   final rating = _toD(j['rating'], 0);
   final reviewCount = int.tryParse(j['reviewCount']?.toString() ?? '');
   switch(t){

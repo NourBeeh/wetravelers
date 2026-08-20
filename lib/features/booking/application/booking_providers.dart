@@ -1,13 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wetravellers/core/repositories/booking_repository_impl.dart';
 import 'package:wetravellers/core/network/http_api_client.dart';
-import 'package:wetravellers/features/home/providers/home_providers.dart';
+import 'package:wetravellers/core/repositories/booking_repository_impl.dart';
+import 'package:wetravellers/features/booking/application/booking_state.dart';
 import 'package:wetravellers/features/booking/application/prepare_booking_usecase.dart';
 import 'package:wetravellers/features/booking/application/revalidate_booking_usecase.dart';
 import 'package:wetravellers/features/booking/application/confirm_booking_usecase.dart';
 import 'package:wetravellers/features/booking/application/booking_controller.dart';
-import 'package:wetravellers/features/booking/application/booking_state.dart';
 import 'package:wetravellers/features/bag/application/bag_controller.dart';
+
+final apiClientProvider = Provider((ref) => HttpApiClient());
 
 final bookingRepositoryProvider = Provider((ref) {
   final client = ref.watch(apiClientProvider);

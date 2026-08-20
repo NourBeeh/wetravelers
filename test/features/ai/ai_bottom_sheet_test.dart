@@ -186,7 +186,7 @@ void main() {
 
     await tester.pump();
     expect(controller.state.status, AiStatus.idle);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 }
 

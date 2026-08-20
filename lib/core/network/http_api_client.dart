@@ -78,7 +78,7 @@ class HttpApiClient implements ApiClient {
 
   @override
   String get baseUrl {
-    if (_baseUrlOverride != null) return _baseUrlOverride!;
+    if (_baseUrlOverride != null) return _baseUrlOverride;
     if (_configuredBaseUrl.isNotEmpty) {
       return _configuredBaseUrl;
     }

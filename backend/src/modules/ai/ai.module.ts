@@ -6,6 +6,8 @@ import { AiController } from './ai.controller';
 import { AiService } from './ai.service';
 import { MockAiProvider } from './mock.ai.provider';
 import { OpenAiAiProvider } from './openai.ai.provider';
+import { DuffelService } from '../duffel/duffel.service';
+import { DuffelModule } from '../duffel/duffel.module';
 
 /** Fallback providers selectable through `AI_FALLBACK_PROVIDER`. */
 const FALLBACK_FACTORIES: Record<string, () => AiProvider> = {
@@ -48,9 +50,11 @@ export function resolveFallbackProvider(config: ConfigService): AiProvider | nul
  * [AiService] consults only for transient primary failures.
  */
 @Module({
+  imports: [DuffelModule],
   controllers: [AiController],
   providers: [
     AiService,
+    DuffelService,
     // Select the primary provider at runtime: prefer a configured OpenAI-compatible
     // provider when an API key exists; fall back to the local Mock provider during
     // development when AI_API_KEY is not set. This keeps the /ai/query route usable
