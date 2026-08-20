@@ -54,7 +54,6 @@ export function resolveFallbackProvider(config: ConfigService): AiProvider | nul
   controllers: [AiController],
   providers: [
     AiService,
-    DuffelService,
     // Select the primary provider at runtime: prefer a configured OpenAI-compatible
     // provider when an API key exists; fall back to the local Mock provider during
     // development when AI_API_KEY is not set. This keeps the /ai/query route usable

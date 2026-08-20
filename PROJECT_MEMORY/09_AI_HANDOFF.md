@@ -486,3 +486,22 @@ d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
 9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
 c3d6391a fix(test): update mocks to match ApiClient RequestToken signature
 ```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+1f42e833 (HEAD -> main) duffel install
+005231e5 new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
+6e239c6a clean
+6d98c980 ok
+d53d9d52 feat(ai): complete phase 14B command bar wiring and AI timeout hardening
+ac559b37 chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+```

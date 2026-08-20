@@ -1123,3 +1123,29 @@ M  lib/features/search/application/sort_utils.dart
 M  lib/shared/providers/app_mode_provider.dart
 M  test/features/ai/ai_bottom_sheet_test.dart
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+1f42e833 (HEAD -> main) duffel install
+005231e5 new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
+6e239c6a clean
+6d98c980 ok
+d53d9d52 feat(ai): complete phase 14B command bar wiring and AI timeout hardening
+ac559b37 chore(ai): runtime provider selection (OpenAi when AI_API_KEY set, otherwise Mock)
+e41a3f1e test(network): add tests for request abort behavior
+d708d8b1 feat(network): implement hard abort for HttpApiClient using dart:io
+9450e564 fix(network): ensure all ApiClient implementors accept RequestToken? token
+```
+
+### Pending status
+```
+M  backend/.env.example
+M  backend/src/modules/ai/ai.module.ts
+M  backend/src/modules/duffel/duffel.service.ts
+```
