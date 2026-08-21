@@ -12,17 +12,23 @@ import 'package:wetravellers/features/ai/domain/ai_home_mapper.dart';
 import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_section.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
+import 'package:wetravellers/core/storage/offline_cache_serializers.dart';
+import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 
 class AiSheetController extends StateNotifier<AiState> {
   AiSheetController({
     required this.primary,
     required this.fallback,
     required this.mapper,
-  }) : super(const AiState());
+    required OfflineCache cache,
+  })  : _cache = cache,
+        super(const AiState());
 
   final AiAssistantService primary;
   final AiAssistantService fallback;
   final AiHomeMapper mapper;
+  final OfflineCache _cache;
 
   int _requestVersion = 0;
   bool _disposed = false;
@@ -31,6 +37,29 @@ class AiSheetController extends StateNotifier<AiState> {
     final trimmed = prompt.trim();
     if (trimmed.isEmpty) {
       return;
+    }
+
+    final cacheKey = aiQueryCacheKey(prompt: trimmed, context: context);
+
+    // Try to load from cache first
+    final cached = await _cache.read(cacheKey);
+    if (cached != null) {
+      final cachedResponse = aiResponseFromMap(cached);
+      if (cachedResponse != null) {
+        final sections = mapper.toHomeSections(cachedResponse);
+        final text = cachedResponse.text;
+
+        if (sections.isNotEmpty || (text != null && text.trim().isNotEmpty)) {
+          state = state.copyWith(
+            status: AiStatus.success,
+            currentPrompt: trimmed,
+            responseText: text,
+            sections: sections,
+            errorMessage: null,
+            fromCache: true,
+          );
+        }
+      }
     }
 
     final requestVersion = ++_requestVersion;
@@ -49,6 +78,14 @@ class AiSheetController extends StateNotifier<AiState> {
       }
 
       final sections = mapper.toHomeSections(response);
+
+      // Write to cache (best-effort)
+      try {
+        await _cache.write(cacheKey, aiResponseToMap(response));
+      } catch (_) {
+        // Ignore cache write failures
+      }
+
       state = state.copyWith(
         status: sections.isEmpty &&
                 (response.text == null || response.text!.trim().isEmpty)
@@ -58,16 +95,27 @@ class AiSheetController extends StateNotifier<AiState> {
         responseText: response.text,
         sections: sections,
         errorMessage: null,
+        fromCache: false,
       );
     } catch (error) {
       if (_disposed || requestVersion != _requestVersion) {
         return;
       }
-      state = state.copyWith(
-        status: AiStatus.error,
-        currentPrompt: trimmed,
-        errorMessage: userFacingMessage(error, subject: 'AI assistant'),
-      );
+      // On network failure, show cached results if available
+      if (state.fromCache && state.sections.isNotEmpty) {
+        state = state.copyWith(
+          status: AiStatus.success,
+          currentPrompt: trimmed,
+          errorMessage: userFacingMessage(error, subject: 'AI assistant'),
+        );
+      } else {
+        state = state.copyWith(
+          status: AiStatus.error,
+          currentPrompt: trimmed,
+          errorMessage: userFacingMessage(error, subject: 'AI assistant'),
+          fromCache: false,
+        );
+      }
     }
   }
 
@@ -103,6 +151,7 @@ final aiSheetControllerProvider =
       primary: ref.watch(aiAssistantServiceProvider),
       fallback: ref.watch(aiMockAssistantServiceProvider),
       mapper: ref.watch(aiHomeMapperProvider),
+      cache: ref.watch(offlineCacheProvider),
     );
     Future.microtask(() => controller.load(args.prompt, context: args.context));
     return controller;

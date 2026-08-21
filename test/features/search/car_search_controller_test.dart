@@ -6,6 +6,7 @@ import 'package:wetravellers/core/network/api_error.dart';
 import 'package:wetravellers/core/network/api_result.dart';
 import 'package:wetravellers/core/repositories/contracts/car_repository.dart';
 import 'package:wetravellers/features/search/application/controllers/car_search_controller.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
 
 /// Phase 11C — `CarSearchController` error boundary.
 ///
@@ -70,7 +71,7 @@ class _FakeCarRepository implements CarRepository {
 }
 
 CarSearchController _controllerFor(CarRepository repository) {
-  final controller = CarSearchController(repository);
+  final controller = CarSearchController(repository, MemoryOfflineCache());
   addTearDown(controller.dispose);
   return controller;
 }

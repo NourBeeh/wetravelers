@@ -4,6 +4,7 @@ import '../domain/ai_home_mapper.dart';
 import '../data/mock_ai_response_provider.dart';
 import 'ai_controller.dart';
 import 'ai_state.dart';
+import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 
 /// Single shared instance of the boundary mapper.
 final aiHomeMapperProvider = Provider<AiHomeMapper>((ref) {
@@ -20,5 +21,6 @@ final aiControllerProvider =
   return AiController(
     service: ref.watch(aiAssistantServiceProvider),
     mapper: ref.watch(aiHomeMapperProvider),
+    cache: ref.watch(offlineCacheProvider),
   );
 });

@@ -18,6 +18,7 @@ class AiState {
     this.responseText,
     this.sections = const [],
     this.errorMessage,
+    this.fromCache = false,
   });
 
   final AiStatus status;
@@ -33,12 +34,16 @@ class AiState {
 
   final String? errorMessage;
 
+  /// Whether the current data was loaded from the offline cache.
+  final bool fromCache;
+
   AiState copyWith({
     AiStatus? status,
     String? currentPrompt,
     String? responseText,
     List<HomeSection>? sections,
     String? errorMessage,
+    bool? fromCache,
   }) {
     return AiState(
       status: status ?? this.status,
@@ -46,6 +51,7 @@ class AiState {
       responseText: responseText ?? this.responseText,
       sections: sections ?? this.sections,
       errorMessage: errorMessage ?? this.errorMessage,
+      fromCache: fromCache ?? this.fromCache,
     );
   }
 }

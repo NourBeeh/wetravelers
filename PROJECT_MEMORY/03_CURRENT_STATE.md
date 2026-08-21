@@ -1,7 +1,7 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**AI Phases 1–10 complete. Phases 11A–11C, 12, 13, 14A, 14B, 15A, 15B, and 15C complete. Live AI works via an OpenAI-compatible provider (tested with OpenRouter). Phase 15C (Code Hygiene & Test Stabilization) complete: AI bottom sheet cancellation bug resolved, unused imports pruned, deprecated withOpacity replaced with withValues, and all 203 Flutter tests passing. `flutter analyze` has 0 errors and exactly 16 non-blocking issues remaining (down from 51 errors / 42 warnings / 38 issues). Next pending phase: Phase 16.**
+**AI Phases 1–10 complete. Phases 11A–11C, 12, 13, 14A, 14B, 15A–15C, and 16 complete. Phase 16 (Offline Support Foundation) delivered: Hive-backed `OfflineCache` wired app-wide in `main()`, write-through caching of flight/hotel/car search results keyed by deterministic search params, AI responses cached by SHA-256 prompt-hash key (`crypto` package added), cache-first read + graceful fallback to last cached offers/AI response on network failure (`fromCache` flag exposed in all search/AI states), 23 new storage tests added. All 226 Flutter tests pass; `flutter analyze` 0 errors (18 pre-existing non-blocking items). Next pending phase: Phase 17 Auth (login/profile/sessions).**
 
 ## Last confirmed AI state
 - AI visual shell exists.
@@ -27,11 +27,12 @@
 
 ## Immediate next action
 
-- Next pending phase: **Phase 16** (refer to sequenced roadmap). Do not start it without an explicit instruction.
-- Phase 15C is complete: all build errors eliminated, cancellation bug resolved, 203 Flutter tests passing.
+- Next pending phase: **Phase 17 Auth** (login, profile, persisted sessions). Do not start it without an explicit instruction.
+- Phase 16 is complete: Hive offline cache for search offers + AI responses (see checkpoint above).
 - Live AI works via the OpenAI-compatible provider (tested with OpenRouter, `openrouter/free`).
 - `.env` is local only; do not assume live credentials exist in git.
 - Do not assume booking/payment execution is production-ready.
+- Known Phase 16 follow-ups (not blocking): no cache TTL yet, no LRU eviction cap, UI does not yet surface a "cached data" badge.
 
 11B1/11C/15 validation summary (all passing):
 1. `backend/test/home.schema.spec.ts` passed.
@@ -27594,4 +27595,56 @@ M  test/features/bag/phase7c_sync_test.dart
 M  test/features/booking/phase7a1_provider_wiring_test.dart
 M  test/features/booking/phase7a_booking_test.dart
 M  test/features/booking/phase7b_confirm_test.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+bf8c60b1 (HEAD -> main, origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
+d7aa536b YES
+06afee21 chore: stop tracking node_modules
+5a4cd778 cline done
+4f52fffc play
+076ee52c All Duffel Env Fix Requirements Met
+64f604dd error
+1f42e833 duffel install
+005231e5 new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/02_AGENT_MEMORY.md
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  PROJECT_MEMORY/08_NEXT_STEPS.md
+M  PROJECT_MEMORY/09_AI_HANDOFF.md
+M  PROJECT_MEMORY/10_DEEPSEEK_CONTEXT.md
+ M lib/app/shell.dart
+M  lib/core/storage/offline_cache_serializers.dart
+ M lib/core/widgets/command_bar/command_bar.dart
+M  lib/features/ai/application/ai_controller.dart
+M  lib/features/ai/application/ai_providers.dart
+M  lib/features/ai/application/ai_state.dart
+M  lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+M  lib/features/search/application/controllers/car_search_controller.dart
+M  lib/features/search/application/controllers/flight_search_controller.dart
+M  lib/features/search/application/controllers/hotel_search_controller.dart
+M  lib/features/search/application/providers/hotel_car_providers.dart
+M  lib/features/search/application/providers/search_providers.dart
+M  lib/main.dart
+M  pubspec.lock
+M  pubspec.yaml
+A  test/core/storage/offline_cache_serializers_test.dart
+A  test/core/storage/offline_cache_test.dart
+M  test/features/ai/ai_bottom_sheet_test.dart
+M  test/features/ai/ai_controller_error_test.dart
+M  test/features/ai/ai_http_integration_test.dart
+M  test/features/search/car_search_controller_test.dart
+M  test/features/search/flight_search_controller_test.dart
+M  test/features/search/hotel_search_controller_test.dart
 ```

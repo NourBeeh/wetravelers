@@ -3,6 +3,8 @@ import 'package:wetravellers/core/domain/models/search/car_search_params.dart';
 import 'package:wetravellers/core/domain/models/offers/car_offer.dart';
 import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/repositories/contracts/car_repository.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
+import 'package:wetravellers/core/storage/offline_cache_serializers.dart';
 
 enum CarSearchStatus { idle, loading, success, empty, error }
 
@@ -10,35 +12,78 @@ class CarSearchState {
   final CarSearchStatus status;
   final List<CarOffer> results;
   final String? errorMessage;
-  const CarSearchState({this.status = CarSearchStatus.idle, this.results = const [], this.errorMessage});
-  CarSearchState copyWith({CarSearchStatus? status, List<CarOffer>? results, String? errorMessage}) {
-    return CarSearchState(status: status ?? this.status, results: results ?? this.results, errorMessage: errorMessage ?? this.errorMessage);
+  final bool fromCache;
+
+  const CarSearchState({this.status = CarSearchStatus.idle, this.results = const [], this.errorMessage, this.fromCache = false});
+  CarSearchState copyWith({CarSearchStatus? status, List<CarOffer>? results, String? errorMessage, bool? fromCache}) {
+    return CarSearchState(status: status ?? this.status, results: results ?? this.results, errorMessage: errorMessage ?? this.errorMessage, fromCache: fromCache ?? this.fromCache);
   }
 }
 
 class CarSearchController extends StateNotifier<CarSearchState> {
   final CarRepository repository;
-  CarSearchController(this.repository) : super(const CarSearchState());
+  final OfflineCache _cache;
+  CarSearchController(this.repository, this._cache) : super(const CarSearchState());
 
   Future<void> search(CarSearchParams params) async {
+    final cacheKey = carSearchCacheKey(
+      pickupLocation: params.pickupLocation,
+      pickupTime: params.pickupDateTime,
+      dropoffTime: params.dropoffDateTime,
+    );
+
+    // Try to load from cache first
+    final cached = await _cache.read(cacheKey);
+    if (cached != null) {
+      final offers = <CarOffer>[];
+      for (final item in (cached['offers'] as List? ?? [])) {
+        if (item is Map<String, dynamic>) {
+          final offer = offerFromMap(item) as CarOffer?;
+          if (offer != null) offers.add(offer);
+        }
+      }
+      if (offers.isNotEmpty) {
+        state = state.copyWith(status: CarSearchStatus.success, results: offers, fromCache: true);
+      }
+    }
+
     state = state.copyWith(status: CarSearchStatus.loading);
     final result = await repository.search(
       pickupLocation: params.pickupLocation,
       pickupTime: params.pickupDateTime,
       dropoffTime: params.dropoffDateTime,
     );
-    result.when(
-      success: (offers) {
+    await result.when<Future<void>>(
+      success: (offers) async {
         if (offers.isEmpty) {
-          state = state.copyWith(status: CarSearchStatus.empty, results: []);
+          state = state.copyWith(status: CarSearchStatus.empty, results: [], fromCache: false);
         } else {
-          state = state.copyWith(status: CarSearchStatus.success, results: offers);
+          // Write to cache (best-effort)
+          try {
+            await _cache.write(cacheKey, {
+              'offers': offers.map(offerToMap).toList(),
+              'timestamp': DateTime.now().toIso8601String(),
+            });
+          } catch (_) {
+            // Ignore cache write failures
+          }
+          state = state.copyWith(status: CarSearchStatus.success, results: offers, fromCache: false);
         }
       },
-      failure: (e) => state = state.copyWith(
-        status: CarSearchStatus.error,
-        errorMessage: userFacingMessage(e, subject: 'car search'),
-      ),
+      failure: (e) async {
+        if (state.fromCache && state.results.isNotEmpty) {
+          state = state.copyWith(
+            status: CarSearchStatus.success,
+            errorMessage: userFacingMessage(e, subject: 'car search'),
+          );
+        } else {
+          state = state.copyWith(
+            status: CarSearchStatus.error,
+            errorMessage: userFacingMessage(e, subject: 'car search'),
+            fromCache: false,
+          );
+        }
+      },
     );
   }
 }

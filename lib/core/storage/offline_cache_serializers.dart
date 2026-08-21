@@ -1,9 +1,18 @@
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
+
 import '../domain/models/offers/base_offer.dart';
 import '../domain/models/offers/car_offer.dart';
 import '../domain/models/offers/flight_offer.dart';
 import '../domain/models/offers/hotel_offer.dart';
 import '../domain/models/offers/travel_package_offer.dart';
 import '../mappers/offer_mapper_fixed.dart';
+import '../../features/ai/domain/ai_response.dart';
+import '../../features/ai/domain/ai_section.dart';
+import '../../features/ai/domain/ai_item.dart';
+import '../../features/ai/domain/ai_action.dart';
+import '../../features/ai/domain/ai_query_context.dart';
+import '../../core/domain/models/home/home_types.dart';
 
 /// Serialization helpers for the Phase 16 offline cache.
 ///
@@ -146,5 +155,153 @@ String carSearchCacheKey({
   sb.write(pickupTime.toIso8601String());
   sb.write('|');
   sb.write(dropoffTime.toIso8601String());
+  return sb.toString();
+}
+
+/// Serializes an [AiResponse] to a JSON-safe map for caching.
+Map<String, dynamic> aiResponseToMap(AiResponse response) {
+  return <String, dynamic>{
+    'text': response.text,
+    'sections': response.sections.map((s) => aiSectionToMap(s)).toList(),
+    'metadata': response.metadata,
+  };
+}
+
+/// Deserializes an [AiResponse] from a cached map.
+AiResponse? aiResponseFromMap(Map<String, dynamic> map) {
+  try {
+    final sections = <AiSection>[];
+    for (final entry in (map['sections'] as List? ?? [])) {
+      if (entry is Map<String, dynamic>) {
+        final section = aiSectionFromMap(entry);
+        if (section != null) sections.add(section);
+      }
+    }
+    return AiResponse(
+      text: map['text']?.toString(),
+      sections: sections,
+      metadata: Map<String, dynamic>.from(map['metadata'] ?? {}),
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Serializes an [AiSection] to a JSON-safe map.
+Map<String, dynamic> aiSectionToMap(AiSection section) {
+  return <String, dynamic>{
+    'id': section.id,
+    'title': section.title,
+    'subtitle': section.subtitle,
+    'layout': section.layout.name,
+    'items': section.items.map((i) => aiItemToMap(i)).toList(),
+    'order': section.order,
+    'metadata': section.metadata,
+  };
+}
+
+/// Deserializes an [AiSection] from a cached map.
+AiSection? aiSectionFromMap(Map<String, dynamic> map) {
+  try {
+    final items = <AiItem>[];
+    for (final entry in (map['items'] as List? ?? [])) {
+      if (entry is Map<String, dynamic>) {
+        final item = aiItemFromMap(entry);
+        if (item != null) items.add(item);
+      }
+    }
+    return AiSection(
+      id: map['id']?.toString(),
+      title: map['title']?.toString() ?? '',
+      subtitle: map['subtitle']?.toString(),
+      layout: HomeSectionLayout.values.firstWhere(
+        (e) => e.name == map['layout'],
+        orElse: () => HomeSectionLayout.vertical,
+      ),
+      items: items,
+      order: map['order'] as int?,
+      metadata: Map<String, dynamic>.from(map['metadata'] ?? {}),
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Serializes an [AiItem] to a JSON-safe map.
+Map<String, dynamic> aiItemToMap(AiItem item) {
+  return <String, dynamic>{
+    'id': item.id,
+    'type': item.type.name,
+    'title': item.title,
+    'subtitle': item.subtitle,
+    'imageUrl': item.imageUrl,
+    'price': item.price,
+    'currency': item.currency,
+    'rating': item.rating,
+    'reviewCount': item.reviewCount,
+    'actions': item.actions.map((a) => <String, dynamic>{
+      'type': a.type,
+      'label': a.label,
+      'payload': a.payload,
+    }).toList(),
+    'metadata': item.metadata,
+  };
+}
+
+/// Deserializes an [AiItem] from a cached map.
+AiItem? aiItemFromMap(Map<String, dynamic> map) {
+  try {
+    final actions = <AiAction>[];
+    for (final entry in (map['actions'] as List? ?? [])) {
+      if (entry is Map<String, dynamic>) {
+        actions.add(AiAction(
+          type: entry['type']?.toString() ?? '',
+          label: entry['label']?.toString(),
+          payload: Map<String, dynamic>.from(entry['payload'] ?? {}),
+        ));
+      }
+    }
+    return AiItem(
+      id: map['id']?.toString() ?? '',
+      type: HomeCardType.values.firstWhere(
+        (e) => e.name == map['type'],
+        orElse: () => HomeCardType.deal,
+      ),
+      title: map['title']?.toString() ?? '',
+      subtitle: map['subtitle']?.toString(),
+      imageUrl: map['imageUrl']?.toString(),
+      price: map['price'] as double?,
+      currency: map['currency']?.toString(),
+      rating: map['rating'] as double?,
+      reviewCount: map['reviewCount'] as int?,
+      actions: actions,
+      metadata: Map<String, dynamic>.from(map['metadata'] ?? {}),
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Builds a deterministic cache key for an AI query.
+/// Uses a hash of the prompt + context for privacy and length limits.
+String aiQueryCacheKey({
+  required String prompt,
+  AiQueryContext? context,
+}) {
+  final sb = StringBuffer();
+  sb.write('ai|');
+  // Hash the prompt to avoid storing PII and keep key length bounded
+  final promptHash = sha256.convert(utf8.encode(prompt.trim().toLowerCase()));
+  sb.write(promptHash.toString().substring(0, 16));
+  if (context != null) {
+    sb.write('|');
+    sb.write(context.route);
+    if (context.geolocation != null) {
+      sb.write('|geo');
+    }
+    if (context.travelDates != null) {
+      sb.write('|dates');
+    }
+  }
   return sb.toString();
 }

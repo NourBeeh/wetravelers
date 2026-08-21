@@ -17,6 +17,8 @@ import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/ai/domain/ai_section.dart';
 import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 import 'package:wetravellers/features/ai/presentation/widgets/ai_bottom_sheet.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
+import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 
 class _FakeAiService implements AiAssistantService {
   _FakeAiService({this.response, this.error});
@@ -95,6 +97,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          offlineCacheProvider.overrideWithValue(MemoryOfflineCache()),
           aiAssistantServiceProvider.overrideWithValue(fakeService),
           aiMockAssistantServiceProvider.overrideWithValue(
             _FallbackService(response: fakeService.response),
@@ -121,6 +124,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          offlineCacheProvider.overrideWithValue(MemoryOfflineCache()),
           aiAssistantServiceProvider.overrideWithValue(fakeService),
           aiMockAssistantServiceProvider.overrideWithValue(
             _FallbackService(error: fakeService.error),
@@ -151,6 +155,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          offlineCacheProvider.overrideWithValue(MemoryOfflineCache()),
           aiAssistantServiceProvider.overrideWithValue(delayedService),
           aiMockAssistantServiceProvider.overrideWithValue(
             _FallbackService(response: fakeService.response),

@@ -7,6 +7,7 @@ import 'package:wetravellers/core/network/api_result.dart';
 import 'package:wetravellers/core/repositories/contracts/flight_repository.dart';
 import 'package:wetravellers/core/usecases/search_flights_usecase.dart';
 import 'package:wetravellers/features/search/application/controllers/flight_search_controller.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
 
 /// Phase 11C — `FlightSearchController` error boundary.
 ///
@@ -73,7 +74,7 @@ class _FakeFlightRepository implements FlightRepository {
 }
 
 FlightSearchController _controllerFor(FlightRepository repository) {
-  final controller = FlightSearchController(SearchFlightsUseCase(repository));
+  final controller = FlightSearchController(SearchFlightsUseCase(repository), MemoryOfflineCache());
   addTearDown(controller.dispose);
   return controller;
 }

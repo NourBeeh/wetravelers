@@ -3,6 +3,7 @@ import 'package:wetravellers/core/usecases/search_flights_usecase.dart';
 import 'package:wetravellers/features/search/application/controllers/flight_search_controller.dart';
 import 'package:wetravellers/core/repositories/impl/flight_repository_impl.dart';
 import 'package:wetravellers/core/network/http_api_client.dart';
+import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 
 final flightApiClientProvider = Provider((ref) => HttpApiClient());
 
@@ -18,5 +19,6 @@ final searchFlightsUseCaseProvider = Provider((ref) {
 
 final flightSearchControllerProvider = StateNotifierProvider<FlightSearchController, FlightSearchState>((ref) {
   final usecase = ref.watch(searchFlightsUseCaseProvider);
-  return FlightSearchController(usecase);
+  final cache = ref.watch(offlineCacheProvider);
+  return FlightSearchController(usecase, cache);
 });

@@ -25,10 +25,10 @@ Produce:
 ## Important
 Do not give an execution agent a giant historical dump when a focused task prompt is enough.
 
-## Verified handoff — 2026-08-19
+## Verified handoff — 2026-08-21
 
-- **Verified state:** Phase 14B complete. Phases 1–14 (1–10, 11A, 11B1, 11B2, 11C, 12, 13, 14A, 14B) are done; backend `tsc` clean, backend tests 84/84, Flutter AI/CommandBar tests pass.
-- **Exact next phase:** **15 — Context-aware AI + Card Engine integration**. Do not start it or any later phase unless explicitly requested.
+- **Verified state:** Phase 16 (offline foundation) complete. Phases 1–16 are done: Hive-backed OfflineCache wired in `main()`, write-through cache for search offers + AI responses, cache-first fallback on failure; 226 Flutter tests pass, `flutter analyze` 0 errors.
+- **Exact next phase:** **17 — Auth (login, profile, persisted sessions)**. Do not start it or any later phase unless explicitly requested.
 - Point new agents to `03_CURRENT_STATE.md` + `08_NEXT_STEPS.md` for the verified checkpoint and roadmap.
 - Live AI runs through the OpenAI-compatible provider (OpenRouter `openrouter/free`); `.env` is local-only and must never be committed.
 
@@ -637,4 +637,23 @@ d7aa536b (HEAD -> main) YES
 005231e5 new agent
 327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
 6e239c6a clean
+```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+bf8c60b1 (HEAD -> main, origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
+d7aa536b YES
+06afee21 chore: stop tracking node_modules
+5a4cd778 cline done
+4f52fffc play
+076ee52c All Duffel Env Fix Requirements Met
+64f604dd error
+1f42e833 duffel install
+005231e5 new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
 ```

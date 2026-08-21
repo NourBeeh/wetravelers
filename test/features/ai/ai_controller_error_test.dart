@@ -10,6 +10,7 @@ import 'package:wetravellers/features/ai/domain/ai_home_mapper.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/ai/domain/ai_section.dart';
 import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
 
 /// Phase 10A-F — `AiController` error boundary.
 ///
@@ -136,6 +137,7 @@ AiController _controllerFor(AiAssistantService service) {
   final controller = AiController(
     service: service,
     mapper: const AiHomeMapper(),
+    cache: MemoryOfflineCache(),
   );
   addTearDown(controller.dispose);
   return controller;

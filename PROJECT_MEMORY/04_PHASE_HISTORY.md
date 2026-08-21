@@ -22,8 +22,8 @@
 | 15A | Complete | Context-aware AI foundation: AiQueryContext model, service contract extended with optional context, context wired from shell/AI sheet path, backend supports context injection into prompts |
 | 15B | Complete | Context-aware AI + Card Engine integration + Home feed context extraction |
 | 15C | Complete | Code hygiene & test stabilization: bottom sheet cancellation fix, 0 analyze errors (16 non-blocking), 203 passing tests |
-| 16 | Pending | Offline support foundation (Hive/Isar cache for offers, AI responses cache) |
-| 17 | Pending | Authentication, profile, and persisted sessions |
+| 16 | Complete | Offline support foundation: Hive-backed OfflineCache wired in main(); write-through cache for flight/hotel/car search results + AI responses (SHA-256 prompt-hash keys); cache-first read with graceful fallback on network failure; `crypto` package added; 23 new tests, 226 total passing |
+| 17 | Pending | Authentication, profile, and persisted sessions — **NEXT** |
 | 18 | Pending | PROJECT_MEMORY cloud sync (auto-backup of memory files to external storage) + analytics foundation (AI query tracking) |
 | 19 | Pending | End-to-end booking/payment and Bag synchronization |
 | 20 | Pending | Unified Trip Bag, imports, readiness, Wallet, Price Watch |
@@ -40,4 +40,5 @@ Each phase is intentionally small. Never start the next phase without an explici
 - Phases 11A, 11B1, 11B2 and 11C completed; 11B2's remaining TypeScript errors resolved (backend `tsc` build clean).
 - Phase 12 (Home Marketplace) and Phase 13 (Floating/Orbital Navigation + persistent CommandBar) completed and committed.
 - Phase 14 completed as 14A (AI Bottom Sheet UI prototype, commit `f2170a7c`) + 14B (CommandBar Ask/TextField wiring, backend AI timeout 90s, timeout classified as retryable so Mock fallback engages, Flutter sheet timeout aligned to 90s). Live AI verified via OpenRouter (`openrouter/free`).
-- Phase 15 is next and remains pending until explicitly started.
+- Phase 15 (15A–15C) completed: context-aware AI + code hygiene baseline.
+- Phase 16 completed 2026-08-21: Hive offline cache for offers + AI responses; next = Phase 17 Auth, pending explicit instruction.

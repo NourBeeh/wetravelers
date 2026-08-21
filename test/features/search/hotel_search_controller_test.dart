@@ -6,6 +6,7 @@ import 'package:wetravellers/core/network/api_error.dart';
 import 'package:wetravellers/core/network/api_result.dart';
 import 'package:wetravellers/core/repositories/contracts/hotel_repository.dart';
 import 'package:wetravellers/features/search/application/controllers/hotel_search_controller.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
 
 /// Phase 11C — `HotelSearchController` error boundary.
 ///
@@ -70,7 +71,7 @@ class _FakeHotelRepository implements HotelRepository {
 }
 
 HotelSearchController _controllerFor(HotelRepository repository) {
-  final controller = HotelSearchController(repository);
+  final controller = HotelSearchController(repository, MemoryOfflineCache());
   addTearDown(controller.dispose);
   return controller;
 }

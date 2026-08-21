@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wetravellers/core/ai/ai_assistant_service.dart';
 import 'package:wetravellers/core/network/api_error.dart';
 import 'package:wetravellers/core/domain/models/home/home_section.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
+import 'package:wetravellers/core/storage/offline_cache_serializers.dart';
 
 import '../domain/ai_home_mapper.dart';
 import '../domain/ai_query_context.dart';
+import '../domain/ai_response.dart';
 import 'ai_state.dart';
 
 /// Bridges [AiState] to the AI response pipeline.
@@ -17,10 +20,13 @@ class AiController extends StateNotifier<AiState> {
   AiController({
     required this._service,
     required this._mapper,
-  }) : super(const AiState());
+    required OfflineCache cache,
+  })  : _cache = cache,
+        super(const AiState());
 
   final AiAssistantService _service;
   final AiHomeMapper _mapper;
+  final OfflineCache _cache;
 
   /// Runs [prompt] through the assistant service, maps the result into
   /// renderable home sections and publishes a new [AiState].
@@ -34,6 +40,31 @@ class AiController extends StateNotifier<AiState> {
     final trimmed = prompt.trim();
     if (trimmed.isEmpty) {
       return;
+    }
+
+    final cacheKey = aiQueryCacheKey(prompt: trimmed, context: context);
+
+    // Try to load from cache first (for instant UI)
+    AiResponse? cachedResponse;
+    final cached = await _cache.read(cacheKey);
+    if (cached != null) {
+      cachedResponse = aiResponseFromMap(cached);
+      if (cachedResponse != null) {
+        final sections = _mapper.toHomeSections(cachedResponse);
+        final text = cachedResponse.text;
+
+        if (sections.isNotEmpty || (text != null && text.trim().isNotEmpty)) {
+          state = AiState(
+            status: AiStatus.success,
+            currentPrompt: trimmed,
+            responseText: text,
+            sections: sections,
+            fromCache: true,
+          );
+        } else {
+          cachedResponse = null;
+        }
+      }
     }
 
     state = AiState(
@@ -53,6 +84,13 @@ class AiController extends StateNotifier<AiState> {
       final sections = _mapper.toHomeSections(response);
       final text = response.text;
 
+      // Write to cache (best-effort)
+      try {
+        await _cache.write(cacheKey, aiResponseToMap(response));
+      } catch (_) {
+        // Ignore cache write failures
+      }
+
       if (sections.isEmpty && (text == null || text.trim().isEmpty)) {
         state = AiState(
           status: AiStatus.empty,
@@ -64,14 +102,27 @@ class AiController extends StateNotifier<AiState> {
           currentPrompt: trimmed,
           responseText: text,
           sections: sections,
+          fromCache: false,
         );
       }
     } catch (error) {
-      state = AiState(
-        status: AiStatus.error,
-        currentPrompt: trimmed,
-        errorMessage: _userFacingMessage(error),
-      );
+      // On network failure, show cached results if available
+      if (cachedResponse != null) {
+        state = AiState(
+          status: AiStatus.success,
+          currentPrompt: trimmed,
+          responseText: cachedResponse.text,
+          sections: _mapper.toHomeSections(cachedResponse),
+          errorMessage: _userFacingMessage(error),
+          fromCache: true,
+        );
+      } else {
+        state = AiState(
+          status: AiStatus.error,
+          currentPrompt: trimmed,
+          errorMessage: _userFacingMessage(error),
+        );
+      }
     }
   }
 

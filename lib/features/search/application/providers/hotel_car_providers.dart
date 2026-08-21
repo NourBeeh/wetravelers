@@ -4,6 +4,7 @@ import 'package:wetravellers/core/repositories/impl/car_repository_impl.dart';
 import 'package:wetravellers/core/network/http_api_client.dart';
 import 'package:wetravellers/features/search/application/controllers/hotel_search_controller.dart';
 import 'package:wetravellers/features/search/application/controllers/car_search_controller.dart';
+import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 
 final httpClientProvider = Provider((ref) => HttpApiClient());
 
@@ -19,10 +20,12 @@ final carRepositoryProvider = Provider((ref) {
 
 final hotelSearchControllerProvider = StateNotifierProvider<HotelSearchController, HotelSearchState>((ref) {
   final repo = ref.watch(hotelRepositoryProvider);
-  return HotelSearchController(repo);
+  final cache = ref.watch(offlineCacheProvider);
+  return HotelSearchController(repo, cache);
 });
 
 final carSearchControllerProvider = StateNotifierProvider<CarSearchController, CarSearchState>((ref) {
   final repo = ref.watch(carRepositoryProvider);
-  return CarSearchController(repo);
+  final cache = ref.watch(offlineCacheProvider);
+  return CarSearchController(repo, cache);
 });

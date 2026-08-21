@@ -11,6 +11,7 @@ import 'package:wetravellers/features/ai/application/ai_controller.dart';
 import 'package:wetravellers/features/ai/application/ai_state.dart';
 import 'package:wetravellers/features/ai/data/ai_api_service.dart';
 import 'package:wetravellers/features/ai/domain/ai_home_mapper.dart';
+import 'package:wetravellers/core/storage/offline_cache.dart';
 
 /// Phase 10B-A — real HTTP integration for the Flutter half of the AI path:
 ///
@@ -134,6 +135,7 @@ void main() {
     final controller = AiController(
       service: serviceWith(client),
       mapper: const AiHomeMapper(),
+      cache: MemoryOfflineCache(),
     );
     addTearDown(controller.dispose);
     return controller;
