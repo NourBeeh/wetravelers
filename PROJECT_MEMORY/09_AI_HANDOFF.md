@@ -581,3 +581,41 @@ Recent commits:
 6d98c980 ok
 d53d9d52 feat(ai): complete phase 14B command bar wiring and AI timeout hardening
 ```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+06afee21 (HEAD -> main) chore: stop tracking node_modules
+5a4cd778 cline done
+4f52fffc play
+076ee52c All Duffel Env Fix Requirements Met
+64f604dd error
+1f42e833 duffel install
+005231e5 new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
+6e239c6a clean
+6d98c980 ok
+```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+06afee21 (HEAD -> main, origin/main) chore: stop tracking node_modules
+5a4cd778 cline done
+4f52fffc play
+076ee52c All Duffel Env Fix Requirements Met
+64f604dd error
+1f42e833 duffel install
+005231e5 new agent
+327d7990 feat(ai): phase 15A context-aware query foundation and quiet hooks
+6e239c6a clean
+6d98c980 ok
+```
