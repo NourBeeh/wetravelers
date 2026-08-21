@@ -31,13 +31,13 @@ class _CommandBarState extends State<CommandBar> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 56,
+      height: 48,
       child: Material(
         elevation: 6,
         borderRadius: BorderRadius.circular(12),
         color: Theme.of(context).colorScheme.surface,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
               Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -46,19 +46,32 @@ class _CommandBarState extends State<CommandBar> {
                 child: TextField(
                   controller: _controller,
                   onSubmitted: (_) => _submit(),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Search flights, hotels, cars or ask the assistant',
                     border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
               ),
               IconButton(
                 onPressed: () {},
                 icon: Icon(Icons.mic_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
               const SizedBox(width: 4),
               FilledButton(
                 onPressed: _submit,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(64, 36),
+                  maximumSize: const Size(120, 40),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 child: const Text('Ask'),
               ),
             ],

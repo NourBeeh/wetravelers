@@ -225,9 +225,9 @@ class _WeTravellersShellState extends ConsumerState<WeTravellersShell> with Sing
               child: Material(
                 elevation: 8,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
                   child: SizedBox(
-                    height: 64,
+                    height: 56,
                     child: Row(
                       children: [
                         // Navigation toggle button
