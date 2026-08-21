@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wetravellers/features/booking/application/booking_state.dart';
-import 'package:wetravellers/features/booking/application/prepare_booking_usecase.dart';
-import 'package:wetravellers/features/booking/application/revalidate_booking_usecase.dart';
+
 import 'package:wetravellers/core/network/api_result.dart';
 import 'package:wetravellers/core/network/api_error.dart';
 import 'package:wetravellers/features/booking/domain/booking_record.dart';

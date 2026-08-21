@@ -2,7 +2,7 @@
 
 > **Purpose:** The authoritative handoff document for any analytical/architectural AI that must understand the project without access to previous chats.
 >
-> **Last known project state:** AI Phases 1–10, 11A, 11B1, 11B2, 11C, 12, 13, 14A and 14B are complete. Live AI works via an OpenAI-compatible provider (tested with OpenRouter). Next pending phase: **Phase 15 — Context-aware AI + Card Engine integration**, pending explicit approval. The sequenced roadmap is in Section 12.
+> **Last known project state:** AI Phases 1–10, 11A, 11B1, 11B2, 11C, 12, 13, 14A, 14B, 15A, 15B, and 15C are complete. Live AI works via an OpenAI-compatible provider (tested with OpenRouter). Phase 15C resolved all build errors, fixed the bottom sheet cancellation bug, and brought test suite to 203 passing Flutter tests / 84 passing backend tests (`flutter analyze` has 0 errors, 16 non-blocking issues). Next pending phase: **Phase 16** (refer to sequenced roadmap in Section 12).
 >
 > **Important:** This document is compiled from the project history available to the current assistant. It is not a live filesystem scan. Any item marked "verify" should be checked against the repository before making changes.
 
@@ -61,8 +61,8 @@ The executor must:
 ## 4. Current State Snapshot
 
 - Phases 1–9: completed according to the latest project reports.
-- Current workstream: Phases 10–14 complete (10A–10D, 11A, 11B1, 11B2, 11C, 12, 13, 14A, 14B). Phase 14B added CommandBar Ask/TextField wiring and 90s timeout hardening (backend AI provider + Flutter AI sheet); timeout failures are classified as retryable so the Mock fallback engages.
-- Next phase: 15 — Context-aware AI + Card Engine integration (pending explicit approval).
+- Current workstream: Phases 10–15 complete (10A–10D, 11A, 11B1, 11B2, 11C, 12, 13, 14A, 14B, 15A, 15B, 15C). Phase 15A/15B introduced context-aware AI querying and home feed extraction. Phase 15C completed code hygiene cleanup, fixed the bottom sheet cancellation bug, and verified test suites.
+- Next phase: Phase 16 (pending explicit approval).
 - Phase 9: real OpenAI-compatible provider in NestJS.
 - Phase 10 sub-phases 10A–10D: **completed** (response hardening, live integration verification, provider configuration/fallback policy, AI contract tests).
 - The product/UX and release-readiness roadmap is recorded in Section 12.
@@ -582,14 +582,14 @@ Keep it limited to ~5–7 main actions.
 7. AI → existing Card Engine
 8. UX polish
 
-## 12. Validation Baseline
+## 14. Validation Baseline
 
-Last broad Flutter project report:
-- Flutter analyze: 0 errors (warnings/info only).
-- Flutter tests: 55 tests passed.
-This is a historical baseline and must be re-run before relying on it.
+Current verified project report (Phase 15C):
+- Flutter analyze: 0 errors (1 warning, 15 info-level items).
+- Flutter tests: 203 tests passed (0 failures).
+- Backend tests: 84 tests passed across 9 suites.
 
-## 13. Handoff Rule
+## 15. Handoff Rule
 
 If another AI receives this file:
 - Do not assume the current filesystem exactly matches every historical report.

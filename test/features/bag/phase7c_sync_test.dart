@@ -4,7 +4,7 @@ import 'package:wetravellers/features/booking/domain/booking_record.dart';
 import 'package:wetravellers/core/domain/models/booking/booking.dart';
 import 'package:wetravellers/core/domain/models/booking/booking.dart' as models;
 import 'package:wetravellers/core/domain/models/booking/booking.dart';
-import 'package:wetravellers/features/bag/domain/trip.dart';
+
 
 void main() {
   test('confirmed booking creates trip in currentTrips', () {

@@ -106,7 +106,7 @@ class _WeTravellersShellState extends ConsumerState<WeTravellersShell> with Sing
                   color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -151,7 +151,7 @@ class _WeTravellersShellState extends ConsumerState<WeTravellersShell> with Sing
               child: GestureDetector(
                 onTap: _toggleNav,
                 child: Container(
-                  color: Theme.of(context).colorScheme.scrim.withOpacity(0.4),
+                  color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.4),
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     child: AnimatedBuilder(
@@ -177,7 +177,7 @@ class _WeTravellersShellState extends ConsumerState<WeTravellersShell> with Sing
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: const Offset(0, -2),
                             ),

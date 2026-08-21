@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'hive_offline_cache.dart';
 import 'offline_cache.dart';
 
 /// Opens the on-disk Hive-backed offline cache once and shares it app-wide.

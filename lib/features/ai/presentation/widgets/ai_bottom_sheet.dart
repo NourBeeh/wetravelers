@@ -83,7 +83,7 @@ class AiSheetController extends StateNotifier<AiState> {
       try {
         return await fallback.query(prompt, token: token, timeout: timeout, context: context);
       } catch (error) {
-        throw error;
+        rethrow;
       }
     }
   }
@@ -129,7 +129,7 @@ class AiBottomSheetContent extends ConsumerWidget {
             (section) => HomeSectionWidget(section: section),
           ),
         ],
-      AiStatus.idle => const [Center(child: CircularProgressIndicator())],
+      AiStatus.idle => const [SizedBox.shrink()],
     };
 
     return Material(
@@ -196,7 +196,7 @@ Future<void> showAiBottomSheet(BuildContext context, String prompt, {AiQueryCont
                     itemBuilder: (context, index) =>
                         HomeSectionWidget(section: sections[index]),
                   ),
-                AiStatus.idle => const Center(child: CircularProgressIndicator()),
+                AiStatus.idle => const SizedBox.shrink(),
               },
             );
           },

@@ -1,0 +1,276 @@
+===== 1. DUFFEL SERVICE — FULL RAW CONTENT =====
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Duffel } from '@duffel/api';
+import { FlightProvider } from '../../common/providers/flight.provider';
+import { ProviderResult } from '../../common/providers/provider.result';
+
+@Injectable()
+export class DuffelService implements FlightProvider {
+  providerId = 'duffel-flight';
+  providerName = 'Duffel Flight Provider';
+  
+  private duffelClient?: Duffel;
+
+  constructor(private configService: ConfigService) {
+    // Try primary token first, fall back to API key alias for backward compatibility
+    const apiKey = this.configService.get<string>('DUFFEL_ACCESS_TOKEN') || this.configService.get<string>('DUFFEL_API_KEY');
+    if (!apiKey) {
+      // Log warning but don't throw - allows app to start without Duffel token
+      console.warn('DUFFEL_ACCESS_TOKEN (and DUFFEL_API_KEY as fallback) are not defined - Duffel flights will be disabled');
+    } else {
+      this.duffelClient = new Duffel({ token: apiKey });
+    }
+  }
+
+  async searchFlights(params: {
+    origin: string;
+    destination: string;
+    departure: Date;
+    returnDate?: Date;
+    passengers?: number;
+  }): Promise<ProviderResult<any[]>> {
+    // If no API key configured, return empty results
+    if (!this.duffelClient) {
+      return {
+        success: true,
+        providerId: this.providerId,
+        providerName: this.providerName,
+        data: [],
+        timestamp: new Date(),
+      };
+    }
+
+    try {
+      const departureDate = params.departure.toISOString().split('T')[0];
+      const passengersCount = params.passengers ?? 1;
+
+      // Create offer request with Duffel API
+      const request = await this.duffelClient?.offerRequests.create({
+        slices: [
+          {
+            origin: params.origin,
+            destination: params.destination,
+            departure_date: departureDate,
+            departure_time: {
+              from: '06:00:00',
+              to: '20:00:00'
+            },
+          } as any
+        ],
+        passengers: Array(passengersCount).fill({ type: 'adult' })
+      });
+
+      // Map Duffel's response to the shared flight offer format
+      const mappedOffers = (request.data?.offers || []).map((offer: any) => ({
+        id: offer.id,
+        providerId: this.providerId,
+        origin: offer.origin,
+        destination: offer.destination,
+        departureDate: offer.departure_date,
+        arrivalDate: offer.arrival_date,
+        price: parseFloat(offer.total_amount),
+        currency: offer.currency,
+        airline: offer.airline?.name,
+        flightNumber: offer.flight_number,
+        duration: offer.duration,
+        stops: offer.stops || 0,
+      }));
+
+      return {
+        success: true,
+        providerId: this.providerId,
+        providerName: this.providerName,
+        data: mappedOffers,
+        timestamp: new Date(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        providerId: this.providerId,
+        providerName: this.providerName,
+        error: `Failed to search flights: ${(error as Error).message}`,
+        data: [],
+        timestamp: new Date(),
+      };
+    }
+  }
+
+  // Legacy method for backward compatibility with existing AI service
+  async searchFlightsLegacy(originIata: string, destinationIata: string, departureDate: string, passengersCount: number) {
+    const params = {
+      origin: originIata,
+      destination: destinationIata,
+      departure: new Date(departureDate),
+      passengers: passengersCount,
+    };
+    const result = await this.searchFlights(params);
+    return { offers: result.data };
+  }
+
+  async createOrder(offerId: string, passengers: any[], payments: any[]) {
+    if (!this.duffelClient) {
+      throw new Error('Duffel API is not configured - cannot create booking');
+    }
+    
+    try {
+      const response = await this.duffelClient.orders.create({
+        type: 'instant',
+        selected_offers: [offerId],
+        passengers,
+        payments
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to create booking: ${(error as Error).message}`);
+    }
+  }
+}
+===== 2. DUFFEL CONTROLLER — FULL RAW CONTENT =====
+import { Controller, Post, Body } from '@nestjs/common';
+import { DuffelService } from './duffel.service';
+
+@Controller('api/duffel')
+export class DuffelController {
+  constructor(private readonly duffelService: DuffelService) {}
+
+  @Post('search-flights')
+          async searchFlights(
+            @Body() body: { origin: string; destination: string; departureDate: string; passengers: number },
+          ) {
+            return this.duffelService.searchFlights({
+              origin: body.origin,
+              destination: body.destination,
+              departure: new Date(body.departureDate),
+              passengers: body.passengers,
+            });
+          }
+
+  @Post('create-booking')
+          async createBooking(
+            @Body() body: { offerId: string; passengers: any[]; payments: any[] },
+          ) {
+            return this.duffelService.createOrder(
+              body.offerId,
+              body.passengers,
+              body.payments,
+            );
+          }
+}
+===== 3. DUFFEL CONTROLLER — ROUTES + GUARDS RAW GREP =====
+import { Controller, Post, Body } from '@nestjs/common';
+import { DuffelService } from './duffel.service';
+
+@Controller('api/duffel')
+export class DuffelController {
+  constructor(private readonly duffelService: DuffelService) {}
+
+  @Post('search-flights')
+          async searchFlights(
+--
+            };
+          }
+
+  @Post('create-booking')
+          async createBooking(
+
+===== 4. IS DUFFEL CALLED FROM BOOKING DOMAIN? RAW GREP =====
+backend/src/modules/duffel/duffel.controller.ts:2:import { DuffelService } from './duffel.service';
+backend/src/modules/ai/ai.service.ts:7:import { DuffelService } from '../duffel/duffel.service';
+backend/src/modules/ai/ai.service.ts:77:    private readonly duffelService: DuffelService,
+backend/src/modules/ai/ai.module.ts:9:import { DuffelService } from '../duffel/duffel.service';
+backend/src/modules/providers/providers.module.ts:10:import { DuffelService } from '../duffel/duffel.service';
+backend/src/modules/providers/providers.module.ts:21:    DuffelService,
+backend/src/modules/providers/providers.module.ts:23:  exports: [ProviderRegistryImpl, SearchService, DuffelService],
+backend/src/modules/providers/providers.module.ts:29:    private readonly duffelService: DuffelService,
+
+===== 5. ANY OTHER FILE REFERENCING DUFFEL? RAW GREP =====
+backend/src/modules/ai/ai.service.ts
+backend/src/modules/ai/ai.module.ts
+backend/src/modules/providers/providers.module.ts
+backend/src/app.module.ts
+
+===== 6. SECURITY — REAL KEY PATTERN CHECK (filenames only + redacted line) =====
+backend/.env:5:DUFFEL_ACCESS_TOKEN=[SECRET REDACTED — found in: backend/.env]
+
+===== 7. .env.example — DUFFEL SECTION RAW =====
+#           DB_NAME=wetravellers
+
+# ---------------------------------------------------------------------------
+# Duffel flight booking provider (server-side only)
+# ---------------------------------------------------------------------------
+# Required for Duffel API integration. Never commit real access tokens.
+DUFFEL_ACCESS_TOKEN=
+# Optional alias supported by code for backward compatibility:
+# DUFFEL_API_KEY=
+
+===== 8. DOES DUFFEL SUPPORT REAL BOOKING/PAYMENT? RAW GREP =====
+110:  async createOrder(offerId: string, passengers: any[], payments: any[]) {
+120:        payments
+
+===== 9. NODE_MODULES TRACKING CHECK — RAW COUNT =====
+0
+
+===== 10. GO_ROUTER AUTH REDIRECT — RAW CONTEXT (20 lines before/after) =====
+1-import 'package:flutter/material.dart';
+2-import 'package:flutter_riverpod/flutter_riverpod.dart';
+3-import 'package:go_router/go_router.dart';
+4-
+5-import '../../core/auth/auth_provider.dart';
+6-import '../../shared/widgets/placeholder_page.dart';
+7-import '../../core/navigation/app_route.dart';
+8-import '../../features/home/presentation/pages/home_page.dart';
+9-import '../../features/search/presentation/pages/flight_search_page.dart';
+10-import '../../features/search/presentation/pages/hotel_search_page.dart';
+11-import '../../features/search/presentation/pages/car_search_page.dart';
+12-import '../shell.dart';
+13-
+14-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+15-
+16-/// Phase 15C: real authentication arrives in a later phase. Until then the
+17-/// auth repository is a local stub, so a mandatory login redirect would lock
+18-/// unauthenticated users out of the app. The login route stays registered and
+19-/// this flag re-enables the redirect once real identity work lands.
+20:const bool _authRedirectEnabled = false;
+21-
+22-final goRouterProvider = Provider<GoRouter>((ref) {
+23-  final authUser = ref.watch(authUserProvider);
+24-
+25-  return GoRouter(
+26-    navigatorKey: _rootNavigatorKey,
+27-    initialLocation: '/',
+28-    redirect: (context, state) {
+29:      if (!_authRedirectEnabled) {
+30-        return null;
+31-      }
+32-      final isLoggedIn = authUser != null;
+33-      final isLoginRoute = state.matchedLocation == '/login';
+34-
+35-      if (!isLoggedIn && !isLoginRoute) {
+36-        return '/login';
+37-      }
+38-      if (isLoggedIn && isLoginRoute) {
+39-        return '/';
+40-      }
+41-      return null;
+42-    },
+43-    routes: [
+44-      ShellRoute(
+45-        builder: (context, state, child) {
+46-          return WeTravellersShell(child: child);
+47-        },
+48-        routes: [
+49-          GoRoute(
+
+===== 11. UNCOMMITTED CHANGES — RAW git status =====
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   PROJECT_MEMORY/03_CURRENT_STATE.md
+	modified:   PROJECT_MEMORY/09_AI_HANDOFF.md
+	modified:   WeTravellers_PROJECT_MEMORY_SYSTEM.zip
+
+
+===== DONE — RAW OUTPUT ONLY, NO SUMMARY BELOW THIS LINE =====

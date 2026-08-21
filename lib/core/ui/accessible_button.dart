@@ -25,7 +25,7 @@ class AccessibleButton extends StatelessWidget {
                   onPressed: onPressed,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: focused
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.08)
+                        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)
                         : null,
                   ),
                   child: child,

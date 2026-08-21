@@ -15,11 +15,9 @@ import 'ai_state.dart';
 /// and the shared boundary mapper — it never touches mock/HTTP specifics.
 class AiController extends StateNotifier<AiState> {
   AiController({
-    required AiAssistantService service,
-    required AiHomeMapper mapper,
-  })  : _service = service,
-        _mapper = mapper,
-        super(const AiState());
+    required this._service,
+    required this._mapper,
+  }) : super(const AiState());
 
   final AiAssistantService _service;
   final AiHomeMapper _mapper;

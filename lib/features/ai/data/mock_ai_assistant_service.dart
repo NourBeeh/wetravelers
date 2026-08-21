@@ -11,9 +11,7 @@ import 'mock_ai_response_data.dart';
 /// existing [MockAiResponseSource]. The legacy content-generation methods
 /// return harmless placeholders until a real backend lands. No network.
 class MockAiAssistantService implements AiAssistantService {
-  const MockAiAssistantService({
-    MockAiResponseSource source = const MockAiResponseSource(),
-  }) : _source = source;
+  const MockAiAssistantService({this._source = const MockAiResponseSource()}) ;
 
   final MockAiResponseSource _source;
 

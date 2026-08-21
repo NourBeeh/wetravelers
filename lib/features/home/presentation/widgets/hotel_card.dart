@@ -19,8 +19,8 @@ class HotelCard extends StatelessWidget {
     final semanticLabel = [
       item.title,
       if (item.subtitle != null) item.subtitle,
-      if (ratingText != null) ratingText,
-      if (reviewsText != null) reviewsText,
+      ?ratingText,
+      ?reviewsText,
       if (priceText != null) 'Price $priceText',
       if (item.badge != null) 'Badge ${item.badge}',
     ].join(', ');

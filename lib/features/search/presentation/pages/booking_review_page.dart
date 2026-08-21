@@ -3,7 +3,7 @@ import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/features/booking/domain/booking_record.dart';
 import 'package:wetravellers/features/booking/application/booking_state.dart';
 import 'package:wetravellers/features/bag/domain/trip.dart';
-import 'package:wetravellers/features/bag/presentation/pages/trip_details_page.dart';
+
 
 class BookingReviewPage extends StatelessWidget {
   final BookingRecord? booking;

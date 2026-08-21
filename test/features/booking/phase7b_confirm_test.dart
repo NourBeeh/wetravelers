@@ -8,7 +8,7 @@ import 'package:wetravellers/features/booking/domain/booking_record.dart';
 import 'package:wetravellers/core/domain/models/booking/booking.dart';
 import 'package:wetravellers/core/network/api_result.dart';
 import 'package:wetravellers/core/repositories/contracts/booking_repository.dart';
-import 'package:wetravellers/features/booking/application/idempotency_store.dart';
+
 import 'package:wetravellers/features/bag/application/bag_controller.dart';
 
 class FakeRepo implements BookingRepository {

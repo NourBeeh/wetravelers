@@ -20,7 +20,8 @@
 | 13 | Complete | Floating Navigation + persistent CommandBar |
 | 14 | Complete (14A UI + 14B wiring/timeouts) | AI Bottom Sheet + CommandBar wiring + 90s timeout hardening; Mock fallback now engages on timeout |
 | 15A | Complete | Context-aware AI foundation: AiQueryContext model, service contract extended with optional context, context wired from shell/AI sheet path, backend supports context injection into prompts |
-| 15B | Next (pending approval) | Context-aware AI + Card Engine integration deep polish + improved prompt engineering with geolocation/date context |
+| 15B | Complete | Context-aware AI + Card Engine integration + Home feed context extraction |
+| 15C | Complete | Code hygiene & test stabilization: bottom sheet cancellation fix, 0 analyze errors (16 non-blocking), 203 passing tests |
 | 16 | Pending | Offline support foundation (Hive/Isar cache for offers, AI responses cache) |
 | 17 | Pending | Authentication, profile, and persisted sessions |
 | 18 | Pending | PROJECT_MEMORY cloud sync (auto-backup of memory files to external storage) + analytics foundation (AI query tracking) |

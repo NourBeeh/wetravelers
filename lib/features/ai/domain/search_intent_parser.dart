@@ -2,7 +2,6 @@
 /// Supports both English and Arabic queries for flights, hotels, and car rentals
 library;
 
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Result of parsing a search intent

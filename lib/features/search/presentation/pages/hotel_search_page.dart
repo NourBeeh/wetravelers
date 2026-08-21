@@ -81,8 +81,8 @@ class _HotelSearchFormWidgetState extends ConsumerState<HotelSearchFormWidget> {
   late final TextEditingController _dest;
   late DateTime _in;
   late DateTime _out;
-  int _rooms = 1;
-  int _adults = 2;
+  final int _rooms = 1;
+  final int _adults = 2;
 
   @override
   void initState() {

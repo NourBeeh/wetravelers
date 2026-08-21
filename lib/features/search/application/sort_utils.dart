@@ -26,7 +26,6 @@ List<FlightOffer> sortFlights(List<FlightOffer> list, SortOption option) {
       items.sort((a, b) => (a.stops ?? 0).compareTo(b.stops ?? 0));
       break;
     case SortOption.recommended:
-    default:
       break;
   }
   return items;
