@@ -6,6 +6,8 @@ import '../../core/auth/auth_provider.dart';
 import '../../shared/widgets/placeholder_page.dart';
 import '../../core/navigation/app_route.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/profile/presentation/pages/auth_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/search/presentation/pages/flight_search_page.dart';
 import '../../features/search/presentation/pages/hotel_search_page.dart';
 import '../../features/search/presentation/pages/car_search_page.dart';
@@ -13,10 +15,9 @@ import '../shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-/// Phase 15C: real authentication arrives in a later phase. Until then the
-/// auth repository is a local stub, so a mandatory login redirect would lock
-/// unauthenticated users out of the app. The login route stays registered and
-/// this flag re-enables the redirect once real identity work lands.
+/// Phase 17 keeps the app open to guests: only the Profile surface branches on
+/// auth state. A mandatory login redirect stays available via this flag but is
+/// intentionally off — do not lock the whole app behind auth.
 const bool _authRedirectEnabled = false;
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -30,10 +31,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
       final isLoggedIn = authUser != null;
-      final isLoginRoute = state.matchedLocation == '/login';
+      final isLoginRoute = state.matchedLocation == AppRoute.auth.path;
 
       if (!isLoggedIn && !isLoginRoute) {
-        return '/login';
+        return AppRoute.auth.path;
       }
       if (isLoggedIn && isLoginRoute) {
         return '/';
@@ -104,7 +105,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             name: 'profile',
-            builder: (context, state) => const PlaceholderPageScaffold(routeName: 'profile'),
+            builder: (context, state) => const ProfilePage(),
           ),
           GoRoute(
             path: '/settings',
@@ -112,9 +113,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const PlaceholderPageScaffold(routeName: 'settings'),
           ),
           GoRoute(
-            path: '/login',
-            name: 'login',
-            builder: (context, state) => const PlaceholderPageScaffold(routeName: 'login'),
+            path: '/auth',
+            name: 'auth',
+            builder: (context, state) => const AuthPage(),
           ),
         ],
       ),

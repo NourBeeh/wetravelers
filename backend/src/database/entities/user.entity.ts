@@ -11,6 +11,9 @@ export class User {
   @Column({ nullable: true })
   displayName?: string;
 
+  @Column({ type: 'text', nullable: true, select: false })
+  passwordHash?: string | null;
+
   @Column({ default: false })
   isActive!: boolean;
 

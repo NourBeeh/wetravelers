@@ -27648,3 +27648,51 @@ M  test/features/search/car_search_controller_test.dart
 M  test/features/search/flight_search_controller_test.dart
 M  test/features/search/hotel_search_controller_test.dart
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+2291fcfc (HEAD -> main) feat(offline): phase 16 hive cache for search and AI responses
+bf8c60b1 (origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
+d7aa536b YES
+06afee21 chore: stop tracking node_modules
+5a4cd778 cline done
+4f52fffc play
+076ee52c All Duffel Env Fix Requirements Met
+64f604dd error
+1f42e833 duffel install
+005231e5 new agent
+```
+
+### Pending status
+```
+ M .gitignore
+ M backend/.env.example
+M  backend/package-lock.json
+M  backend/package.json
+M  backend/src/common/dto/auth.dto.ts
+M  backend/src/database/entities/user.entity.ts
+M  backend/src/modules/auth/auth.controller.ts
+M  backend/src/modules/auth/auth.module.ts
+M  backend/src/modules/auth/auth.service.ts
+A  backend/src/modules/auth/jwt-auth.guard.ts
+A  backend/src/modules/auth/jwt.strategy.ts
+M  lib/app/router/go_router_config.dart
+ M lib/app/shell.dart
+M  lib/core/auth/auth_provider.dart
+A  lib/core/auth/http_auth_repository.dart
+ M lib/core/repositories/impl/home_repository_impl.dart
+ M lib/core/widgets/command_bar/command_bar.dart
+ M lib/features/home/providers/home_providers.dart
+A  lib/features/profile/presentation/pages/auth_page.dart
+A  lib/features/profile/presentation/pages/profile_page.dart
+A  test/core/auth/http_auth_repository_test.dart
+?? backend/scripts/
+?? backend/test/auth.spec.ts
+?? lib/core/repositories/impl/demo_home_data.dart
+?? test/core/repositories/home_fallback_test.dart
+```
