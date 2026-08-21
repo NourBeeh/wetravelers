@@ -27696,3 +27696,36 @@ A  test/core/auth/http_auth_repository_test.dart
 ?? lib/core/repositories/impl/demo_home_data.dart
 ?? test/core/repositories/home_fallback_test.dart
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+0b71c29e (HEAD -> main) feat(auth): phase 17 real login register me and profile session
+2291fcfc feat(offline): phase 16 hive cache for search and AI responses
+bf8c60b1 (origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
+d7aa536b YES
+06afee21 chore: stop tracking node_modules
+5a4cd778 cline done
+4f52fffc play
+076ee52c All Duffel Env Fix Requirements Met
+64f604dd error
+1f42e833 duffel install
+```
+
+### Pending status
+```
+M  .gitignore
+ M backend/.env.example
+ M lib/app/shell.dart
+A  lib/core/repositories/impl/demo_home_data.dart
+M  lib/core/repositories/impl/home_repository_impl.dart
+ M lib/core/widgets/command_bar/command_bar.dart
+M  lib/features/home/providers/home_providers.dart
+A  test/core/repositories/home_fallback_test.dart
+?? backend/scripts/
+?? backend/test/auth.spec.ts
+```

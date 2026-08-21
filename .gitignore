@@ -63,3 +63,6 @@ build/
 .DS_Store
 backend/dist/
 backend/node_modules/
+
+# Local runtime data (Hive offline cache box)
+wetravellers_offline_data/
