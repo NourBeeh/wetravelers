@@ -2,7 +2,7 @@
 
 ## Integrated delivery roadmap
 
-> **Current position: Phases 12, 13, 14 (14A + 14B), 15 (15A–15C) and 16 (offline Hive cache for search offers + AI responses) complete. Next pending phase: Phase 17 — Auth (login, profile, persisted sessions).** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
+> **Current position: Phases 12–17 complete (17 = real auth end-to-end + Home demo/cache fallback + dev seed). Next pending phase: Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
 
 | Phase | Outcome | External need at this phase |
 |---|---|---|
@@ -14,12 +14,14 @@
 | 14 | AI Bottom Sheet (14A UI prototype) + CommandBar wiring/timeouts (14B) | Complete — live AI tested via OpenRouter; persistent cross-device sessions wait for Phase 17 Auth |
 | 15 | Context-aware AI and Card Engine integration: current page, results, compare/explain/add-to-trip actions | Complete — none |
 | 16 | Offline support foundation: Hive-backed cache for search results + AI responses (write-through on success, cached fallback on failure) | Complete — none |
-| 17 | **NEXT — Auth:** real identity: login, profile, settings, authenticated persisted sessions | Auth backend completion, database migrations, secure token lifecycle; transactional email only if password reset/verification is included |
-| 18 | Real booking/payment foundation: matching backend booking API, confirmation, idempotency, Bag synchronization | Provider/aggregator contracts and payment-service choice only when money collection is enabled |
-| 19 | Unified Trip Bag: Trip/TripItem, internal+external additions, readiness checklist, Wallet, Price Watch | Database/API persistence; external import options are staged—manual entry first, then approved share/PDF/QR/calendar/email integrations; price watches require a valid offer-price source and scheduled server jobs |
-| 20 | Live Travel Companion: Today, itinerary map, external navigation handoff, event-based notifications, Travel Mode | Map/directions/geocoding provider, user location permission, push-notification service, background-job capability; later flight-status/weather/local-service data sources as each feature is approved |
-| 21 | Production readiness and launch | Separate dev/staging/prod environments, secret manager, restricted CORS, migrations/backups, observability, CI/CD, privacy policy/consent records, and security review |
-| 22 | Trusted Group Trips: discovery, membership, shared plans, ratings, safety | Requires Phase 17 identity/roles and Phase 19 Trip model; push notifications, strict authorization/audit logging, and an approved identity-verification provider only when verification is activated |
+| 17 | Auth: real identity — login/register/me (bcryptjs + JWT guard), profile/settings entry, persisted secure sessions | Complete — none |
+| 18 | **NEXT:** PROJECT_MEMORY cloud sync (auto-backup of memory files) + analytics foundation (AI query tracking) | External storage/backup target choice; analytics storage decision when approved |
+| 19 | Real booking/payment foundation: matching backend booking API, confirmation, idempotency, Bag synchronization | Provider/aggregator contracts and payment-service choice only when money collection is enabled |
+| 20 | Unified Trip Bag: Trip/TripItem, internal+external additions, readiness checklist, Wallet, Price Watch | Database/API persistence; external import options are staged—manual entry first, then approved share/PDF/QR/calendar/email integrations; price watches require a valid offer-price source and scheduled server jobs |
+| 21 | Accessibility improvements (screen reader support, text scaling compliance) | Platform accessibility tooling audit; no new vendor required for the first pass |
+| 22 | Live Travel Companion: Today, itinerary map, external navigation handoff, event-based notifications, Travel Mode | Map/directions/geocoding provider, user location permission, push-notification service, background-job capability; later flight-status/weather/local-service data sources as each feature is approved |
+| 23 | Production readiness and launch | Separate dev/staging/prod environments, secret manager, restricted CORS, migrations/backups, observability, CI/CD, privacy policy/consent records, and security review |
+| 24 | Trusted Group Trips: discovery, membership, shared plans, ratings, safety | Requires Phase 17 identity/roles and Phase 20 Trip model; push notifications, strict authorization/audit logging, and an approved identity-verification provider only when verification is activated |
 
 ### Dynamic product flow after the roadmap
 
@@ -73,10 +75,10 @@ Discover manually or with AI
 3. **14:** AI Bottom Sheet visual states, starter prompts, session list, filter chips, safe response/error states.
 4. **15:** AI actions on existing cards and manual results: explain, compare, alternatives, apply filters, add to trip.
 5. **17:** Real login, profile, settings, privacy/consent, and verification-status UI.
-6. **18:** Booking confirmation/review states and automatic visible sync into Trip/Bag.
-7. **19:** Unified Trip UI, Add to trip menu, external-import review draft, Readiness checklist, Wallet, Price Watch.
-8. **20:** Today/Travel Mode, Map place cards, directions handoff, event cards, notification action handling, permission education.
-9. **22:** Group discovery/search, create flow, role/member UI, join request approval/rejection, shared itinerary, polls, check-ins, and trust/review states.
+6. **19:** Booking confirmation/review states and automatic visible sync into Trip/Bag.
+7. **20:** Unified Trip UI, Add to trip menu, external-import review draft, Readiness checklist, Wallet, Price Watch.
+8. **22:** Today/Travel Mode, Map place cards, directions handoff, event cards, notification action handling, permission education.
+9. **24:** Group discovery/search, create flow, role/member UI, join request approval/rejection, shared itinerary, polls, check-ins, and trust/review states.
 
 ### Trusted Groups product rules
 

@@ -27,10 +27,10 @@ Do not give an execution agent a giant historical dump when a focused task promp
 
 ## Verified handoff — 2026-08-21
 
-- **Verified state:** Phase 16 (offline foundation) complete. Phases 1–16 are done: Hive-backed OfflineCache wired in `main()`, write-through cache for search offers + AI responses, cache-first fallback on failure; 226 Flutter tests pass, `flutter analyze` 0 errors.
-- **Exact next phase:** **17 — Auth (login, profile, persisted sessions)**. Do not start it or any later phase unless explicitly requested.
+- **Verified state:** Phase 17 (Auth) complete. Phases 1–17 are done: backend register/login/me (bcryptjs + JwtStrategy/Guard), Flutter secure-storage session with restore, `/auth` page + profile split; Home empty-state fixed via demo+cache fallback; `npm run seed:home` dev seed added. Backend 98 jest tests + tsc clean; Flutter 242 tests pass, analyze 0 errors.
+- **Exact next phase:** **18 — PROJECT_MEMORY cloud sync + analytics foundation**. Do not start it or any later phase unless explicitly requested.
 - Point new agents to `03_CURRENT_STATE.md` + `08_NEXT_STEPS.md` for the verified checkpoint and roadmap.
-- Live AI runs through the OpenAI-compatible provider (OpenRouter `openrouter/free`); `.env` is local-only and must never be committed.
+- Live AI runs through the OpenAI-compatible provider; `.env` is local-only and must never be committed.
 
 
 
@@ -732,4 +732,23 @@ d7aa536b YES
 5a4cd778 cline done
 4f52fffc play
 076ee52c All Duffel Env Fix Requirements Met
+```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+59276fea (HEAD -> main) feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+7a84d207 fix(home): demo and cache fallback for empty home sections
+0b71c29e feat(auth): phase 17 real login register me and profile session
+2291fcfc feat(offline): phase 16 hive cache for search and AI responses
+bf8c60b1 (origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
+d7aa536b YES
+06afee21 chore: stop tracking node_modules
+5a4cd778 cline done
+4f52fffc play
 ```

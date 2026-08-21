@@ -4,7 +4,7 @@
 WeTravellers — Flutter travel application + NestJS backend.
 
 ## Current checkpoint
-AI Phases 1–10, 11A, 11B1, 11B2, 11C, 12, 13, 14A, 14B, 15A–15C and 16 (offline Hive cache) are complete. Live AI works via the OpenAI-compatible provider (tested with OpenRouter). Next = **Phase 17 — Auth (login/profile/persisted sessions)** — only when explicitly requested.
+Phases 1–17 are complete (17 = real auth end-to-end, Home demo/cache fallback + dev seed). Next = **Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation** — only when explicitly requested.
 
 ## Stack
 - Flutter / Dart
@@ -50,4 +50,4 @@ At the end report:
 - stop at the requested phase
 
 ## Current execution boundary
-Phases 1–16 are complete. Implement only **Phase 17 — Auth (login/profile/persisted sessions)** when explicitly requested, then stop. Later phases 18+ remain listed but not started; see `08_NEXT_STEPS.md`. Keep the hard rules: no delete/rename, no secrets in code or memory, minimal scoped work.
+Phases 1–17 are complete. Implement only **Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation** when explicitly requested, then stop. Later phases 19+ remain listed but not started; see `08_NEXT_STEPS.md`. Keep the hard rules: no delete/rename, no secrets in code or memory, minimal scoped work.

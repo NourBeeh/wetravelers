@@ -1,7 +1,7 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**AI Phases 1–10 complete. Phases 11A–11C, 12, 13, 14A, 14B, 15A–15C, and 16 complete. Phase 16 (Offline Support Foundation) delivered: Hive-backed `OfflineCache` wired app-wide in `main()`, write-through caching of flight/hotel/car search results keyed by deterministic search params, AI responses cached by SHA-256 prompt-hash key (`crypto` package added), cache-first read + graceful fallback to last cached offers/AI response on network failure (`fromCache` flag exposed in all search/AI states), 23 new storage tests added. All 226 Flutter tests pass; `flutter analyze` 0 errors (18 pre-existing non-blocking items). Next pending phase: Phase 17 Auth (login/profile/sessions).**
+**Phases 1–17 complete. Phase 17 (Auth) delivered: backend register/login/me with bcryptjs hashing, JwtStrategy+JwtAuthGuard, class-validator DTOs, separate refresh secret; Flutter HttpAuthRepository over flutter_secure_storage, AuthPage on `/auth`, ProfilePage guest/authenticated split with logout; session restores across restarts via stored token + `/auth/me`. Backend: 98 jest tests pass, tsc clean; Flutter: 242 tests pass, analyze 0 errors. Also fixed: Home empty-state — `/home/sections` now falls back to last Hive snapshot then built-in demo sections when the DB feed is empty/unreachable; dev seed added (`npm run seed:home`, idempotent fixed-UUID upserts into home_sections/home_cards); CommandBar layout constraints committed. Next pending phase: Phase 18 per `04_PHASE_HISTORY.md`.**
 
 ## Last confirmed AI state
 - AI visual shell exists.
@@ -27781,5 +27781,35 @@ d7aa536b YES
 ```
 M  backend/.env.example
 A  backend/scripts/seed-home.js
+?? backend/test/auth.spec.ts
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+59276fea (HEAD -> main) feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+7a84d207 fix(home): demo and cache fallback for empty home sections
+0b71c29e feat(auth): phase 17 real login register me and profile session
+2291fcfc feat(offline): phase 16 hive cache for search and AI responses
+bf8c60b1 (origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
+d7aa536b YES
+06afee21 chore: stop tracking node_modules
+5a4cd778 cline done
+4f52fffc play
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/02_AGENT_MEMORY.md
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  PROJECT_MEMORY/08_NEXT_STEPS.md
+M  PROJECT_MEMORY/09_AI_HANDOFF.md
+M  PROJECT_MEMORY/10_DEEPSEEK_CONTEXT.md
 ?? backend/test/auth.spec.ts
 ```
