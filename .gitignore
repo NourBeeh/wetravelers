@@ -62,3 +62,4 @@ build/
 .vscode/
 .DS_Store
 backend/dist/
+backend/node_modules/
