@@ -128,7 +128,7 @@ export class AiService {
       fullPrompt = `Current application context:\n${contextStr}\n\nUser's actual query: ${prompt}`;
     }
 
-    // التحقق إذا كان الطلب بحث عن سفر
+    // التحقق إذا كان الطلب بحث عن سفر واسترجاع رحلات حية
     const { isTravelSearch, searchData } = this.extractTravelSearchData(prompt);
     if (isTravelSearch && searchData && searchData.origin && searchData.destination) {
       try {
@@ -139,35 +139,44 @@ export class AiService {
           searchData.passengers,
         );
 
-        // تحويل النتائج لتنسيق AiResponseDto
         const flightItems = (flights.offers || []).map((offer: any) => ({
           id: offer.id,
           type: 'flight',
-          title: `${searchData.origin} → ${searchData.destination}`,
-          subtitle: offer.origin_city || 'رحلة جوية',
-          price: parseFloat(offer.total_amount),
-          currency: offer.currency,
+          title: offer.title || `${searchData.origin} → ${searchData.destination}`,
+          subtitle: offer.subtitle || offer.airline || 'رحلة جوية',
+          price: typeof offer.price === 'number' ? offer.price : parseFloat(offer.price || '0'),
+          currency: offer.currency || 'USD',
+          airline: offer.airline,
+          flightNumber: offer.flightNumber,
+          data: {
+            origin: offer.origin,
+            destination: offer.destination,
+            departureTime: offer.departureTime,
+            arrivalTime: offer.arrivalTime,
+          },
         }));
 
-        this.record({
-          provider: this.provider.providerId,
-          fallbackUsed: false,
-          outcome: 'success',
-          latencyMs: Date.now() - startedAt,
-        });
+        if (flightItems.length > 0) {
+          this.record({
+            provider: 'duffel-flight',
+            fallbackUsed: false,
+            outcome: 'success',
+            latencyMs: Date.now() - startedAt,
+          });
 
-        return {
-          text: `تم العثور على ${flightItems.length} رحلة متاحة من ${searchData.origin} إلى ${searchData.destination}!`,
-          sections: [{
-            id: 'flight-results',
-            title: 'الرحلات المتاحة',
-            layout: 'vertical',
-            items: flightItems,
-          }],
-          metadata: { searchData, flightCount: flightItems.length },
-        };
+          return {
+            text: `تم العثور على ${flightItems.length} رحلة طيران متاحة من ${searchData.origin} إلى ${searchData.destination}:`,
+            sections: [{
+              id: 'flight-results',
+              title: 'رحلات الطيران المتاحة',
+              layout: 'vertical',
+              items: flightItems,
+            }],
+            metadata: { searchData, flightCount: flightItems.length },
+          };
+        }
       } catch (searchError) {
-        this.logger.error(`Failed to search flights: ${(searchError as Error).message}`);
+        this.logger.warn(`Live flight search bypassed: ${(searchError as Error).message}`);
       }
     }
 

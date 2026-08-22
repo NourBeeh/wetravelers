@@ -11,6 +11,7 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/search/presentation/pages/flight_search_page.dart';
 import '../../features/search/presentation/pages/hotel_search_page.dart';
 import '../../features/search/presentation/pages/car_search_page.dart';
+import '../../features/search/presentation/pages/booking_review_page.dart';
 import '../shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -116,6 +117,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: '/auth',
             name: 'auth',
             builder: (context, state) => const AuthPage(),
+          ),
+          GoRoute(
+            path: '/booking/review',
+            name: 'booking_review',
+            builder: (context, state) => const BookingReviewPage(),
           ),
         ],
       ),

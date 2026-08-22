@@ -90,7 +90,10 @@ class _WeTravellersShellState extends ConsumerState<WeTravellersShell> with Sing
           Padding(
             padding: EdgeInsets.only(
               top: kToolbarHeight + MediaQuery.of(context).padding.top,
-              bottom: 80 + MediaQuery.of(context).padding.bottom,
+              // Use only 80px - SafeArea in bottomNavigationBar already handles
+bottom: appMode == AppMode.normal ? 80 : 0
+              // the system padding so we must not double-add it here.
+              bottom: appMode == AppMode.normal ? 72 : 0,
             ),
             child: widget.child,
           ),

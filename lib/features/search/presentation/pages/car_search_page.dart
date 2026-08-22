@@ -6,6 +6,7 @@ import 'package:wetravellers/features/search/application/providers/hotel_car_pro
 import 'package:wetravellers/features/search/application/controllers/car_search_controller.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/features/search/presentation/widgets/car_result_card.dart';
+import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
 
 class CarSearchPage extends ConsumerWidget {
   const CarSearchPage({super.key});
@@ -31,20 +32,40 @@ class CarSearchPage extends ConsumerWidget {
             initialPickupTime: initialPickupDate,
           ),
           const Divider(height: 1),
-          Expanded(child: _buildBody(state)),
+          Expanded(child: _buildBody(context, ref, state)),
         ],
       ),
     );
   }
 
-  Widget _buildBody(CarSearchState state) {
+  Widget _buildBody(BuildContext context, WidgetRef ref, CarSearchState state) {
     switch (state.status) {
       case CarSearchStatus.idle:
         return const Center(child: Text('Enter search criteria'));
       case CarSearchStatus.loading:
         return ListView.builder(itemCount: 6, itemBuilder: (_, __) => Padding(padding: EdgeInsets.all(AppSpacing.md), child: Container(height: 100, color: Colors.grey.shade200)));
       case CarSearchStatus.success:
-        return ListView.builder(itemCount: state.results.length, itemBuilder: (_, i) => CarResultCard(offer: state.results[i]));
+        return ListView.builder(
+          itemCount: state.results.length,
+          itemBuilder: (_, i) {
+            final item = state.results[i];
+            return GestureDetector(
+              onTap: () {
+                ref.read(selectedOfferProvider.notifier).state = SelectedOffer(
+                  offerId: item.id,
+                  providerId: item.providerId,
+                  providerName: item.providerName,
+                  price: item.price,
+                  currency: item.currency,
+                  searchId: '',
+                  offerType: 'car',
+                );
+                context.push('/booking/review');
+              },
+              child: CarResultCard(offer: item),
+            );
+          },
+        );
       case CarSearchStatus.empty:
         return const Center(child: Text('No cars found'));
       case CarSearchStatus.error:

@@ -8,6 +8,7 @@ import { MockCarProvider } from './adapters/mock.car.provider';
 import { SearchController } from './search.controller';
 import { SearchService } from './search.service';
 import { DuffelService } from '../duffel/duffel.service';
+import { DuffelHotelService } from '../duffel/duffel.hotel.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Provider])],
@@ -19,14 +20,16 @@ import { DuffelService } from '../duffel/duffel.service';
     MockHotelProvider,
     MockCarProvider,
     DuffelService,
+    DuffelHotelService,
   ],
-  exports: [ProviderRegistryImpl, SearchService, DuffelService],
+  exports: [ProviderRegistryImpl, SearchService, DuffelService, DuffelHotelService],
 })
 export class ProvidersModule implements OnModuleInit {
   constructor(
     private readonly registry: ProviderRegistryImpl,
     private readonly mockFlightProvider: MockFlightProvider,
     private readonly duffelService: DuffelService,
+    private readonly duffelHotelService: DuffelHotelService,
     private readonly mockHotelProvider: MockHotelProvider,
     private readonly mockCarProvider: MockCarProvider,
   ) {}
@@ -38,6 +41,8 @@ export class ProvidersModule implements OnModuleInit {
     
     // Register hotel and car providers
     this.registry.registerHotel(this.mockHotelProvider);
+    this.registry.registerHotel(this.duffelHotelService);
     this.registry.registerCar(this.mockCarProvider);
   }
+}
 }

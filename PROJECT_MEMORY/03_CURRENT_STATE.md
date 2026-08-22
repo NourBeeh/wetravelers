@@ -27862,3 +27862,38 @@ d7aa536b YES
 M  backend/.env.example
 M  backend/scripts/seed-home.js
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+141164e2 (HEAD -> main) fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+7a84d207 fix(home): demo and cache fallback for empty home sections
+0b71c29e feat(auth): phase 17 real login register me and profile session
+2291fcfc feat(offline): phase 16 hive cache for search and AI responses
+bf8c60b1 (origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
+d7aa536b YES
+```
+
+### Pending status
+```
+M  backend/src/modules/ai/ai.service.ts
+A  backend/src/modules/duffel/duffel.hotel.service.ts
+M  backend/src/modules/duffel/duffel.service.ts
+M  backend/src/modules/providers/providers.module.ts
+M  lib/app/router/go_router_config.dart
+M  lib/app/shell.dart
+M  lib/core/repositories/impl/hotel_repository_impl.dart
+M  lib/features/home/presentation/pages/home_page.dart
+M  lib/features/search/presentation/pages/booking_review_page.dart
+M  lib/features/search/presentation/pages/car_search_page.dart
+M  lib/features/search/presentation/pages/flight_search_page.dart
+M  lib/features/search/presentation/pages/hotel_search_page.dart
+```

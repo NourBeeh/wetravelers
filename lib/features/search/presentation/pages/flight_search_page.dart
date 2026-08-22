@@ -53,7 +53,7 @@ class FlightSearchPage extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: _buildBody(state, sort, filters, ref),
+            child: _buildBody(context, state, sort, filters, ref),
           ),
         ],
       ),
@@ -70,7 +70,7 @@ class FlightSearchPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(FlightSearchState state, SortOption sort, SearchFilters filters, WidgetRef ref) {
+  Widget _buildBody(BuildContext context, FlightSearchState state, SortOption sort, SearchFilters filters, WidgetRef ref) {
     switch (state.status) {
       case SearchStatus.idle:
         return const Center(child: Text('Enter search criteria'));
@@ -110,7 +110,7 @@ class FlightSearchPage extends ConsumerWidget {
                   searchId: '',
                   offerType: 'flight',
                 );
-                Navigator.of(ref.context).pushNamed('/booking/review');
+                context.push('/booking/review');
               },
               child: FlightResultCard(offer: items[i]),
             ),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/features/booking/domain/booking_record.dart';
 import 'package:wetravellers/features/booking/application/booking_state.dart';
+import 'package:wetravellers/features/booking/application/booking_providers.dart';
+import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
 import 'package:wetravellers/features/bag/domain/trip.dart';
 
-
-class BookingReviewPage extends StatelessWidget {
+class BookingReviewPage extends ConsumerWidget {
   final BookingRecord? booking;
   final BookingState? state;
   final void Function()? onPrepare;
@@ -28,12 +31,40 @@ class BookingReviewPage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    if (booking == null && state?.record == null) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedOffer = ref.watch(selectedOfferProvider);
+    final bookingState = state ?? ref.watch(bookingControllerProvider);
+    final bookingNotifier = ref.read(bookingControllerProvider.notifier);
+
+    if (booking == null && bookingState?.record == null && selectedOffer == null) {
       return Scaffold(appBar: AppBar(title: const Text('Review Booking')), body: const Center(child: Text('No booking selected')));
     }
-    final record = booking ?? state?.record;
-    final phase = state?.phase ?? BookingPhase.idle;
+    final record = booking ?? bookingState?.record;
+    final phase = bookingState?.phase ?? BookingPhase.idle;
+
+    final effectivePrepare = onPrepare ?? (selectedOffer != null ? () {
+      bookingNotifier.prepare(
+        offerId: selectedOffer.offerId,
+        providerId: selectedOffer.providerId,
+        searchId: selectedOffer.searchId,
+      );
+    } : null);
+
+    final effectiveRevalidate = onRevalidate ?? (record != null ? () {
+      bookingNotifier.revalidate(bookingId: record.bookingReference, oldPrice: record.authoritativePrice);
+    } : null);
+
+    final effectiveAcceptPrice = onAcceptPrice ?? () {
+      bookingNotifier.acceptNewPrice();
+    };
+
+    final effectiveConfirm = onConfirm ?? () {
+      bookingNotifier.confirm();
+    };
+
+    final effectiveViewTrip = onViewTrip ?? () {
+      context.go('/bag');
+    };
 
     return Scaffold(
       appBar: AppBar(title: const Text('Review Booking')),
@@ -48,11 +79,24 @@ class BookingReviewPage extends StatelessWidget {
               Text('Provider: ${record.providerName}'),
               Text('Price: ${record.authoritativePrice} ${record.currency}'),
               Text('Reference: ${record.bookingReference}'),
+            ] else if (selectedOffer != null) ...[
+              Text('Selected: ${selectedOffer.offerType.toUpperCase()}'),
+              const SizedBox(height: AppSpacing.sm),
+              Text('Provider: ${selectedOffer.providerName}'),
+              Text('Price: ${selectedOffer.price.toStringAsFixed(2)} ${selectedOffer.currency}'),
             ],
             const SizedBox(height: AppSpacing.md),
-            _buildPhaseContent(phase, state),
+            _buildPhaseContent(phase, bookingState),
             const Spacer(),
-            _buildActions(phase, state),
+            _buildActions(
+              phase,
+              bookingState,
+              onPrepare: effectivePrepare,
+              onRevalidate: effectiveRevalidate,
+              onAcceptPrice: effectiveAcceptPrice,
+              onConfirm: effectiveConfirm,
+              onViewTrip: effectiveViewTrip,
+            ),
           ],
         ),
       ),
@@ -104,7 +148,21 @@ class BookingReviewPage extends StatelessWidget {
     }
   }
 
-  Widget _buildActions(BookingPhase phase, BookingState? state) {
+  Widget _buildActions(
+    BookingPhase phase,
+    BookingState? state, {
+    VoidCallback? onPrepare,
+    VoidCallback? onRevalidate,
+    VoidCallback? onAcceptPrice,
+    VoidCallback? onConfirm,
+    VoidCallback? onViewTrip,
+  }) {
+    final effectivePrepare = onPrepare ?? this.onPrepare;
+    final effectiveRevalidate = onRevalidate ?? this.onRevalidate;
+    final effectiveAcceptPrice = onAcceptPrice ?? this.onAcceptPrice;
+    final effectiveConfirm = onConfirm ?? this.onConfirm;
+    final effectiveViewTrip = onViewTrip ?? this.onViewTrip;
+
     return Row(
       children: [
         if (phase == BookingPhase.idle || phase == BookingPhase.prepared)
@@ -113,7 +171,7 @@ class BookingReviewPage extends StatelessWidget {
               button: true,
               label: 'Prepare booking',
               child: ElevatedButton(
-                onPressed: onPrepare,
+                onPressed: effectivePrepare,
                 child: const Text('Prepare booking'),
               ),
             ),
@@ -126,7 +184,7 @@ class BookingReviewPage extends StatelessWidget {
               button: true,
               label: 'Revalidate price',
               child: ElevatedButton(
-                onPressed: onRevalidate,
+                onPressed: effectiveRevalidate,
                 child: const Text('Revalidate price'),
               ),
             ),
@@ -137,7 +195,7 @@ class BookingReviewPage extends StatelessWidget {
               button: true,
               label: 'Accept new price',
               child: ElevatedButton(
-                onPressed: onAcceptPrice,
+                onPressed: effectiveAcceptPrice,
                 child: const Text('Accept new price'),
               ),
             ),
@@ -148,7 +206,7 @@ class BookingReviewPage extends StatelessWidget {
               button: true,
               label: 'Confirm booking',
               child: ElevatedButton(
-                onPressed: onConfirm,
+                onPressed: effectiveConfirm,
                 child: const Text('Confirm'),
               ),
             ),
@@ -161,7 +219,7 @@ class BookingReviewPage extends StatelessWidget {
               button: true,
               label: 'View trip details',
               child: ElevatedButton(
-                onPressed: onViewTrip,
+                onPressed: effectiveViewTrip,
                 child: const Text('View Trip'),
               ),
             ),
@@ -172,7 +230,7 @@ class BookingReviewPage extends StatelessWidget {
               button: true,
               label: 'Retry confirmation',
               child: ElevatedButton(
-                onPressed: onConfirm,
+                onPressed: effectiveConfirm,
                 child: const Text('Retry'),
               ),
             ),

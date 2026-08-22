@@ -50,13 +50,7 @@ class HomePage extends ConsumerWidget {
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
-                  child: _HomeHeader(),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
                   child: _HomeHero(),
                 ),
               ),
@@ -94,49 +88,6 @@ class HomePage extends ConsumerWidget {
           ),
         );
     }
-  }
-}
-
-class _HomeHeader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'B&GO',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Discover your next trip',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Row(
-          children: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.notifications_outlined),
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.account_circle_outlined),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 }
 
