@@ -16,9 +16,21 @@
  * Tables must already exist — start the backend once first (TypeORM
  * synchronize creates them in non-production environments).
  */
-require('dotenv').config();
+// Load backend/.env regardless of the caller's working directory.
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
 const { Client } = require('pg');
+
+// Defaults mirror `src/config/database.config.ts` and `docker-compose.yml`,
+// so the seed connects exactly like the Nest app when DB_* are unset.
+const dbConfig = {
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT || 5432),
+  user: process.env.DB_USER || 'wetravellers',
+  password: process.env.DB_PASSWORD || 'wetravellers',
+  database: process.env.DB_NAME || 'wetravellers',
+};
 
 const SEED_SECTIONS = [
   {
@@ -53,56 +65,56 @@ const SEED_SECTIONS = [
 
 const SEED_CARDS = [
   // Recommended for you
-  card('00000000-0000-4000-8000-0000000101', 1, 'hotel', {
+  card('00000000-0000-4000-8000-000000000101', 1, 'hotel', {
     title: 'Grand Palm Hotel', subtitle: 'Paris, France',
     price: 320, currency: 'USD', rating: 4.6, reviewCount: 214,
     badge: 'Popular', tags: ['4-star', 'City center'],
     imageUrl: 'https://picsum.photos/seed/grand-palm/400/300',
   }),
-  card('00000000-0000-4000-8000-0000000102', 2, 'flight', {
+  card('00000000-0000-4000-8000-000000000102', 2, 'flight', {
     title: 'Cairo → Istanbul', subtitle: 'Round trip · 7 days',
     price: 289, currency: 'USD', rating: 4.4, reviewCount: 96,
     badge: 'Deal', tags: ['Direct', 'Economy'],
   }),
-  card('00000000-0000-4000-8000-0000000103', 3, 'deal', {
+  card('00000000-0000-4000-8000-000000000103', 3, 'deal', {
     title: 'Weekend in Alexandria', subtitle: 'Hotel + breakfast included',
     price: 145, currency: 'USD', rating: 4.2, reviewCount: 58, badge: '-30%',
   }),
   // Trending destinations
-  card('00000000-0000-4000-8000-0000000201', 1, 'destination', {
+  card('00000000-0000-4000-8000-000000000201', 1, 'destination', {
     title: 'Istanbul', subtitle: 'Turkey',
     description: 'Bridges, bazaars and Bosphorus views.',
     imageUrl: 'https://picsum.photos/seed/istanbul-view/400/300',
   }, 2),
-  card('00000000-0000-4000-8000-0000000202', 2, 'destination', {
+  card('00000000-0000-4000-8000-000000000202', 2, 'destination', {
     title: 'Dubai', subtitle: 'UAE',
     description: 'Skyline dining and desert adventures.',
     imageUrl: 'https://picsum.photos/seed/dubai-skyline/400/300',
   }, 2),
-  card('00000000-0000-4000-8000-0000000203', 3, 'destination', {
+  card('00000000-0000-4000-8000-000000000203', 3, 'destination', {
     title: 'Rome', subtitle: 'Italy',
     description: 'Ancient streets and unforgettable food.',
     imageUrl: 'https://picsum.photos/seed/rome-streets/400/300',
   }, 2),
   // Tour packages
-  card('00000000-0000-4000-8000-0000000301', 1, 'package', {
+  card('00000000-0000-4000-8000-000000000301', 1, 'package', {
     title: 'Sharm El Sheikh · 5 days', subtitle: 'Flights + resort + transfers',
     price: 599, currency: 'USD', rating: 4.7, reviewCount: 132,
     highlights: ['All inclusive', 'Airport transfer'],
     imageUrl: 'https://picsum.photos/seed/sharm-resort/400/300',
   }, 3),
-  card('00000000-0000-4000-8000-0000000302', 2, 'package', {
+  card('00000000-0000-4000-8000-000000000302', 2, 'package', {
     title: 'Luxor & Aswan cruise · 4 nights', subtitle: 'Nile cruise with guided tours',
     price: 749, currency: 'USD', rating: 4.8, reviewCount: 87,
     highlights: ['Guided temples', 'Full board'],
   }, 3),
   // Experiences & stories
-  card('00000000-0000-4000-8000-0000000401', 1, 'experience', {
+  card('00000000-0000-4000-8000-000000000401', 1, 'experience', {
     title: 'Sunset felucca ride', subtitle: 'Aswan, Egypt',
     price: 25, currency: 'USD', rating: 4.9, reviewCount: 41,
     imageUrl: 'https://picsum.photos/seed/felucca-sunset/400/300',
   }, 4),
-  card('00000000-0000-4000-8000-0000000402', 2, 'story', {
+  card('00000000-0000-4000-8000-000000000402', 2, 'story', {
     title: '48 hours in old Cairo', subtitle: 'Community story',
     description: 'Khan el-Khalili, hidden cafés and the citadel at dusk.',
   }, 4),
@@ -119,19 +131,18 @@ function card(id, order, cardType, content, sectionIndex = 1) {
 }
 
 async function main() {
-  const client = new Client({
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT || 5432),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-  });
+  const client = new Client(dbConfig);
 
   try {
     await client.connect();
-  } catch {
+  } catch (err) {
     console.error('Seed aborted: could not connect to the database.');
-    console.error('Check DB_* settings in backend/.env and that Postgres is running.');
+    // Never print the password — host/port/user/db are enough to diagnose.
+    console.error(
+      `Tried: postgresql://${dbConfig.user}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}` +
+        ` (${err.code || err.message || 'unknown error'})`,
+    );
+    console.error('Check DB_* settings in backend/.env and that the Postgres container is running.');
     process.exit(1);
   }
 
@@ -140,39 +151,42 @@ async function main() {
     const cardIds = SEED_CARDS.map((c) => c.id);
 
     // Upsert sections (fixed UUIDs → idempotent).
+    // Column names are camelCase because TypeORM synchronize created them
+    // without a snake_case naming strategy.
     for (const s of SEED_SECTIONS) {
       await client.query(
-        `INSERT INTO home_sections (id, title, subtitle, layout, "order", is_visible)
+        `INSERT INTO home_sections (id, title, subtitle, layout, "order", "isVisible")
          VALUES ($1, $2, $3, $4, $5, true)
          ON CONFLICT (id) DO UPDATE SET
            title = EXCLUDED.title,
            subtitle = EXCLUDED.subtitle,
            layout = EXCLUDED.layout,
            "order" = EXCLUDED."order",
-           is_visible = true,
-           updated_at = now()`,
+           "isVisible" = true,
+           "updatedAt" = now()`,
         [s.id, s.title, s.subtitle, s.layout, s.order],
       );
     }
 
     // Remove orphaned cards from earlier seed runs under seed sections.
+    // sectionId is a plain varchar column, not a uuid FK.
     await client.query(
-      `DELETE FROM home_cards WHERE section_id = ANY($1::uuid[]) AND id <> ALL($2::uuid[])`,
+      `DELETE FROM home_cards WHERE "sectionId" = ANY($1::varchar[]) AND id <> ALL($2::uuid[])`,
       [sectionIds, cardIds],
     );
 
     // Upsert cards.
     for (const c of SEED_CARDS) {
       await client.query(
-        `INSERT INTO home_cards (id, section_id, card_type, content, "order", is_visible)
+        `INSERT INTO home_cards (id, "sectionId", "cardType", content, "order", "isVisible")
          VALUES ($1, $2, $3, $4::jsonb, $5, true)
          ON CONFLICT (id) DO UPDATE SET
-           section_id = EXCLUDED.section_id,
-           card_type = EXCLUDED.card_type,
+           "sectionId" = EXCLUDED."sectionId",
+           "cardType" = EXCLUDED."cardType",
            content = EXCLUDED.content,
            "order" = EXCLUDED."order",
-           is_visible = true,
-           updated_at = now()`,
+           "isVisible" = true,
+           "updatedAt" = now()`,
         [c.id, c.sectionId, c.cardType, JSON.stringify(c.content), c.order],
       );
     }
