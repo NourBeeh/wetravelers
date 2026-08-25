@@ -39,7 +39,19 @@ Each phase is intentionally small. Never start the next phase without an explici
 - Phase 10 was executed as sub-phases 10A–10D and is complete (commit `eda9668e`).
 - Phases 11A, 11B1, 11B2 and 11C completed; 11B2's remaining TypeScript errors resolved (backend `tsc` build clean).
 - Phase 12 (Home Marketplace) and Phase 13 (Floating/Orbital Navigation + persistent CommandBar) completed and committed.
-- Phase 14 completed as 14A (AI Bottom Sheet UI prototype, commit `f2170a7c`) + 14B (CommandBar Ask/TextField wiring, backend AI timeout 90s, timeout classified as retryable so Mock fallback engages, Flutter sheet timeout aligned to 90s). Live AI verified via OpenRouter (`openrouter/free`).
+- Phase 14B completed as 14A (AI Bottom Sheet UI prototype, commit `f2170a7c`) + 14B (CommandBar Ask/TextField wiring, backend AI timeout 90s, timeout classified as retryable so Mock fallback engages, Flutter sheet timeout aligned to 90s). Live AI verified via OpenRouter (`openrouter/free`).
 - Phase 15 (15A–15C) completed: context-aware AI + code hygiene baseline.
 - Phase 16 completed 2026-08-21: Hive offline cache for offers + AI responses.
 - Phase 17 completed 2026-08-21: real auth end-to-end (backend + Flutter), Home empty-state fix (demo+cache fallback, `npm run seed:home` dev seed), CommandBar layout constraints. Next = Phase 18, pending explicit instruction.
+
+### Notes (addendum 2026-08-26) — post-Phase-17 AI chat overhaul (unnumbered iteration)
+Executed across multiple sessions on top of Phase 17; no numbered phase was opened.
+- AI launcher retired the floating morph window entirely (scrim/swipe-to-close era removed). `lib/app/widgets/ai_morph_control.dart` is now a bubble-only launcher that pushes `/ai-chat`.
+- NEW full-screen chat page: `lib/features/ai/presentation/pages/ai_chat_page.dart`, top-level GoRoute outside ShellRoute with standard platform transitions (iOS edge-swipe-back preserved).
+- Conversation model: `AiChatMessage` (user/assistant, fromCache) + `AiState.messages`; controller appends user msg instantly and assistant replies on success/error/empty; rolling cap 50 messages; 6h idle TTL with injectable clock (`expireIfIdle`). In-memory persistence semantics: backgrounding keeps the chat, app restart clears it.
+- Chat UX: WhatsApp-style expanding input (1→4 lines), circular gradient send button, typing dots, per-bubble entrance animations, ⚡ cached badge, friendly error bubbles + retry, haptics on open/close/submit.
+- Closing paths: header ✕ (right side), Android Back, iOS swipe-back, Escape (web/desktop).
+- Fixed Hive disk-round-trip crash: `HiveOfflineCache` box retyped to `Box<Map>` with deep `convertHiveValue`; cache reads made best-effort in `AiController.submit` and `ai_bottom_sheet`. This also protected flight/hotel/car search caches.
+- Tests: Flutter suite grew 242 → 262 passing (chat model/controller/page/bubble suites); analyze 0 errors. New test files: `test/features/ai/ai_chat_messages_test.dart`, `test/features/ai/presentation/pages/ai_chat_page_test.dart`, `test/core/storage/hive_offline_cache_test.dart`.
+- Known issue logged: pre-existing `hotel_card.dart:34` Column overflow with demo data at small test viewports (unrelated to AI work).
+- Next = Phase 18, still pending explicit instruction.

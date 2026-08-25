@@ -45,4 +45,3 @@ export class ProvidersModule implements OnModuleInit {
     this.registry.registerCar(this.mockCarProvider);
   }
 }
-}

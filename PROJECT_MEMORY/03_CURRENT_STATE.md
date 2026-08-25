@@ -1,7 +1,10 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**Phases 1–17 complete. Phase 17 (Auth) delivered: backend register/login/me with bcryptjs hashing, JwtStrategy+JwtAuthGuard, class-validator DTOs, separate refresh secret; Flutter HttpAuthRepository over flutter_secure_storage, AuthPage on `/auth`, ProfilePage guest/authenticated split with logout; session restores across restarts via stored token + `/auth/me`. Backend: 98 jest tests pass, tsc clean; Flutter: 242 tests pass, analyze 0 errors. Also fixed: Home empty-state — `/home/sections` now falls back to last Hive snapshot then built-in demo sections when the DB feed is empty/unreachable; dev seed added (`npm run seed:home`, idempotent fixed-UUID upserts into home_sections/home_cards); CommandBar layout constraints committed. Next pending phase: Phase 18 per `04_PHASE_HISTORY.md`.**
+**Phases 1–17 complete, plus a post-17 AI chat overhaul (2026-08-26): the AI assistant is now a FULL-SCREEN chat page at route `/ai-chat` (top-level, outside ShellRoute so the app header/bubble never render over it). Opened by the persistent launcher bubble (`lib/app/widgets/ai_morph_control.dart`, tap → push). Conversation is cumulative with user + assistant bubbles (typing-dots indicator, entrance animations, ⚡ cached badge, friendly error bubble + retry), auto-scroll to latest. Auto-expiry: rolling cap of 50 messages + 6h idle TTL (injectable clock); in-memory state means backgrounding preserves the chat and an app restart clears it. Closing: header ✕ (right), Android Back, iOS edge-swipe-back (standard platform transitions), Escape on web/desktop. Input is WhatsApp-style (1→4 expanding lines) with circular gradient send button; haptic feedback on open/close/submit. Also fixed this iteration: Hive type-cast crash (`HiveOfflineCache` now `Box<Map>` + deep `convertHiveValue`; cache reads hardened as best-effort in AiController and ai_bottom_sheet), and the old floating-window morph (scrim/swipe-to-close) was fully retired. Flutter: 262 tests pass, analyze 0 errors. Known issue logged: pre-existing `hotel_card.dart:34` Column overflow with demo data (unrelated to AI work). Next pending phase: Phase 18 per `04_PHASE_HISTORY.md`.**
+
+## Previous checkpoint (Phase 17)
+Phases 1–17 complete. Phase 17 (Auth) delivered: backend register/login/me with bcryptjs hashing, JwtStrategy+JwtAuthGuard, class-validator DTOs, separate refresh secret; Flutter HttpAuthRepository over flutter_secure_storage, AuthPage on `/auth`, ProfilePage guest/authenticated split with logout; session restores across restarts via stored token + `/auth/me`. Backend: 98 jest tests pass, tsc clean. Also fixed: Home empty-state fallback (last Hive snapshot then built-in demo sections when the DB feed is empty/unreachable); dev seed added (`npm run seed:home`, idempotent fixed-UUID upserts into home_sections/home_cards).
 
 ## Last confirmed AI state
 - AI visual shell exists.
@@ -27896,4 +27899,61 @@ M  lib/features/search/presentation/pages/booking_review_page.dart
 M  lib/features/search/presentation/pages/car_search_page.dart
 M  lib/features/search/presentation/pages/flight_search_page.dart
 M  lib/features/search/presentation/pages/hotel_search_page.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+d5adfb18 (HEAD -> main) new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+7a84d207 fix(home): demo and cache fallback for empty home sections
+0b71c29e feat(auth): phase 17 real login register me and profile session
+2291fcfc feat(offline): phase 16 hive cache for search and AI responses
+bf8c60b1 (origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
+```
+
+### Pending status
+```
+ M PROJECT_MEMORY/03_CURRENT_STATE.md
+ M PROJECT_MEMORY/04_PHASE_HISTORY.md
+ M PROJECT_MEMORY/07_KNOWN_ISSUES.md
+M  backend/scripts/seed-home.js
+M  backend/src/modules/ai/mock.ai.provider.ts
+M  backend/src/modules/providers/providers.module.ts
+ M lib/app/router/go_router_config.dart
+ M lib/app/shell.dart
+ M lib/core/repositories/impl/demo_home_data.dart
+ M lib/core/repositories/impl/hotel_repository_impl.dart
+ M lib/core/storage/hive_offline_cache.dart
+ M lib/core/theme/app_colors.dart
+ M lib/features/ai/application/ai_controller.dart
+ M lib/features/ai/application/ai_state.dart
+ M lib/features/ai/data/mock_ai_response_data.dart
+ M lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+ M lib/features/home/presentation/pages/home_page.dart
+ M lib/features/profile/presentation/pages/auth_page.dart
+ M lib/features/profile/presentation/pages/profile_page.dart
+ M lib/features/search/presentation/pages/booking_review_page.dart
+ M lib/features/search/presentation/pages/car_search_page.dart
+ M lib/features/search/presentation/pages/flight_search_page.dart
+ M lib/features/search/presentation/widgets/flight_search_form.dart
+ M lib/shared/providers/app_mode_provider.dart
+ M lib/shared/providers/theme_mode_provider.dart
+?? lib/app/widgets/
+?? lib/features/ai/domain/ai_chat_message.dart
+?? lib/features/ai/presentation/pages/ai_chat_page.dart
+?? lib/features/ai/presentation/widgets/ai_bubble_icon.dart
+?? lib/features/search/presentation/pages/packages_search_page.dart
+?? test/app/
+?? test/core/storage/hive_offline_cache_test.dart
+?? test/features/ai/ai_chat_messages_test.dart
+?? test/features/ai/presentation/
 ```

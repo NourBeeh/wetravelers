@@ -26,5 +26,11 @@
   non-localhost deployment. Tracked against Phase 16 (auth) / Phase 17
   (booking hardening) — do not deploy `create-booking` publicly before then.
 
+## UI — Pre-existing (added 2026-08-26)
+- `hotel_card.dart:34` Column overflows by 76px with the demo home feed at
+  small test viewports (800×600). Surfaced while testing the AI chat route;
+  unrelated to AI work. Fix candidate: make the card's Column scroll-safe or
+  cap its content. Not blocking on physical devices so far.
+
 ## Rule
 Do not fix unrelated historical issues during a scoped phase unless the requested phase explicitly requires them.

@@ -69,7 +69,7 @@ const SEED_CARDS = [
     title: 'Grand Palm Hotel', subtitle: 'Paris, France',
     price: 320, currency: 'USD', rating: 4.6, reviewCount: 214,
     badge: 'Popular', tags: ['4-star', 'City center'],
-    imageUrl: 'https://picsum.photos/seed/grand-palm/400/300',
+    imageUrl: 'https://loremflickr.com/400/300/paris,hotel',
   }),
   card('00000000-0000-4000-8000-000000000102', 2, 'flight', {
     title: 'Cairo → Istanbul', subtitle: 'Round trip · 7 days',
@@ -84,24 +84,24 @@ const SEED_CARDS = [
   card('00000000-0000-4000-8000-000000000201', 1, 'destination', {
     title: 'Istanbul', subtitle: 'Turkey',
     description: 'Bridges, bazaars and Bosphorus views.',
-    imageUrl: 'https://picsum.photos/seed/istanbul-view/400/300',
+    imageUrl: 'https://loremflickr.com/400/300/istanbul,skyline',
   }, 2),
   card('00000000-0000-4000-8000-000000000202', 2, 'destination', {
     title: 'Dubai', subtitle: 'UAE',
     description: 'Skyline dining and desert adventures.',
-    imageUrl: 'https://picsum.photos/seed/dubai-skyline/400/300',
+    imageUrl: 'https://loremflickr.com/400/300/dubai,skyline',
   }, 2),
   card('00000000-0000-4000-8000-000000000203', 3, 'destination', {
     title: 'Rome', subtitle: 'Italy',
     description: 'Ancient streets and unforgettable food.',
-    imageUrl: 'https://picsum.photos/seed/rome-streets/400/300',
+    imageUrl: 'https://loremflickr.com/400/300/rome,street',
   }, 2),
   // Tour packages
   card('00000000-0000-4000-8000-000000000301', 1, 'package', {
     title: 'Sharm El Sheikh · 5 days', subtitle: 'Flights + resort + transfers',
     price: 599, currency: 'USD', rating: 4.7, reviewCount: 132,
     highlights: ['All inclusive', 'Airport transfer'],
-    imageUrl: 'https://picsum.photos/seed/sharm-resort/400/300',
+    imageUrl: 'https://loremflickr.com/400/300/redsea,resort',
   }, 3),
   card('00000000-0000-4000-8000-000000000302', 2, 'package', {
     title: 'Luxor & Aswan cruise · 4 nights', subtitle: 'Nile cruise with guided tours',
@@ -112,7 +112,7 @@ const SEED_CARDS = [
   card('00000000-0000-4000-8000-000000000401', 1, 'experience', {
     title: 'Sunset felucca ride', subtitle: 'Aswan, Egypt',
     price: 25, currency: 'USD', rating: 4.9, reviewCount: 41,
-    imageUrl: 'https://picsum.photos/seed/felucca-sunset/400/300',
+    imageUrl: 'https://loremflickr.com/400/300/nile,felucca,sunset',
   }, 4),
   card('00000000-0000-4000-8000-000000000402', 2, 'story', {
     title: '48 hours in old Cairo', subtitle: 'Community story',
