@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wetravellers/core/ai/ai_assistant_service.dart';
 import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/network/api_client.dart';
+import 'package:wetravellers/core/theme/app_colors.dart';
+import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/features/ai/application/ai_mock_providers.dart';
 import 'package:wetravellers/features/ai/application/ai_providers.dart';
 import 'package:wetravellers/features/ai/application/ai_state.dart';
@@ -41,25 +43,31 @@ class AiSheetController extends StateNotifier<AiState> {
 
     final cacheKey = aiQueryCacheKey(prompt: trimmed, context: context);
 
-    // Try to load from cache first
-    final cached = await _cache.read(cacheKey);
-    if (cached != null) {
-      final cachedResponse = aiResponseFromMap(cached);
-      if (cachedResponse != null) {
-        final sections = mapper.toHomeSections(cachedResponse);
-        final text = cachedResponse.text;
+    // Try to load from cache first. Best-effort: a corrupt or unreadable
+    // entry must never block the live request below.
+    try {
+      final cached = await _cache.read(cacheKey);
+      if (cached != null) {
+        final cachedResponse = aiResponseFromMap(cached);
+        if (cachedResponse != null) {
+          final sections = mapper.toHomeSections(cachedResponse);
+          final text = cachedResponse.text;
 
-        if (sections.isNotEmpty || (text != null && text.trim().isNotEmpty)) {
-          state = state.copyWith(
-            status: AiStatus.success,
-            currentPrompt: trimmed,
-            responseText: text,
-            sections: sections,
-            errorMessage: null,
-            fromCache: true,
-          );
+          if (sections.isNotEmpty ||
+              (text != null && text.trim().isNotEmpty)) {
+            state = state.copyWith(
+              status: AiStatus.success,
+              currentPrompt: trimmed,
+              responseText: text,
+              sections: sections,
+              errorMessage: null,
+              fromCache: true,
+            );
+          }
         }
       }
+    } catch (_) {
+      // Ignore cache read failures — proceed with a live request.
     }
 
     final requestVersion = ++_requestVersion;
@@ -211,42 +219,100 @@ class AiBottomSheetContent extends ConsumerWidget {
 }
 
 /// Shows a draggable AI bottom sheet over the current surface.
+///
+/// The sheet is deliberately size-bounded (max 75% of screen height) so it
+/// can never read as a full-screen takeover: the top header area always
+/// stays visible, and an explicit close button sits in the sheet header.
 Future<void> showAiBottomSheet(BuildContext context, String prompt, {AiQueryContext? aiContext}) async {
   await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (ctx) => DraggableScrollableSheet(
-      initialChildSize: 0.3,
-      minChildSize: 0.15,
-      maxChildSize: 0.9,
+      initialChildSize: 0.45,
+      minChildSize: 0.25,
+      maxChildSize: 0.75,
       builder: (sheetContext, scrollController) {
         return Consumer(
           builder: (consumerContext, ref, _) {
             final state = ref.watch(aiSheetControllerProvider((prompt: prompt, context: aiContext)));
+            final controller = ref.read(aiSheetControllerProvider((prompt: prompt, context: aiContext)).notifier);
             final sections = state.sections;
+            final Widget body = switch (state.status) {
+              AiStatus.loading => const Center(child: CircularProgressIndicator()),
+              AiStatus.error => Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      child: Text(
+                        state.errorMessage ??
+                            'Something went wrong. Please try again.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextButton(
+                      onPressed: () => controller.load(state.currentPrompt),
+                      child: const Text('Try again'),
+                    ),
+                  ],
+                ),
+              AiStatus.empty => const Center(
+                  child: Text('No suggestions right now. Try a different prompt.'),
+                ),
+              // Friendly idle state shown when the sheet is opened from the
+              // persistent bubble with no prompt yet.
+              AiStatus.idle => Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.auto_awesome_outlined,
+                          size: 40, color: AppColors.brand.withValues(alpha: 0.5)),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Ask about flights, hotels & more…',
+                        style: Theme.of(consumerContext).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(consumerContext).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              AiStatus.success => ListView.builder(
+                  controller: scrollController,
+                  itemCount: sections.length,
+                  itemBuilder: (context, index) =>
+                      HomeSectionWidget(section: sections[index]),
+                ),
+            };
             return Material(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               clipBehavior: Clip.antiAlias,
-              child: switch (state.status) {
-                AiStatus.loading => const Center(child: CircularProgressIndicator()),
-                AiStatus.error => Center(
-                    child: Text(
-                      state.errorMessage ??
-                          'Something went wrong. Please try again.',
+              child: Column(
+                children: [
+                  // Drag handle
+                  Container(
+                    margin: const EdgeInsets.only(top: AppSpacing.sm),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Theme.of(consumerContext).colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                AiStatus.empty => const Center(
-                    child: Text('No suggestions right now. Try a different prompt.'),
+                  // Header with explicit close affordance
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.close),
+                      tooltip: 'Close',
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                    ),
                   ),
-                AiStatus.success => ListView.builder(
-                    controller: scrollController,
-                    itemCount: sections.length,
-                    itemBuilder: (context, index) =>
-                        HomeSectionWidget(section: sections[index]),
-                  ),
-                AiStatus.idle => const SizedBox.shrink(),
-              },
+                  Expanded(child: body),
+                ],
+              ),
             );
           },
         );

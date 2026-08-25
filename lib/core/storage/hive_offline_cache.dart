@@ -8,13 +8,21 @@ import 'offline_cache.dart';
 ///
 /// Hive is a pure-Dart key-value store with AES-256 encryption and no native
 /// dependencies, so it works identically on mobile, desktop and web. Values
-/// are stored as immutable `Map<String, dynamic>` entries (boxes are
-/// `Box<Map>`), which keeps the domain serializers in
-/// `offline_cache_serializers.dart` the single source of shape knowledge.
+/// are stored as `Map` entries (boxes are `Box<Map>`), which keeps the domain
+/// serializers in `offline_cache_serializers.dart` the single source of shape
+/// knowledge.
+///
+/// IMPORTANT: Hive's binary serialization does NOT preserve generic type
+/// arguments — a `Map<String, dynamic>` written to disk is read back as
+/// `Map<dynamic, dynamic>`, so a strictly typed box (`Box<Map<String,
+/// dynamic>>`) explodes with a type-cast error the first time an entry is
+/// loaded from disk. The box is therefore deliberately typed `Box<Map>` and
+/// [read] deep-converts every entry back to a proper
+/// `Map<String, dynamic>` tree via [convertHiveValue].
 class HiveOfflineCache implements OfflineCache {
   HiveOfflineCache(this._box);
 
-  final Box<Map<String, dynamic>> _box;
+  final Box<Map> _box;
 
   static const String defaultBoxName = 'wetravellers_offline';
 
@@ -28,7 +36,7 @@ class HiveOfflineCache implements OfflineCache {
     required String boxName,
   }) async {
     Hive.init(homeDir ?? _defaultHomeDir);
-    final box = await Hive.openBox<Map<String, dynamic>>(boxName);
+    final box = await Hive.openBox<Map>(boxName);
     return HiveOfflineCache(box);
   }
 
@@ -50,10 +58,28 @@ class HiveOfflineCache implements OfflineCache {
   }
 
   @override
-  Future<Map<String, dynamic>?> read(String key) async => _box.get(key);
+  Future<Map<String, dynamic>?> read(String key) async =>
+      convertHiveValue(_box.get(key));
 
   @override
   Future<void> write(String key, Map<String, dynamic> value) async {
     _box.put(key, value);
+  }
+
+  /// Deep-converts a raw (possibly Hive-deserialized) value into a
+  /// `Map<String, dynamic>` tree. Returns null for non-map input.
+  ///
+  /// Recurses through nested maps and lists, converting keys with
+  /// `toString()` so entries that survived a disk round-trip as
+  /// `Map<dynamic, dynamic>` become safe to consume by typed callers.
+  static Map<String, dynamic>? convertHiveValue(Object? raw) {
+    if (raw is! Map) return null;
+    return raw.map((k, v) => MapEntry(k.toString(), _convertValue(v)));
+  }
+
+  static Object? _convertValue(Object? value) {
+    if (value is Map) return convertHiveValue(value);
+    if (value is List) return value.map(_convertValue).toList();
+    return value;
   }
 }

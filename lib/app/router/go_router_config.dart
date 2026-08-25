@@ -8,9 +8,11 @@ import '../../core/navigation/app_route.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/auth_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/ai/presentation/pages/ai_chat_page.dart';
 import '../../features/search/presentation/pages/flight_search_page.dart';
 import '../../features/search/presentation/pages/hotel_search_page.dart';
 import '../../features/search/presentation/pages/car_search_page.dart';
+import '../../features/search/presentation/pages/packages_search_page.dart';
 import '../../features/search/presentation/pages/booking_review_page.dart';
 import '../shell.dart';
 
@@ -76,7 +78,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/packages',
             name: 'packages',
-            builder: (context, state) => const PlaceholderPageScaffold(routeName: 'packages'),
+            builder: (context, state) => const PackagesSearchPage(),
           ),
           GoRoute(
             path: '/transfers',
@@ -124,6 +126,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const BookingReviewPage(),
           ),
         ],
+      ),
+      // Full-screen AI chat — deliberately OUTSIDE the ShellRoute so the app
+      // header and launcher bubble do not render on top of it. Standard
+      // platform transition keeps iOS edge-swipe-back working.
+      GoRoute(
+        path: '/ai-chat',
+        name: 'ai_chat',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AiChatPage(),
       ),
     ],
   );

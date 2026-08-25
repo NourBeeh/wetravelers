@@ -6,6 +6,7 @@ import 'package:wetravellers/core/domain/models/home/home_section.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
 import 'package:wetravellers/core/storage/offline_cache_serializers.dart';
 
+import '../domain/ai_chat_message.dart';
 import '../domain/ai_home_mapper.dart';
 import '../domain/ai_query_context.dart';
 import '../domain/ai_response.dart';
@@ -20,13 +21,46 @@ class AiController extends StateNotifier<AiState> {
   AiController({
     required this._service,
     required this._mapper,
-    required OfflineCache cache,
-  })  : _cache = cache,
+    required this._cache,
+    DateTime Function()? now,
+  })  : _now = now ?? DateTime.now,
         super(const AiState());
 
   final AiAssistantService _service;
   final AiHomeMapper _mapper;
   final OfflineCache _cache;
+
+  /// Rolling conversation cap — memory stays bounded no matter how long the
+  /// session runs.
+  static const int maxMessages = 50;
+
+  /// Idle expiry: a conversation untouched for longer than this is cleared
+  /// when the user returns. In-memory state means an app restart already
+  /// clears everything; backgrounding keeps the conversation alive.
+  static const Duration conversationIdleTtl = Duration(hours: 6);
+
+  DateTime? _lastInteraction;
+
+  /// Injectable clock for deterministic TTL tests.
+  final DateTime Function() _now;
+
+  /// Drops the oldest messages beyond [maxMessages].
+  List<AiChatMessage> _capped(List<AiChatMessage> messages) =>
+      messages.length > maxMessages
+          ? messages.sublist(messages.length - maxMessages)
+          : messages;
+
+  /// Clears the conversation if it has been idle longer than
+  /// [conversationIdleTtl]. Exposed for the chat page so opening it after a
+  /// long absence starts fresh even before any new submit.
+  void expireIfIdle() {
+    final last = _lastInteraction;
+    if (last != null &&
+        state.messages.isNotEmpty &&
+        _now().difference(last) > conversationIdleTtl) {
+      state = const AiState();
+    }
+  }
 
   /// Runs [prompt] through the assistant service, maps the result into
   /// renderable home sections and publishes a new [AiState].
@@ -44,32 +78,62 @@ class AiController extends StateNotifier<AiState> {
 
     final cacheKey = aiQueryCacheKey(prompt: trimmed, context: context);
 
-    // Try to load from cache first (for instant UI)
-    AiResponse? cachedResponse;
-    final cached = await _cache.read(cacheKey);
-    if (cached != null) {
-      cachedResponse = aiResponseFromMap(cached);
-      if (cachedResponse != null) {
-        final sections = _mapper.toHomeSections(cachedResponse);
-        final text = cachedResponse.text;
+    // Idle expiry: returning after a long absence starts a fresh
+    // conversation instead of resurrecting a stale one.
+    expireIfIdle();
 
-        if (sections.isNotEmpty || (text != null && text.trim().isNotEmpty)) {
-          state = AiState(
-            status: AiStatus.success,
-            currentPrompt: trimmed,
-            responseText: text,
-            sections: sections,
-            fromCache: true,
-          );
-        } else {
-          cachedResponse = null;
+    // The user's message enters the conversation immediately, before any
+    // network round-trip — the chat must feel instant.
+    final messages = _capped([
+      ...state.messages,
+      AiChatMessage.user(trimmed),
+    ]);
+
+    // Try to load from cache first (for instant UI). Best-effort, same
+    // policy as writes: a corrupt or unreadable entry must never block
+    // submission — fall through to the live service instead.
+    AiResponse? cachedResponse;
+    try {
+      final cached = await _cache.read(cacheKey);
+      if (cached != null) {
+        cachedResponse = aiResponseFromMap(cached);
+        if (cachedResponse != null) {
+          final sections = _mapper.toHomeSections(cachedResponse);
+          final text = cachedResponse.text;
+
+          if (sections.isNotEmpty ||
+              (text != null && text.trim().isNotEmpty)) {
+            final replyText =
+                (text == null || text.trim().isEmpty) && sections.isNotEmpty
+                    ? 'Here are some suggestions.'
+                    : text;
+            _lastInteraction = _now();
+            state = AiState(
+              status: AiStatus.success,
+              currentPrompt: trimmed,
+              responseText: text,
+              sections: sections,
+              fromCache: true,
+              messages: _capped([
+                ...messages,
+                AiChatMessage.assistant(replyText ?? '', fromCache: true),
+              ]),
+            );
+            return;
+          } else {
+            cachedResponse = null;
+          }
         }
       }
+    } catch (_) {
+      // Ignore cache read failures — proceed with a live request.
+      cachedResponse = null;
     }
 
     state = AiState(
       status: AiStatus.loading,
       currentPrompt: trimmed,
+      messages: messages,
     );
 
     // Build context automatically if not provided and we have home sections
@@ -92,35 +156,65 @@ class AiController extends StateNotifier<AiState> {
       }
 
       if (sections.isEmpty && (text == null || text.trim().isEmpty)) {
+        _lastInteraction = _now();
         state = AiState(
           status: AiStatus.empty,
           currentPrompt: trimmed,
+          messages: _capped([
+            ...messages,
+            const AiChatMessage.assistant(
+              'No suggestions right now. Try a different prompt.',
+            ),
+          ]),
         );
       } else {
+        _lastInteraction = _now();
         state = AiState(
           status: AiStatus.success,
           currentPrompt: trimmed,
           responseText: text,
           sections: sections,
           fromCache: false,
+          messages: _capped([
+            ...messages,
+            AiChatMessage.assistant(
+              (text == null || text.trim().isEmpty) && sections.isNotEmpty
+                  ? 'Here are some suggestions.'
+                  : (text ?? ''),
+            ),
+          ]),
         );
       }
     } catch (error) {
       // On network failure, show cached results if available
       if (cachedResponse != null) {
+        final sections = _mapper.toHomeSections(cachedResponse);
+        _lastInteraction = _now();
         state = AiState(
           status: AiStatus.success,
           currentPrompt: trimmed,
           responseText: cachedResponse.text,
-          sections: _mapper.toHomeSections(cachedResponse),
+          sections: sections,
           errorMessage: _userFacingMessage(error),
           fromCache: true,
+          messages: _capped([
+            ...messages,
+            AiChatMessage.assistant(
+              cachedResponse.text ?? 'Here are some suggestions.',
+              fromCache: true,
+            ),
+          ]),
         );
       } else {
+        _lastInteraction = _now();
         state = AiState(
           status: AiStatus.error,
           currentPrompt: trimmed,
           errorMessage: _userFacingMessage(error),
+          messages: _capped([
+            ...messages,
+            AiChatMessage.assistant(_userFacingMessage(error)),
+          ]),
         );
       }
     }
@@ -141,7 +235,10 @@ class AiController extends StateNotifier<AiState> {
   );
 
   /// Returns the controller to its pristine idle state.
-  void reset() => state = const AiState();
+  void reset() {
+    _lastInteraction = null;
+    state = const AiState();
+  }
 
   /// Translates a thrown failure into a message that is safe to display.
   ///

@@ -28008,3 +28008,41 @@ M  lib/shared/providers/theme_mode_provider.dart
 ?? test/features/ai/ai_chat_messages_test.dart
 ?? test/features/ai/presentation/
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+2fa08d68 (HEAD -> main) feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+7a84d207 fix(home): demo and cache fallback for empty home sections
+0b71c29e feat(auth): phase 17 real login register me and profile session
+```
+
+### Pending status
+```
+M  lib/app/router/go_router_config.dart
+M  lib/app/shell.dart
+A  lib/app/widgets/ai_morph_control.dart
+M  lib/core/storage/hive_offline_cache.dart
+M  lib/features/ai/application/ai_controller.dart
+M  lib/features/ai/application/ai_state.dart
+M  lib/features/ai/data/mock_ai_response_data.dart
+A  lib/features/ai/domain/ai_chat_message.dart
+A  lib/features/ai/presentation/pages/ai_chat_page.dart
+M  lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+A  lib/features/ai/presentation/widgets/ai_bubble_icon.dart
+A  test/app/widgets/ai_morph_control_placement_test.dart
+A  test/core/storage/hive_offline_cache_test.dart
+A  test/features/ai/ai_chat_messages_test.dart
+A  test/features/ai/presentation/pages/ai_chat_page_test.dart
+```

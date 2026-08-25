@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:wetravellers/core/domain/models/home/home_section.dart';
+import 'package:wetravellers/features/ai/domain/ai_chat_message.dart';
 
 /// Lifecycle status of an AI interaction.
 enum AiStatus { idle, loading, success, empty, error }
@@ -19,6 +20,7 @@ class AiState {
     this.sections = const [],
     this.errorMessage,
     this.fromCache = false,
+    this.messages = const [],
   });
 
   final AiStatus status;
@@ -37,6 +39,15 @@ class AiState {
   /// Whether the current data was loaded from the offline cache.
   final bool fromCache;
 
+  /// The running conversation shown in the chat window: user prompts and
+  /// assistant replies, oldest first. Persists across panel open/close
+  /// within a session; [reset] clears it.
+  final List<AiChatMessage> messages;
+
+  /// The last message in the conversation, or null when empty.
+  AiChatMessage? get lastMessage =>
+      messages.isEmpty ? null : messages.last;
+
   AiState copyWith({
     AiStatus? status,
     String? currentPrompt,
@@ -44,6 +55,7 @@ class AiState {
     List<HomeSection>? sections,
     String? errorMessage,
     bool? fromCache,
+    List<AiChatMessage>? messages,
   }) {
     return AiState(
       status: status ?? this.status,
@@ -52,6 +64,7 @@ class AiState {
       sections: sections ?? this.sections,
       errorMessage: errorMessage ?? this.errorMessage,
       fromCache: fromCache ?? this.fromCache,
+      messages: messages ?? this.messages,
     );
   }
 }
