@@ -94,7 +94,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     };
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isRegisterMode ? 'Create account' : 'Sign in')),
+      // No AppBar — the shell's fixed header provides the title.
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

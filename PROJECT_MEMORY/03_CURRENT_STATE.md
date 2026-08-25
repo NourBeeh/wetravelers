@@ -27957,3 +27957,54 @@ M  backend/src/modules/providers/providers.module.ts
 ?? test/features/ai/ai_chat_messages_test.dart
 ?? test/features/ai/presentation/
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+9ed486aa (HEAD -> main) chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+7a84d207 fix(home): demo and cache fallback for empty home sections
+0b71c29e feat(auth): phase 17 real login register me and profile session
+2291fcfc feat(offline): phase 16 hive cache for search and AI responses
+```
+
+### Pending status
+```
+ M lib/app/router/go_router_config.dart
+ M lib/app/shell.dart
+M  lib/core/repositories/impl/demo_home_data.dart
+M  lib/core/repositories/impl/hotel_repository_impl.dart
+ M lib/core/storage/hive_offline_cache.dart
+M  lib/core/theme/app_colors.dart
+ M lib/features/ai/application/ai_controller.dart
+ M lib/features/ai/application/ai_state.dart
+ M lib/features/ai/data/mock_ai_response_data.dart
+ M lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+M  lib/features/home/presentation/pages/home_page.dart
+M  lib/features/profile/presentation/pages/auth_page.dart
+M  lib/features/profile/presentation/pages/profile_page.dart
+M  lib/features/search/presentation/pages/booking_review_page.dart
+M  lib/features/search/presentation/pages/car_search_page.dart
+M  lib/features/search/presentation/pages/flight_search_page.dart
+A  lib/features/search/presentation/pages/packages_search_page.dart
+M  lib/features/search/presentation/widgets/flight_search_form.dart
+M  lib/shared/providers/app_mode_provider.dart
+M  lib/shared/providers/theme_mode_provider.dart
+?? lib/app/widgets/
+?? lib/features/ai/domain/ai_chat_message.dart
+?? lib/features/ai/presentation/pages/ai_chat_page.dart
+?? lib/features/ai/presentation/widgets/ai_bubble_icon.dart
+?? test/app/
+?? test/core/storage/hive_offline_cache_test.dart
+?? test/features/ai/ai_chat_messages_test.dart
+?? test/features/ai/presentation/
+```

@@ -1,6 +1,7 @@
 import 'package:wetravellers/core/domain/models/offers/hotel_offer.dart';
 import 'package:wetravellers/core/repositories/contracts/hotel_repository.dart';
 import 'package:wetravellers/core/network/http_api_client.dart';
+import 'package:wetravellers/core/network/api_error.dart';
 import 'package:wetravellers/core/network/api_result.dart';
 
 class HotelRepositoryImpl implements HotelRepository {

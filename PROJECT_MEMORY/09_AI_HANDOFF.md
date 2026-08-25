@@ -828,3 +828,22 @@ f9233a96 fix(ui): command bar layout constraints
 2291fcfc feat(offline): phase 16 hive cache for search and AI responses
 bf8c60b1 (origin/main) fix: AI bottom sheet cancellation bug (idle state rendering), hygiene cleanup (38→16 issues), update PROJECT_MEMORY for Phase 15C completion
 ```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+9ed486aa (HEAD -> main) chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+7a84d207 fix(home): demo and cache fallback for empty home sections
+0b71c29e feat(auth): phase 17 real login register me and profile session
+2291fcfc feat(offline): phase 16 hive cache for search and AI responses
+```

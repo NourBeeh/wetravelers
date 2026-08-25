@@ -37,7 +37,11 @@ class BookingReviewPage extends ConsumerWidget {
     final bookingNotifier = ref.read(bookingControllerProvider.notifier);
 
     if (booking == null && bookingState?.record == null && selectedOffer == null) {
-      return Scaffold(appBar: AppBar(title: const Text('Review Booking')), body: const Center(child: Text('No booking selected')));
+      return Scaffold(
+        body: SafeArea(
+          child: Center(child: Text('No booking selected')),
+        ),
+      );
     }
     final record = booking ?? bookingState?.record;
     final phase = bookingState?.phase ?? BookingPhase.idle;
@@ -67,10 +71,11 @@ class BookingReviewPage extends ConsumerWidget {
     };
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Review Booking')),
-      body: Padding(
-        padding: EdgeInsets.all(AppSpacing.md),
-        child: Column(
+      // No AppBar — the shell's fixed header provides the title.
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.md),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (record != null) ...[
@@ -98,6 +103,7 @@ class BookingReviewPage extends ConsumerWidget {
               onViewTrip: effectiveViewTrip,
             ),
           ],
+          ),
         ),
       ),
     );

@@ -21,40 +21,34 @@ class ProfilePage extends ConsumerWidget {
     final authState = ref.watch(authControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
-            onPressed: () => context.go('/settings'),
-          ),
-        ],
-      ),
-      body: switch (authState) {
-        AuthLoading() => const Center(child: CircularProgressIndicator()),
-        AuthAuthenticated(:final user) => _ProfileContent(user: user!),
-        AuthError(:final error) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    userFacingMessage(error, subject: 'profile'),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  FilledButton(
-                    onPressed: () => context.go('/auth'),
-                    child: const Text('Sign in'),
-                  ),
-                ],
+      // No AppBar — the shell's fixed header provides the title. SafeArea
+      // keeps content clear of system insets.
+      body: SafeArea(
+        child: switch (authState) {
+          AuthLoading() => const Center(child: CircularProgressIndicator()),
+          AuthAuthenticated(:final user) => _ProfileContent(user: user!),
+          AuthError(:final error) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      userFacingMessage(error, subject: 'profile'),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    FilledButton(
+                      onPressed: () => context.go('/auth'),
+                      child: const Text('Sign in'),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        AuthUnauthenticated() => _GuestContent(theme: theme),
-      },
+          AuthUnauthenticated() => _GuestContent(theme: theme),
+        },
+      ),
     );
   }
 }

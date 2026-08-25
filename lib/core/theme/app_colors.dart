@@ -28,7 +28,7 @@ abstract final class AppColors {
   // ---------------------------------------------------------------------------
   // Light surfaces
   // ---------------------------------------------------------------------------
-  static const Color backgroundLight = Color(0xFFF5F5F7);
+  static const Color backgroundLight = Colors.white;
   static const Color surfaceLight = Colors.white;
   static const Color surfaceSecondaryLight = Color(0xFFF2F2F4);
   static const Color outlineLight = Color(0xFFE4E4E8);

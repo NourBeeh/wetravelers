@@ -8,9 +8,9 @@ enum AppMode { ai, normal }
 
 /// Reactive app-wide operating mode.
 ///
-/// Defaults to [AppMode.ai]. The shell binds the floating radial control panel
-/// to [AppMode.normal]; the single circular AI/Normal toggle lands in a later
-/// phase, so this phase only wires the state.
+/// Defaults to [AppMode.normal]. Full-screen AI takeover was retired in
+/// Phase 20 in favor of a persistent bubble + bounded bottom sheet that
+/// never covers navigation.
 final appModeProvider = StateProvider<AppMode>((ref) {
   return AppMode.normal;
 });
