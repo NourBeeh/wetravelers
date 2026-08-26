@@ -55,3 +55,23 @@ Executed across multiple sessions on top of Phase 17; no numbered phase was open
 - Tests: Flutter suite grew 242 → 262 passing (chat model/controller/page/bubble suites); analyze 0 errors. New test files: `test/features/ai/ai_chat_messages_test.dart`, `test/features/ai/presentation/pages/ai_chat_page_test.dart`, `test/core/storage/hive_offline_cache_test.dart`.
 - Known issue logged: pre-existing `hotel_card.dart:34` Column overflow with demo data at small test viewports (unrelated to AI work).
 - Next = Phase 18, still pending explicit instruction.
+
+### Notes (addendum 2026-08-26 #2) — Card system redesign + audit (unnumbered iteration)
+- All Home + Search cards brought to one luxury standard matching the search pages' visual language: gradient-scrim-over-image on Hotel/Package/Car, corner badge/rating pills, compact 200px pill FlightCard for horizontal containers, NEW generic `SectionContainerCard` (title + View All + horizontal child cards), search-result cards gained `CardImage` (`BaseOffer.imageUrl` already existed — no model change), `CardImage` gained `fallbackIcon` degraded-image support wired across all image cards, `CardPrice` gained a scrim-legible `color` override. FlightCard semantics hardened with `ExcludeSemantics`.
+- Full audit written to `docs/card-system-audit.md` (inventory, issues, duplication, reuse map, gaps vs professional system).
+- **Approved follow-up sub-phases (slot alongside/before Phase 18 per user sequencing):**
+  - **24A Consolidation:** hotel search page adopts shared HotelResultCard; extract shared RatingPill/scrim primitives; remove triplicates.
+  - **24B Interaction contract:** onTap/actionLabel plumbing through HomeCard → detail stubs; wire View All.
+  - **24C Favorites:** FavoritesService + heart toggle (Hotel/Package) with local persistence.
+  - **24D Polish:** intl price formatting, shared skeleton family, responsive breakpoints, RTL audit.
+  - **24E QA:** golden tests per card + accessibility re-audit.
+- Note: the original roadmap's "Phase 24 = Trusted Group Trips" is unchanged; the card work above is an unnumbered iteration to avoid renumbering.
+
+### Notes (addendum 2026-08-26 #3) — Card system Stage 2: shared design system (committed)
+Stage 1 (redesign + audit) is recorded in addendum #2. Stage 2 built ONLY the shared Card Design System — no feature card (HotelCard/FlightCard) was rebuilt and no universal card was created. Everything below is committed.
+- **New `lib/core/widgets/cards/card_glass.dart` (`CardGlass`):** one reusable frosted-glass recipe (BackdropFilter + brightness-aware tint + hairline border) used by every on-image overlay — centralises glassmorphism "only where the current design fits it".
+- **Shared `formatCardPrice()`** in `card_price.dart`; `CardPrice` and `CardPriceBlock` both call it (removes duplicated price-formatting logic, incl. the raw `$` formatting in the hotel page's private `_HotelCard`).
+- **Theme/light-dark + responsive hardening across primitives:** `CardBadge` (new `CardBadgeVariant { tinted, glass }` + optional icon), `CardRating` (new `onImage` glass pill — the single impl the 3× rating-pill triplicate should adopt), `CardFeatureList` (`primaryContainer`/`onPrimaryContainer`, `onImage`), `CardFavorite` (theme-aware surface/foreground, `onImage` glass heart, added unused-import removal), `CardCancellation` (brightness-adjusted success), `CardImage` fallback (`surfaceContainerHighest`/`onSurfaceVariant`), `BaseCard` shadow brightness-aware + gained `semanticsLabel` with `button`/`enabled` semantics (pressed/disabled/loading intact).
+- **No new packages, no API changes, no business-logic change, no deleted files.** Only `lib/core/widgets/cards/*` + `test/core/widgets/cards/*` were touched in Stage 2.
+- **Tests:** `test/core/widgets/cards/card_system_test.dart` expanded (CardGlass, formatCardPrice, onImage variants, disabled opacity). Full suite: **293 Flutter tests pass / 6 skipped; `flutter analyze` 0 errors**.
+- **Next (unchanged order):** card sub-phases **24A → 24E** (consolidate the hotel search `_HotelCard` onto `HotelResultCard`, interaction contract, favorites, polish, QA) — then Phase 18 still awaits an explicit instruction.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
-import 'package:wetravellers/features/home/presentation/widgets/card_image.dart';
-import 'package:wetravellers/features/home/presentation/widgets/card_price.dart';
+import 'package:wetravellers/core/widgets/cards/card_image.dart';
+import 'package:wetravellers/core/widgets/cards/card_price.dart';
 
 class DealCard extends StatelessWidget {
   final HomeItem item;
@@ -15,7 +15,7 @@ class DealCard extends StatelessWidget {
       child: Card(
       child: Column(
         children: [
-          CardImage(url: item.imageUrl, height: 120),
+          CardImage(url: item.imageUrl, height: 120, fallbackIcon: Icons.local_offer),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: CardPrice(price: item.price, currency: item.currency),

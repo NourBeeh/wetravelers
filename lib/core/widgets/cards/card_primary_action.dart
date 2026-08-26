@@ -1,0 +1,79 @@
+import 'package:flutter/material.dart';
+
+import 'package:wetravellers/core/theme/app_colors.dart';
+import 'package:wetravellers/core/theme/app_radius.dart';
+import 'package:wetravellers/core/theme/app_spacing.dart';
+
+/// Unified primary action for cards: brand-gradient pill with
+/// enabled / disabled / loading states.
+class CardPrimaryAction extends StatelessWidget {
+  const CardPrimaryAction({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.loading = false,
+    this.expanded = true,
+    this.height = 44,
+    this.icon,
+  });
+
+  final String label;
+
+  /// Null disables the button (reduced opacity, taps swallowed).
+  final VoidCallback? onPressed;
+  final bool loading;
+  final bool expanded;
+  final double height;
+  final IconData? icon;
+
+  bool get _disabled => onPressed == null || loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final child = Row(
+      mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (loading)
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+          )
+        else ...[
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: Colors.white),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: _disabled ? Colors.white70 : Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ],
+    );
+
+    return Opacity(
+      opacity: _disabled && !loading ? 0.55 : 1,
+      child: GestureDetector(
+        onTap: _disabled ? null : onPressed,
+        child: Container(
+          height: height,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0057B3), AppColors.brand],
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}

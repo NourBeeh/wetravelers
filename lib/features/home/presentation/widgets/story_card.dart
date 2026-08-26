@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
-import 'package:wetravellers/features/home/presentation/widgets/card_image.dart';
+import 'package:wetravellers/core/widgets/cards/card_image.dart';
 
 class StoryCard extends StatelessWidget {
   final HomeItem item;
@@ -10,7 +10,7 @@ class StoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: '${item.title} story',
-      child: CardImage(url: item.imageUrl, height: 140, semanticLabel: item.title),
+      child: CardImage(url: item.imageUrl, height: 140, semanticLabel: item.title, fallbackIcon: Icons.photo_camera_outlined),
     );
   }
 }

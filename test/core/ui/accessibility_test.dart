@@ -10,7 +10,7 @@ import 'package:wetravellers/features/home/presentation/widgets/flight_card.dart
 import 'package:wetravellers/features/home/presentation/widgets/car_card.dart';
 import 'package:wetravellers/features/home/presentation/widgets/experience_card.dart';
 import 'package:wetravellers/features/home/presentation/widgets/story_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/card_image.dart';
+import 'package:wetravellers/core/widgets/cards/card_image.dart';
 
 void main() {
   group('Accessibility hardening', () {

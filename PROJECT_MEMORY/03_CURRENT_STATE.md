@@ -1,7 +1,24 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**Phases 1–17 complete, plus a post-17 AI chat overhaul (2026-08-26): the AI assistant is now a FULL-SCREEN chat page at route `/ai-chat` (top-level, outside ShellRoute so the app header/bubble never render over it). Opened by the persistent launcher bubble (`lib/app/widgets/ai_morph_control.dart`, tap → push). Conversation is cumulative with user + assistant bubbles (typing-dots indicator, entrance animations, ⚡ cached badge, friendly error bubble + retry), auto-scroll to latest. Auto-expiry: rolling cap of 50 messages + 6h idle TTL (injectable clock); in-memory state means backgrounding preserves the chat and an app restart clears it. Closing: header ✕ (right), Android Back, iOS edge-swipe-back (standard platform transitions), Escape on web/desktop. Input is WhatsApp-style (1→4 expanding lines) with circular gradient send button; haptic feedback on open/close/submit. Also fixed this iteration: Hive type-cast crash (`HiveOfflineCache` now `Box<Map>` + deep `convertHiveValue`; cache reads hardened as best-effort in AiController and ai_bottom_sheet), and the old floating-window morph (scrim/swipe-to-close) was fully retired. Flutter: 262 tests pass, analyze 0 errors. Known issue logged: pre-existing `hotel_card.dart:34` Column overflow with demo data (unrelated to AI work). Next pending phase: Phase 18 per `04_PHASE_HISTORY.md`.**
+**Card system — Stage 1 (redesign + audit) & Stage 2 (shared design system) complete (2026-08-26).** All Home + Search cards were brought to one luxury standard (gradient-scrim-over-image on Hotel/Package/Car, corner badge/rating glass pills, compact 200px pill FlightCard, `fallbackIcon` degraded images, `CardPrice` scrim-legible `color`). Full audit in `docs/card-system-audit.md`.
+
+**Stage 2 — the shared Card Design System primitives in `lib/core/widgets/cards/` are now theme-aware (light/dark via ColorScheme/AppTokens), responsive, and ready to be consumed by feature cards — no full HotelCard/FlightCard rebuilt yet and NO universal card created.** Highlights:
+- **New `CardGlass`** (`card_glass.dart`): the single BackdropFilter + tint + hairline-border glassmorphism recipe now used by every on-image overlay (favorite heart, rating pill, badge, feature chips). Centralises glass so it is never re-implemented per card.
+- **Shared `formatCardPrice()`** in `card_price.dart`: `CardPrice` and `CardPriceBlock` both route through it — duplicated price formatting removed.
+- **Added `onImage` glass variants + optional icons** to `CardBadge` (new `CardBadgeVariant { tinted, glass }`), `CardRating`, `CardFeatureList`, and `CardFavorite`.
+- **Dark-mode contrast fixes:** `CardFavorite` (theme-aware surface + danger/heart token), `CardCancellation` (brightness-adjusted success), `BaseCard` shadow, `CardImage` fallback now uses `surfaceContainerHighest`/`onSurfaceVariant`.
+- **`BaseCard`** gained `semanticsLabel` + `button`/`enabled` semantics while keeping pressed / disabled / loading states and its `<360px` responsive padding tightening.
+- **Tests expanded** in `test/core/widgets/cards/card_system_test.dart` (CardGlass, formatCardPrice cases, onImage variants, disabled opacity). No new packages added; no API/business-logic change; no file deleted.
+
+**Validation:** `flutter analyze` 0 errors; `flutter test` 293 pass / 6 skipped. Working tree is committed (see git). **Next:** feature-card implementation + card sub-phases 24A–24E (details in `04_PHASE_HISTORY.md` / `08_NEXT_STEPS.md`); the numbered roadmap's Phase 18 (PROJECT_MEMORY cloud sync + analytics) remains pending explicit instruction.
+
+## Card-system sub-phase plan (approved, next execution order — see `docs/card-system-audit.md`)
+- **24A Consolidation:** hotel search page adopts the shared `HotelResultCard`; extract shared RatingPill/scrim primitives; remove the 3× rating-pill / 4× scrim triplicates.
+- **24B Interaction contract:** `onTap`/`actionLabel` plumbing through `HomeCard` → detail route stubs; wire "View All".
+- **24C Favorites:** FavoritesService + heart toggle (Hotel/Package) with local persistence.
+- **24D Polish:** intl price formatting, shared shimmer skeleton family, responsive breakpoints, RTL audit.
+- **24E QA:** golden tests per card + accessibility re-audit.
 
 ## Previous checkpoint (Phase 17)
 Phases 1–17 complete. Phase 17 (Auth) delivered: backend register/login/me with bcryptjs hashing, JwtStrategy+JwtAuthGuard, class-validator DTOs, separate refresh secret; Flutter HttpAuthRepository over flutter_secure_storage, AuthPage on `/auth`, ProfilePage guest/authenticated split with logout; session restores across restarts via stored token + `/auth/me`. Backend: 98 jest tests pass, tsc clean. Also fixed: Home empty-state fallback (last Hive snapshot then built-in demo sections when the DB feed is empty/unreachable); dev seed added (`npm run seed:home`, idempotent fixed-UUID upserts into home_sections/home_cards).
@@ -28045,4 +28062,88 @@ A  test/app/widgets/ai_morph_control_placement_test.dart
 A  test/core/storage/hive_offline_cache_test.dart
 A  test/features/ai/ai_chat_messages_test.dart
 A  test/features/ai/presentation/pages/ai_chat_page_test.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+bf6cc0ea (HEAD -> main) feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+7a84d207 fix(home): demo and cache fallback for empty home sections
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/02_AGENT_MEMORY.md
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  PROJECT_MEMORY/08_NEXT_STEPS.md
+A  docs/card-system-audit.md
+A  lib/core/widgets/cards/base_card.dart
+A  lib/core/widgets/cards/card.dart
+A  lib/core/widgets/cards/card_availability.dart
+A  lib/core/widgets/cards/card_badge.dart
+A  lib/core/widgets/cards/card_cancellation.dart
+A  lib/core/widgets/cards/card_favorite.dart
+A  lib/core/widgets/cards/card_feature_list.dart
+A  lib/core/widgets/cards/card_glass.dart
+R  lib/features/home/presentation/widgets/card_image.dart -> lib/core/widgets/cards/card_image.dart
+A  lib/core/widgets/cards/card_location.dart
+A  lib/core/widgets/cards/card_price.dart
+A  lib/core/widgets/cards/card_price_block.dart
+A  lib/core/widgets/cards/card_primary_action.dart
+A  lib/core/widgets/cards/card_rating.dart
+M  lib/features/home/presentation/widgets/car_card.dart
+D  lib/features/home/presentation/widgets/card_badge.dart
+D  lib/features/home/presentation/widgets/card_price.dart
+D  lib/features/home/presentation/widgets/card_rating.dart
+M  lib/features/home/presentation/widgets/deal_card.dart
+M  lib/features/home/presentation/widgets/destination_card.dart
+M  lib/features/home/presentation/widgets/experience_card.dart
+M  lib/features/home/presentation/widgets/flight_card.dart
+M  lib/features/home/presentation/widgets/hotel_card.dart
+M  lib/features/home/presentation/widgets/package_card.dart
+A  lib/features/home/presentation/widgets/section_container_card.dart
+M  lib/features/home/presentation/widgets/story_card.dart
+M  lib/features/search/presentation/widgets/car_result_card.dart
+M  lib/features/search/presentation/widgets/flight_result_card.dart
+M  lib/features/search/presentation/widgets/hotel_result_card.dart
+M  test/app/widgets/ai_morph_control_placement_test.dart
+M  test/core/ui/accessibility_test.dart
+A  test/core/widgets/cards/card_system_test.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+34b66c86 (HEAD -> main) feat(cards): shared card design system (Stage 2) + redesign, audiaudit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+```
+
+### Pending status
+```
+
 ```

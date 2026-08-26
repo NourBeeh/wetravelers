@@ -2,7 +2,7 @@
 
 ## Integrated delivery roadmap
 
-> **Current position: Phases 12–17 complete (17 = real auth end-to-end + Home demo/cache fallback + dev seed). Next pending phase: Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
+> **Current position: Phases 12–17 complete (17 = real auth end-to-end + Home demo/cache fallback + dev seed), plus a post-17 AI chat overhaul and the Card System Stage 1 (redesign + audit) & Stage 2 (shared design system, committed). Next pending phase: Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation; before it, the approved card sub-phases 24A–24E.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
 
 | Phase | Outcome | External need at this phase |
 |---|---|---|
@@ -15,6 +15,7 @@
 | 15 | Context-aware AI and Card Engine integration: current page, results, compare/explain/add-to-trip actions | Complete — none |
 | 16 | Offline support foundation: Hive-backed cache for search results + AI responses (write-through on success, cached fallback on failure) | Complete — none |
 | 17 | Auth: real identity — login/register/me (bcryptjs + JWT guard), profile/settings entry, persisted secure sessions | Complete — none |
+| 24A–24E | **Card system sub-phases (approved 2026-08-26, unnumbered iteration — audit in `docs/card-system-audit.md`):** **Stage 2 (shared design system) is DONE & committed** (`CardGlass`, shared `formatCardPrice`, theme-aware + `onImage` variants, expanded tests; analyze 0 errors, 293 tests pass). Remaining, in order — **24A** consolidation (hotel search `_HotelCard` adopts shared `HotelResultCard`; extract RatingPill/scrim primitives; remove 3×/4× triplicates), **24B** tap/action contract through `HomeCard` → detail stubs + wire "View All", **24C** favorites service + heart toggle (Hotel/Package), **24D** intl pricing/skeletons/responsive/RTL, **24E** golden tests + a11y re-audit | None for 24A–24B; favorites persistence storage choice for 24C; intl package already present |
 | 18 | **NEXT:** PROJECT_MEMORY cloud sync (auto-backup of memory files) + analytics foundation (AI query tracking) | External storage/backup target choice; analytics storage decision when approved |
 | 19 | Real booking/payment foundation: matching backend booking API, confirmation, idempotency, Bag synchronization | Provider/aggregator contracts and payment-service choice only when money collection is enabled |
 | 20 | Unified Trip Bag: Trip/TripItem, internal+external additions, readiness checklist, Wallet, Price Watch | Database/API persistence; external import options are staged—manual entry first, then approved share/PDF/QR/calendar/email integrations; price watches require a valid offer-price source and scheduled server jobs |
