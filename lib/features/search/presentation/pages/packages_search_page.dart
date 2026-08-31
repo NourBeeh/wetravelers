@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
-import 'package:wetravellers/features/home/presentation/widgets/package_card.dart';
+import 'package:wetravellers/core/domain/models/offers/travel_package_offer.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
+import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
+import 'package:wetravellers/features/search/presentation/widgets/package_search_card.dart';
 
 class PackagesSearchPage extends ConsumerStatefulWidget {
   const PackagesSearchPage({super.key});
@@ -218,19 +220,50 @@ class _PackagesSearchPageState extends ConsumerState<PackagesSearchPage>
     }
     return SliverList(
       delegate: SliverChildBuilderDelegate(
-        (_, i) => GestureDetector(
+        (_, i) => PackageSearchCard(
+          offer: _convertToTravelPackageOffer(_results[i]),
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Booking flow coming soon'),
-                behavior: SnackBarBehavior.floating,
-              ),
+            ref.read(selectedOfferProvider.notifier).state = SelectedOffer(
+              offerId: _results[i].id,
+              providerId: _results[i].metadata['providerId']?.toString() ?? '',
+              providerName: _results[i].metadata['providerName']?.toString() ?? '',
+              price: _results[i].price ?? 0,
+              currency: _results[i].currency ?? 'USD',
+              searchId: '',
+              offerType: 'package',
             );
+            context.push('/booking/review');
           },
-          child: PackageCard(item: _results[i]),
         ),
         childCount: _results.length,
       ),
+    );
+  }
+
+  TravelPackageOffer _convertToTravelPackageOffer(HomeItem item) {
+    final metadata = item.metadata;
+    return TravelPackageOffer(
+      id: item.id,
+      providerId: metadata['providerId']?.toString() ?? '',
+      providerName: metadata['providerName']?.toString() ?? '',
+      title: item.title,
+      subtitle: item.subtitle,
+      description: item.description,
+      imageUrl: item.imageUrl,
+      price: item.price ?? 0,
+      currency: item.currency ?? 'USD',
+      availability: item.metadata['availability'] as bool?,
+      validUntil: item.metadata['validUntil'] is DateTime
+          ? item.metadata['validUntil'] as DateTime
+          : null,
+      metadata: Map<String, dynamic>.from(metadata),
+      rating: item.rating,
+      reviewCount: item.reviewCount,
+      destination: metadata['destination']?.toString() ?? item.subtitle ?? '',
+      durationDays: metadata['durationDays'] is int
+          ? metadata['durationDays'] as int
+          : int.tryParse(metadata['durationDays']?.toString() ?? '') ?? 0,
+      inclusions: (metadata['inclusions'] as List?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 

@@ -21,10 +21,6 @@ HomeCardType _parseCardType(String? s) {
       return HomeCardType.destination;
     case 'deal':
       return HomeCardType.deal;
-    case 'experience':
-      return HomeCardType.experience;
-    case 'story':
-      return HomeCardType.story;
     default:
       return HomeCardType.deal;
   }

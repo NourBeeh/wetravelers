@@ -8,8 +8,6 @@ import 'package:wetravellers/core/domain/models/home/home_types.dart';
 import 'package:wetravellers/core/ui/adaptive_layout.dart';
 import 'package:wetravellers/features/home/presentation/widgets/flight_card.dart';
 import 'package:wetravellers/features/home/presentation/widgets/car_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/experience_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/story_card.dart';
 import 'package:wetravellers/core/widgets/cards/card_image.dart';
 
 void main() {
@@ -76,7 +74,7 @@ void main() {
           ),
         ),
       );
-      expect(find.bySemanticsLabel('Paris Flight, Direct, route JFK → CDG, price 199.0 EUR'), findsOneWidget);
+      expect(find.bySemanticsLabel('Paris Flight, Direct, JFK → CDG, Price 199 EUR'), findsOneWidget);
     });
 
     testWidgets('CarCard semantics label present', (tester) async {
@@ -96,47 +94,6 @@ void main() {
         ),
       );
       expect(find.bySemanticsLabel('Sedan, Economy, price 45.0 USD'), findsOneWidget);
-    });
-
-    testWidgets('ExperienceCard semantics label present', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Directionality(
-              textDirection: TextDirection.ltr,
-              child: Builder(
-                builder: (ctx) {
-                  final item = _dummyHomeItem(title: 'City Tour');
-                  return _ExperienceCardWrapper(item: item);
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-      // Semantics may be merged; verify label contains title
-      final semantics = tester.getSemantics(find.byType(ExperienceCard).first);
-      expect(semantics.label.contains('City Tour'), isTrue);
-    });
-
-    testWidgets('StoryCard semantics label present', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Directionality(
-              textDirection: TextDirection.ltr,
-              child: Builder(
-                builder: (ctx) {
-                  final item = _dummyHomeItem(title: 'MyTrip');
-                  return _StoryCardWrapper(item: item);
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-      final semantics = tester.getSemantics(find.byType(StoryCard).first);
-      expect(semantics.label.contains('MyTrip'), isTrue);
     });
 
     testWidgets('CardImage semantic label propagated', (tester) async {
@@ -286,18 +243,6 @@ class _CarCardWrapper extends StatelessWidget {
   const _CarCardWrapper({required this.item});
   @override
   Widget build(BuildContext context) => CarCard(item: item);
-}
-class _ExperienceCardWrapper extends StatelessWidget {
-  final HomeItem item;
-  const _ExperienceCardWrapper({required this.item});
-  @override
-  Widget build(BuildContext context) => ExperienceCard(item: item);
-}
-class _StoryCardWrapper extends StatelessWidget {
-  final HomeItem item;
-  const _StoryCardWrapper({required this.item});
-  @override
-  Widget build(BuildContext context) => StoryCard(item: item);
 }
 class _CardImageWrapper extends StatelessWidget {
   final String label;

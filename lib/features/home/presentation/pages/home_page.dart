@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
+import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/features/home/presentation/home_controller.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_section.dart';
 import 'package:wetravellers/features/home/providers/home_providers.dart';
+import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -38,6 +40,7 @@ class HomePage extends ConsumerWidget {
         );
       case HomeStatus.success:
       case HomeStatus.partial:
+      case HomeStatus.developmentPreview:
         return SafeArea(
           top: true,
           bottom: false,
@@ -51,7 +54,29 @@ class HomePage extends ConsumerWidget {
               ),
               SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => HomeSectionWidget(section: state.sections[index]),
+                  (context, index) => HomeSectionWidget(
+                    section: state.sections[index],
+                    onFlightTap: (HomeItem flight) {
+                      // Set selected offer and navigate to booking review
+                      final metadata = flight.metadata;
+                      ref.read(selectedOfferProvider.notifier).state = SelectedOffer(
+                        offerId: flight.id,
+                        providerId: metadata['providerId']?.toString() ?? '',
+                        providerName: metadata['providerName']?.toString() ?? '',
+                        price: flight.price ?? 0,
+                        currency: flight.currency ?? 'USD',
+                        searchId: '',
+                        offerType: 'flight',
+                      );
+                      context.push('/booking/review');
+                    },
+                    onViewAllFlights: () {
+                      context.push('/flights');
+                    },
+                    onWishlistChanged: (flightId, value) {
+                      // Handle wishlist change
+                    },
+                  ),
                   childCount: state.sections.length,
                 ),
               ),
@@ -157,7 +182,7 @@ class _HomeHero extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: const [
-              _ServiceLink(icon: Icons.flight_takeoff, label: 'Flights', route: '/flights'),
+              _ServiceLink(icon: Icons.flight, label: 'Flights', route: '/flights'),
               _ServiceLink(icon: Icons.hotel, label: 'Hotels', route: '/hotels'),
               _ServiceLink(icon: Icons.directions_car, label: 'Cars', route: '/cars'),
               _ServiceLink(icon: Icons.tour, label: 'Packages', route: '/packages'),

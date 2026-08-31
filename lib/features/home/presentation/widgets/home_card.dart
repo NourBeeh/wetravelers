@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
-import 'package:wetravellers/features/home/presentation/widgets/hotel_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/flight_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/car_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/package_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/destination_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/deal_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/experience_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/story_card.dart';
+import 'package:wetravellers/features/home/presentation/widgets/hotel_placeholder_card.dart';
+import 'package:wetravellers/features/home/presentation/widgets/car_placeholder_card.dart';
+import 'package:wetravellers/features/home/presentation/widgets/package_placeholder_card.dart';
+import 'package:wetravellers/features/home/presentation/widgets/destination_discovery_card.dart';
+import 'package:wetravellers/features/home/presentation/widgets/deal_vertical_card.dart';
+import 'package:wetravellers/features/home/presentation/widgets/flight_placeholder_card.dart';
 
 class HomeCard extends StatelessWidget {
   final HomeItem item;
@@ -18,21 +16,17 @@ class HomeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (item.type) {
       case HomeCardType.hotel:
-        return HotelCard(item: item);
+        return HotelPlaceholderCard(item: item);
       case HomeCardType.flight:
-        return FlightCard(item: item);
+        return FlightPlaceholderCard(item: item);
       case HomeCardType.car:
-        return CarCard(item: item);
+        return CarPlaceholderCard(item: item);
       case HomeCardType.package:
-        return PackageCard(item: item);
+        return PackagePlaceholderCard(item: item);
       case HomeCardType.destination:
-        return DestinationCard(item: item);
+        return DestinationDiscoveryCard(item: item);
       case HomeCardType.deal:
-        return DealCard(item: item);
-      case HomeCardType.experience:
-        return ExperienceCard(item: item);
-      case HomeCardType.story:
-        return StoryCard(item: item);
+        return DealVerticalCard(item: item);
     }
   }
 }

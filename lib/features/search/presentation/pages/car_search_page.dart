@@ -7,7 +7,7 @@ import 'package:wetravellers/features/search/application/providers/hotel_car_pro
 import 'package:wetravellers/features/search/application/controllers/car_search_controller.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
-import 'package:wetravellers/features/search/presentation/widgets/car_result_card.dart';
+import 'package:wetravellers/features/search/presentation/widgets/car_search_card.dart';
 import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
 
 class CarSearchPage extends ConsumerStatefulWidget {
@@ -165,7 +165,8 @@ class _CarSearchPageState extends ConsumerState<CarSearchPage>
           delegate: SliverChildBuilderDelegate(
             (_, i) {
               final item = state.results[i];
-              return GestureDetector(
+              return CarSearchCard(
+                offer: item,
                 onTap: () {
                   ref.read(selectedOfferProvider.notifier).state = SelectedOffer(
                     offerId: item.id,
@@ -178,7 +179,6 @@ class _CarSearchPageState extends ConsumerState<CarSearchPage>
                   );
                   context.push('/booking/review');
                 },
-                child: CarResultCard(offer: item),
               );
             },
             childCount: state.results.length,

@@ -36,7 +36,8 @@ void main() {
     final repo = FakeHomeRepo(result: ApiResult.success([]));
     final controller = HomeController(repo);
     await Future.delayed(Duration.zero);
-    expect(controller.state.status, HomeStatus.empty);
+    expect(controller.state.status, HomeStatus.developmentPreview);
+    expect(controller.state.sections, isNotEmpty);
   });
 
   test('HomeController loads error', () async {

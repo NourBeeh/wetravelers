@@ -3,7 +3,6 @@ import 'package:wetravellers/core/network/api_client.dart';
 import 'package:wetravellers/core/network/api_error.dart';
 import 'package:wetravellers/core/network/api_result.dart';
 import 'package:wetravellers/core/repositories/impl/home_repository_impl.dart';
-import 'package:wetravellers/core/repositories/impl/demo_home_data.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
 
 class _ScriptedHomeApiClient implements ApiClient {
@@ -121,15 +120,14 @@ void main() {
       expect(result.valueOrNull!.first.layout.name, contains('grid'));
     });
 
-    test('empty feed + no cache → falls back to demo sections', () async {
+    test('empty feed + no cache → returns empty state', () async {
       final client = _ScriptedHomeApiClient(const ApiResult.success([]));
       final repo = HomeRepositoryImpl(client, offlineCache: MemoryOfflineCache());
 
       final result = await repo.getHomeSections();
 
-      final demo = demoHomeSections();
-      expect(result.valueOrNull, hasLength(demo.length));
-      expect(result.valueOrNull!.first.title, demo.first.title);
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull, isEmpty);
     });
 
     test('network failure + cached snapshot → serves the snapshot', () async {
@@ -154,8 +152,7 @@ void main() {
       expect(result.valueOrNull!.single.title, 'Last known feed');
     });
 
-    test('failure + no cache → demo sections instead of a blank screen',
-        () async {
+    test('failure + no cache → returns error', () async {
       final client = _ScriptedHomeApiClient(
         const ApiResult.failure(ApiNetworkError(message: 'offline')),
       );
@@ -163,7 +160,7 @@ void main() {
 
       final result = await repo.getHomeSections();
 
-      expect(result.valueOrNull, isNotEmpty);
+      expect(result.isFailure, isTrue);
     });
 
     test(
@@ -187,13 +184,14 @@ void main() {
       expect(card.currency, 'USD');
     });
 
-    test('demo fallback works even with no cache injected', () async {
+    test('empty feed + no cache injected → returns empty state', () async {
       final client = _ScriptedHomeApiClient(const ApiResult.success([]));
       final repo = HomeRepositoryImpl(client); // legacy single-arg ctor
 
       final result = await repo.getHomeSections();
 
-      expect(result.valueOrNull, isNotEmpty);
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull, isEmpty);
     });
   });
 }

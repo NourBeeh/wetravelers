@@ -8,6 +8,11 @@ import 'package:wetravellers/features/search/application/providers/hotel_car_pro
 import 'package:wetravellers/features/search/application/controllers/hotel_search_controller.dart';
 import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
+import 'package:wetravellers/features/search/presentation/widgets/hotel_search_card.dart';
+import 'package:wetravellers/features/search/presentation/widgets/search_view_toggle.dart';
+import 'package:wetravellers/features/search/presentation/widgets/search_map_placeholder.dart';
+import 'package:wetravellers/features/search/application/providers/search_view_providers.dart';
+import 'package:wetravellers/features/search/domain/search_view_mode.dart';
 
 class HotelSearchPage extends ConsumerStatefulWidget {
   const HotelSearchPage({super.key});
@@ -119,12 +124,14 @@ class _HotelSearchPageState extends ConsumerState<HotelSearchPage>
               ),
             ),
             actions: [
-              if (!_formExpanded)
+              if (!_formExpanded) ...[
                 IconButton(
                   icon: const Icon(Icons.tune, color: Colors.white),
                   onPressed: () => setState(() => _formExpanded = true),
                   tooltip: 'Edit Search',
                 ),
+                const SearchViewToggle(),
+              ],
             ],
           ),
 
@@ -346,6 +353,8 @@ class _HotelSearchPageState extends ConsumerState<HotelSearchPage>
   }
 
   Widget _buildResultsSliver(HotelSearchState state, ThemeData theme, ColorScheme cs) {
+    final viewMode = ref.watch(searchViewModeProvider);
+
     switch (state.status) {
       case HotelSearchStatus.idle:
         return SliverToBoxAdapter(child: _buildIdleState(cs));
@@ -357,11 +366,13 @@ class _HotelSearchPageState extends ConsumerState<HotelSearchPage>
           ),
         );
       case HotelSearchStatus.success:
+        if (viewMode == SearchViewMode.map) {
+          return SliverToBoxAdapter(child: SearchMapPlaceholder());
+        }
         return SliverList(
           delegate: SliverChildBuilderDelegate(
-            (_, i) => _HotelCard(
+            (_, i) => HotelSearchCard(
               offer: state.results[i],
-              nights: _nights,
               onTap: () {
                 ref.read(selectedOfferProvider.notifier).state = SelectedOffer(
                   offerId: state.results[i].id,
@@ -374,6 +385,10 @@ class _HotelSearchPageState extends ConsumerState<HotelSearchPage>
                 );
                 context.push('/booking/review');
               },
+              onWishlistChanged: (value) {
+                // TODO: Implement wishlist persistence
+              },
+              isWishlisted: false,
             ),
             childCount: state.results.length,
           ),

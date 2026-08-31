@@ -6,8 +6,6 @@ import 'package:wetravellers/core/network/api_result.dart';
 import 'package:wetravellers/core/repositories/contracts/home_repository.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
 
-import 'demo_home_data.dart';
-
 HomeCardType _parseCardType(String? s) {
   switch (s?.toLowerCase()) {
     case 'flight': return HomeCardType.flight;
@@ -16,8 +14,6 @@ HomeCardType _parseCardType(String? s) {
     case 'package': return HomeCardType.package;
     case 'destination': return HomeCardType.destination;
     case 'deal': return HomeCardType.deal;
-    case 'experience': return HomeCardType.experience;
-    case 'story': return HomeCardType.story;
     default: return HomeCardType.deal;
   }
 }
@@ -58,14 +54,16 @@ class HomeRepositoryImpl implements HomeRepository {
         if (cached != null && cached.isNotEmpty) {
           return ApiResult.success(cached);
         }
-        return ApiResult.success(demoHomeSections());
+        // No cached data available, return empty state
+        return ApiResult.success([]);
       },
       failure: (error) async {
         final cached = await _readCachedSections();
         if (cached != null && cached.isNotEmpty) {
           return ApiResult.success(cached);
         }
-        return ApiResult.success(demoHomeSections());
+        // No cached data available, return error
+        return ApiResult.failure(error);
       },
     );
   }

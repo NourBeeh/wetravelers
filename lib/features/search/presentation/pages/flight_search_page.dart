@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:wetravellers/features/search/application/providers/search_providers.dart';
 import 'package:wetravellers/features/search/application/controllers/flight_search_controller.dart';
 import 'package:wetravellers/features/search/presentation/widgets/flight_search_form.dart';
-import 'package:wetravellers/features/search/presentation/widgets/flight_result_card.dart';
+import 'package:wetravellers/features/search/presentation/widgets/flight_search_card.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/features/search/presentation/widgets/sort_selector.dart';
@@ -195,24 +195,20 @@ class _FlightSearchPageState extends ConsumerState<FlightSearchPage>
         }
         return SliverList(
           delegate: SliverChildBuilderDelegate(
-            (_, i) => Semantics(
-              button: true,
-              label: 'Select flight ${items[i].airline} ${items[i].origin} to ${items[i].destination}',
-              child: GestureDetector(
-                onTap: () {
-                  ref.read(selectedOfferProvider.notifier).state = SelectedOffer(
-                    offerId: items[i].id,
-                    providerId: items[i].providerId,
-                    providerName: items[i].providerName,
-                    price: items[i].price,
-                    currency: items[i].currency,
-                    searchId: '',
-                    offerType: 'flight',
-                  );
-                  context.push('/booking/review');
-                },
-                child: FlightResultCard(offer: items[i]),
-              ),
+            (_, i) => FlightSearchCard(
+              offer: items[i],
+              onTap: () {
+                ref.read(selectedOfferProvider.notifier).state = SelectedOffer(
+                  offerId: items[i].id,
+                  providerId: items[i].providerId,
+                  providerName: items[i].providerName,
+                  price: items[i].price,
+                  currency: items[i].currency,
+                  searchId: '',
+                  offerType: 'flight',
+                );
+                context.push('/booking/review');
+              },
             ),
             childCount: items.length,
           ),

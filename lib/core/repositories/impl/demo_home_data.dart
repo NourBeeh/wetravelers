@@ -118,32 +118,5 @@ List<HomeSection> demoHomeSections() {
         ),
       ],
     ),
-    const HomeSection(
-      id: 'demo-experiences',
-      title: 'Experiences & stories',
-      subtitle: 'Ideas for your next trip',
-      layout: HomeSectionLayout.vertical,
-      items: <HomeItem>[
-        HomeItem(
-          id: 'demo-exp-1',
-          type: HomeCardType.experience,
-          title: 'Sunset felucca ride',
-          subtitle: 'Aswan, Egypt',
-          imageUrl: 'https://loremflickr.com/400/300/nile,felucca,sunset',
-          price: 25,
-          currency: 'USD',
-          rating: 4.9,
-          reviewCount: 41,
-        ),
-        HomeItem(
-          id: 'demo-story-1',
-          type: HomeCardType.story,
-          title: '48 hours in old Cairo',
-          subtitle: 'Community story',
-          imageUrl: 'https://loremflickr.com/400/300/cairo,bazaar',
-          description: 'Khan el-Khalili, hidden cafés and the citadel at dusk.',
-        ),
-      ],
-    ),
   ];
 }

@@ -4,16 +4,14 @@ enum HomeCardType {
   car,
   package,
   destination,
-  deal,
-  experience,
-  story;
-
-  String get value => name;
+  deal;
 }
 
 enum HomeSectionLayout {
   vertical,
   horizontal,
   horizontalPeek,
-  grid;
+  grid,
+  flightRecommendationList,
+  verticalDealList;
 }

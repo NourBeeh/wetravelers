@@ -28147,3 +28147,190 @@ f9233a96 fix(ui): command bar layout constraints
 ```
 
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+b7f3f985 (HEAD -> main) feat(cards): shared card design system (Stage 2) + redesign, audit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+```
+
+### Pending status
+```
+A  PROJECT_MEMORY.zip
+A  docs/card-system-final-audit.md
+M  lib/core/domain/models/home/home_types.dart
+M  lib/core/repositories/impl/demo_home_data.dart
+M  lib/core/repositories/impl/home_repository_impl.dart
+A  lib/core/widgets/cards/badge_config.dart
+A  lib/core/widgets/cards/badge_group.dart
+M  lib/core/widgets/cards/card.dart
+M  lib/core/widgets/cards/card_badge.dart
+A  lib/core/widgets/cards/card_badge_helpers.dart
+M  lib/core/widgets/cards/card_image.dart
+M  lib/core/widgets/cards/card_price_block.dart
+A  lib/core/widgets/cards/deal_presentation.dart
+A  lib/core/widgets/cards/price_display_strategy.dart
+A  lib/core/widgets/cards/recommendation_reason.dart
+M  lib/features/ai/domain/ai_item.dart
+A  lib/features/home/presentation/home_card_dimensions.dart
+M  lib/features/home/presentation/home_controller.dart
+M  lib/features/home/presentation/pages/home_page.dart
+D  lib/features/home/presentation/widgets/car_card.dart
+A  lib/features/home/presentation/widgets/car_discovery_card.dart
+A  lib/features/home/presentation/widgets/car_placeholder_card.dart
+D  lib/features/home/presentation/widgets/deal_card.dart
+A  lib/features/home/presentation/widgets/deal_placeholder_card.dart
+A  lib/features/home/presentation/widgets/deal_vertical_card.dart
+D  lib/features/home/presentation/widgets/destination_card.dart
+A  lib/features/home/presentation/widgets/destination_discovery_card.dart
+A  lib/features/home/presentation/widgets/destination_placeholder_card.dart
+D  lib/features/home/presentation/widgets/experience_card.dart
+D  lib/features/home/presentation/widgets/flight_card.dart
+A  lib/features/home/presentation/widgets/flight_placeholder_card.dart
+A  lib/features/home/presentation/widgets/flight_recommendation_card.dart
+A  lib/features/home/presentation/widgets/flight_recommendation_list.dart
+M  lib/features/home/presentation/widgets/home_card.dart
+M  lib/features/home/presentation/widgets/home_section.dart
+D  lib/features/home/presentation/widgets/hotel_card.dart
+A  lib/features/home/presentation/widgets/hotel_discovery_card.dart
+A  lib/features/home/presentation/widgets/hotel_placeholder_card.dart
+D  lib/features/home/presentation/widgets/package_card.dart
+A  lib/features/home/presentation/widgets/package_placeholder_card.dart
+D  lib/features/home/presentation/widgets/story_card.dart
+A  lib/features/search/application/providers/search_view_providers.dart
+A  lib/features/search/domain/search_view_mode.dart
+M  lib/features/search/presentation/pages/car_search_page.dart
+M  lib/features/search/presentation/pages/flight_search_page.dart
+M  lib/features/search/presentation/pages/hotel_search_page.dart
+M  lib/features/search/presentation/pages/packages_search_page.dart
+A  lib/features/search/presentation/widgets/car_search_card.dart
+A  lib/features/search/presentation/widgets/car_standard_card.dart
+A  lib/features/search/presentation/widgets/flight_route_line.dart
+A  lib/features/search/presentation/widgets/flight_search_card.dart
+A  lib/features/search/presentation/widgets/flight_standard_card.dart
+A  lib/features/search/presentation/widgets/hotel_search_card.dart
+A  lib/features/search/presentation/widgets/package_search_card.dart
+A  lib/features/search/presentation/widgets/search_map_placeholder.dart
+A  lib/features/search/presentation/widgets/search_view_toggle.dart
+M  test/core/repositories/home_fallback_test.dart
+M  test/core/ui/accessibility_test.dart
+A  test/core/widgets/cards/deal_presentation_test.dart
+M  test/features/home/home_controller_test.dart
+A  test/features/home/presentation/widgets/car_discovery_card_test.dart
+A  test/features/home/presentation/widgets/destination_discovery_card_test.dart
+A  test/features/home/presentation/widgets/flight_recommendation_card_test.dart
+A  test/features/home/presentation/widgets/hotel_discovery_card_test.dart
+A  test/features/search/presentation/widgets/car_search_card_test.dart
+A  test/features/search/presentation/widgets/car_standard_card_test.dart
+A  test/features/search/presentation/widgets/flight_standard_card_test.dart
+A  test/features/search/presentation/widgets/hotel_search_card_test.dart
+A  test/features/search/presentation/widgets/package_search_card_test.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+b7f3f985 (HEAD -> main) feat(cards): shared card design system (Stage 2) + redesign, audit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+f9233a96 fix(ui): command bar layout constraints
+```
+
+### Pending status
+```
+A  PROJECT_MEMORY.zip
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/09_AI_HANDOFF.md
+M  WeTravellers_PROJECT_MEMORY_SYSTEM.zip
+A  docs/card-system-final-audit.md
+M  lib/core/domain/models/home/home_types.dart
+M  lib/core/repositories/impl/demo_home_data.dart
+M  lib/core/repositories/impl/home_repository_impl.dart
+A  lib/core/widgets/cards/badge_config.dart
+A  lib/core/widgets/cards/badge_group.dart
+M  lib/core/widgets/cards/card.dart
+M  lib/core/widgets/cards/card_badge.dart
+A  lib/core/widgets/cards/card_badge_helpers.dart
+M  lib/core/widgets/cards/card_image.dart
+M  lib/core/widgets/cards/card_price_block.dart
+A  lib/core/widgets/cards/deal_presentation.dart
+A  lib/core/widgets/cards/price_display_strategy.dart
+A  lib/core/widgets/cards/recommendation_reason.dart
+M  lib/features/ai/domain/ai_item.dart
+A  lib/features/home/presentation/home_card_dimensions.dart
+M  lib/features/home/presentation/home_controller.dart
+M  lib/features/home/presentation/pages/home_page.dart
+D  lib/features/home/presentation/widgets/car_card.dart
+A  lib/features/home/presentation/widgets/car_discovery_card.dart
+A  lib/features/home/presentation/widgets/car_placeholder_card.dart
+D  lib/features/home/presentation/widgets/deal_card.dart
+A  lib/features/home/presentation/widgets/deal_placeholder_card.dart
+A  lib/features/home/presentation/widgets/deal_vertical_card.dart
+D  lib/features/home/presentation/widgets/destination_card.dart
+A  lib/features/home/presentation/widgets/destination_discovery_card.dart
+A  lib/features/home/presentation/widgets/destination_placeholder_card.dart
+D  lib/features/home/presentation/widgets/experience_card.dart
+D  lib/features/home/presentation/widgets/flight_card.dart
+A  lib/features/home/presentation/widgets/flight_placeholder_card.dart
+A  lib/features/home/presentation/widgets/flight_recommendation_card.dart
+A  lib/features/home/presentation/widgets/flight_recommendation_list.dart
+M  lib/features/home/presentation/widgets/home_card.dart
+M  lib/features/home/presentation/widgets/home_section.dart
+D  lib/features/home/presentation/widgets/hotel_card.dart
+A  lib/features/home/presentation/widgets/hotel_discovery_card.dart
+A  lib/features/home/presentation/widgets/hotel_placeholder_card.dart
+D  lib/features/home/presentation/widgets/package_card.dart
+A  lib/features/home/presentation/widgets/package_placeholder_card.dart
+D  lib/features/home/presentation/widgets/story_card.dart
+A  lib/features/search/application/providers/search_view_providers.dart
+A  lib/features/search/domain/search_view_mode.dart
+M  lib/features/search/presentation/pages/car_search_page.dart
+M  lib/features/search/presentation/pages/flight_search_page.dart
+M  lib/features/search/presentation/pages/hotel_search_page.dart
+M  lib/features/search/presentation/pages/packages_search_page.dart
+A  lib/features/search/presentation/widgets/car_search_card.dart
+A  lib/features/search/presentation/widgets/car_standard_card.dart
+A  lib/features/search/presentation/widgets/flight_route_line.dart
+A  lib/features/search/presentation/widgets/flight_search_card.dart
+A  lib/features/search/presentation/widgets/flight_standard_card.dart
+A  lib/features/search/presentation/widgets/hotel_search_card.dart
+A  lib/features/search/presentation/widgets/package_search_card.dart
+A  lib/features/search/presentation/widgets/search_map_placeholder.dart
+A  lib/features/search/presentation/widgets/search_view_toggle.dart
+M  test/core/repositories/home_fallback_test.dart
+M  test/core/ui/accessibility_test.dart
+A  test/core/widgets/cards/deal_presentation_test.dart
+M  test/features/home/home_controller_test.dart
+A  test/features/home/presentation/widgets/car_discovery_card_test.dart
+A  test/features/home/presentation/widgets/destination_discovery_card_test.dart
+A  test/features/home/presentation/widgets/flight_recommendation_card_test.dart
+A  test/features/home/presentation/widgets/hotel_discovery_card_test.dart
+A  test/features/search/presentation/widgets/car_search_card_test.dart
+A  test/features/search/presentation/widgets/car_standard_card_test.dart
+A  test/features/search/presentation/widgets/flight_standard_card_test.dart
+A  test/features/search/presentation/widgets/hotel_search_card_test.dart
+A  test/features/search/presentation/widgets/package_search_card_test.dart
+```
