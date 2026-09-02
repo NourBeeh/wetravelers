@@ -26,11 +26,11 @@ class AiModeIndicator extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: <Color>[AppColors.brand, AppColors.info],
+            colors: <Color>[AppColors.ai, AppColors.aiLight],
           ),
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: AppColors.brand.withValues(alpha: 0.30),
+              color: AppColors.ai.withValues(alpha: 0.30),
               blurRadius: 18,
               offset: const Offset(0, 4),
             ),

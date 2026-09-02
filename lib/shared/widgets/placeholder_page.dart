@@ -15,7 +15,7 @@ class PlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final typography = AppTypography.forBrightness(theme.brightness);
+    final typography = AppTypography.forLight();
     return Scaffold(
       appBar: AppBar(
         title: Text(route.label),

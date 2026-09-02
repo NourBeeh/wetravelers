@@ -19,18 +19,13 @@ class CardCancellation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           freeCancellation ? Icons.check_circle_outline : Icons.info_outline,
           size: 14,
-          // Brightness-adjusted success token so the green stays legible at
-          // low contrast in dark mode.
-          color: freeCancellation
-              ? (isDark ? const Color(0xFF69D07A) : AppColors.success)
-              : scheme.onSurfaceVariant,
+          color: freeCancellation ? AppColors.success : scheme.onSurfaceVariant,
         ),
         const SizedBox(width: AppSpacing.xs),
         Expanded(

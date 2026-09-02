@@ -13,7 +13,7 @@ class HomeCardDimensions {
       case HomeCardType.hotel:
         return 220.0;
       case HomeCardType.flight:
-        return 200.0; // narrower pill for flight info density
+        return 280.0; // full recommendation card width
       case HomeCardType.car:
         return 220.0;
       case HomeCardType.package:

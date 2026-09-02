@@ -3,16 +3,10 @@ import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/core/domain/models/home/home_section.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
-import 'package:wetravellers/features/home/presentation/widgets/deal_vertical_card.dart';
+import 'package:wetravellers/features/home/presentation/widgets/deal_card.dart';
 import 'package:wetravellers/features/home/presentation/widgets/destination_discovery_card.dart';
 import 'package:wetravellers/features/home/presentation/widgets/flight_recommendation_list.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/car_placeholder_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/deal_placeholder_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/destination_discovery_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/flight_placeholder_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/hotel_placeholder_card.dart';
-import 'package:wetravellers/features/home/presentation/widgets/package_placeholder_card.dart';
 import 'package:wetravellers/features/home/presentation/home_card_dimensions.dart';
 
 typedef FlightTapCallback = void Function(HomeItem flight);
@@ -25,13 +19,13 @@ class HomeSectionWidget extends StatelessWidget {
     required this.section,
     this.onFlightTap,
     this.onViewAllFlights,
-    this.onWishlistChanged,
+    this.onFavorite,
   });
 
   final HomeSection section;
   final FlightTapCallback? onFlightTap;
   final ViewAllCallback? onViewAllFlights;
-  final WishlistChangedCallback? onWishlistChanged;
+  final WishlistChangedCallback? onFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +79,51 @@ class HomeSectionWidget extends StatelessWidget {
   bool get _isDestinationOnlySection =>
       section.items.isNotEmpty && section.items.every((item) => item.type == HomeCardType.destination);
 
+  /// True when the item carries no data at all (empty title, no image, no
+  /// price) — i.e. a development-preview/skeleton entry. Such items render
+  /// the approved cards in their skeleton/loading state.
+  static bool _isSkeletonItem(HomeItem item) =>
+      item.title.trim().isEmpty &&
+      item.price == null &&
+      (item.imageUrl == null || item.imageUrl!.isEmpty);
+
+  /// Renders the correct card for [item] across every layout.
+  ///
+  /// Data-bearing items use the approved cards; skeleton (no-data) items use
+  /// the same approved cards with `loading: true`, so the Home feed renders a
+  /// pure skeleton preview while the API returns nothing.
+  Widget _cardForItem(HomeItem item) {
+    final isSkeleton = _isSkeletonItem(item);
+    switch (item.type) {
+      case HomeCardType.hotel:
+      case HomeCardType.car:
+      case HomeCardType.package:
+        return HomeCard(item: item);
+      case HomeCardType.flight:
+        return FlightRecommendationList(
+          items: <HomeItem>[item],
+          title: '',
+          maxRows: 1,
+          loading: isSkeleton,
+          onTapFlight: onFlightTap,
+          onViewAll: onViewAllFlights,
+          onFavorite: onFavorite,
+        );
+      case HomeCardType.deal:
+        return DealCard(
+          item: item,
+          loading: isSkeleton,
+          onTap: () => onFlightTap?.call(item),
+        );
+      case HomeCardType.destination:
+        return DestinationDiscoveryCard(
+          item: item,
+          loading: isSkeleton,
+          onTap: onFlightTap != null ? () => onFlightTap!(item) : null,
+        );
+    }
+  }
+
   Widget _buildItems(BuildContext context) {
     switch (section.layout) {
       case HomeSectionLayout.vertical:
@@ -112,30 +151,7 @@ class HomeSectionWidget extends StatelessWidget {
   }
 
   Widget _buildItemCard(BuildContext context, HomeItem item) {
-    switch (item.type) {
-      case HomeCardType.destination:
-        return DestinationDiscoveryCard(item: item);
-      case HomeCardType.deal:
-        return DealVerticalCard(item: item);
-      case HomeCardType.flight:
-        // For vertical layout, use FlightRecommendationList with single item
-        return FlightRecommendationList(
-          items: [item],
-          title: '',
-          maxRows: 1,
-          onTapFlight: onFlightTap,
-          onViewAll: onViewAllFlights,
-          onWishlistChanged: onWishlistChanged,
-        );
-      case HomeCardType.hotel:
-        return HotelPlaceholderCard(item: item);
-      case HomeCardType.car:
-        return CarPlaceholderCard(item: item);
-      case HomeCardType.package:
-        return PackagePlaceholderCard(item: item);
-      default:
-        return HomeCard(item: item);
-    }
+    return _cardForItem(item);
   }
 
   Widget _buildFlightRecommendationList(BuildContext context) {
@@ -149,9 +165,10 @@ class HomeSectionWidget extends StatelessWidget {
     return FlightRecommendationList(
       items: flightItems,
       title: section.title,
+      loading: _isSkeletonItem(flightItems.first),
       onTapFlight: onFlightTap,
       onViewAll: onViewAllFlights,
-      onWishlistChanged: onWishlistChanged,
+      onFavorite: onFavorite,
     );
   }
 
@@ -182,29 +199,7 @@ class HomeSectionWidget extends StatelessWidget {
   }
 
   Widget _buildHorizontalItemCard(BuildContext context, HomeItem item) {
-    switch (item.type) {
-      case HomeCardType.destination:
-        return DestinationDiscoveryCard(item: item);
-      case HomeCardType.flight:
-        // For horizontal layout, use FlightRecommendationList with single item
-        return FlightRecommendationList(
-          items: [item],
-          title: '',
-          maxRows: 1,
-          onTapFlight: onFlightTap,
-          onViewAll: onViewAllFlights,
-          onWishlistChanged: onWishlistChanged,
-        );
-      case HomeCardType.deal:
-        // For horizontal, use DealVerticalCard (approved card)
-        return DealVerticalCard(
-          item: item,
-          onTap: onFlightTap,
-          onWishlistChanged: onWishlistChanged,
-        );
-      default:
-        return HomeCard(item: item);
-    }
+    return _cardForItem(item);
   }
 
   Widget _buildResponsiveGrid(BuildContext context) {
@@ -228,14 +223,7 @@ class HomeSectionWidget extends StatelessWidget {
   }
 
   Widget _buildGridItemCard(BuildContext context, HomeItem item) {
-    switch (item.type) {
-      case HomeCardType.destination:
-        return DestinationDiscoveryCard(item: item);
-      case HomeCardType.deal:
-        return DealVerticalCard(item: item);
-      default:
-        return HomeCard(item: item);
-    }
+    return _cardForItem(item);
   }
 
   Widget _buildDestinationCarousel(BuildContext context) {
@@ -250,6 +238,8 @@ class HomeSectionWidget extends StatelessWidget {
     final carouselHeight = cardHeight + 8;
     final itemWidth = cardWidth;
 
+    final skeletons = _isSkeletonItem(destinationItems.first);
+
     return SizedBox(
       height: carouselHeight,
       child: ListView.builder(
@@ -260,7 +250,10 @@ class HomeSectionWidget extends StatelessWidget {
           width: itemWidth,
           child: Padding(
             padding: EdgeInsets.only(right: AppSpacing.md),
-            child: DestinationDiscoveryCard(item: destinationItems[i]),
+            child: DestinationDiscoveryCard(
+              item: destinationItems[i],
+              loading: skeletons,
+            ),
           ),
         ),
       ),
@@ -275,6 +268,8 @@ class HomeSectionWidget extends StatelessWidget {
 
     if (dealItems.isEmpty) return const SizedBox.shrink();
 
+    final skeletons = _isSkeletonItem(dealItems.first);
+
     return ListView.builder(
       itemCount: dealItems.length,
       shrinkWrap: true,
@@ -282,16 +277,10 @@ class HomeSectionWidget extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
       itemBuilder: (_, i) => Padding(
         padding: EdgeInsets.only(bottom: AppSpacing.md),
-        child: DealVerticalCard(
+        child: DealCard(
           item: dealItems[i],
-          onTap: () {
-            // Navigate to booking review for the deal
-            // The deal item should have metadata with provider info
-            // For now, this would need a callback from parent
-          },
-          onWishlistChanged: (value) {
-            // Handle wishlist change if needed
-          },
+          loading: skeletons,
+          onTap: () => onFlightTap?.call(dealItems[i]),
         ),
       ),
     );

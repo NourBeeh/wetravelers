@@ -5,8 +5,14 @@
 - Riverpod state management
 - GoRouter navigation
 - Repository → UseCase → Controller
-- reusable core theme/tokens/widgets
+- reusable core theme/tokens/widgets ("Pure White Premium" — LIGHT-ONLY by user decision, 2026-09-02; dark theme removed)
 - Home card engine is a stable presentation consumer
+
+## Navigation architecture (updated 2026-09-02)
+- Attached bottom bar over `StatefulShellRoute.indexedStack` — branches: Home=0, Search=1, Groups=2, Explore=3; AI centre button pushes `/ai-chat` (root route, NOT a branch).
+- Seamless merged headers per page (search pages: scroll-linked collapsible SliverAppBar via `SearchScaffold`); no fixed shell header.
+- Unified fade-through transitions (`core/navigation/app_transitions.dart`).
+- FloatingNavigation/CommandBar/AiMorphControl were deleted (Wave 0) — do not reintroduce.
 
 ## AI boundaries
 ```text
@@ -40,6 +46,6 @@ AI-specific transport/domain models remain separate from Home presentation model
 `AiHomeMapper` is the explicit bridge.
 
 ## Navigation principle
-AI mode overlays the routed surface.
-Normal mode retains FloatingNavigation.
+AI mode overlays the routed surface (future).
+Normal mode uses the attached bottom navigation (Wave 0).
 Avoid introducing a second navigation system.

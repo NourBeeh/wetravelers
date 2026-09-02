@@ -18,6 +18,7 @@ class TravelPackageOffer extends BaseOffer {
     super.metadata,
     super.rating,
     super.reviewCount,
+    super.customerPrice,
     required this.destination,
     required this.durationDays,
     required this.inclusions,

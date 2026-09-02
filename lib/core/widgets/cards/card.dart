@@ -19,14 +19,14 @@ export 'card_price.dart';
 export 'card_price_block.dart';
 export 'card_primary_action.dart';
 export 'card_rating.dart';
+export 'card_scrim_overlay.dart';
+export 'card_skeleton.dart';
 
 /// New badge system exports
 export 'badge_config.dart';
-export 'badge_group.dart';
-export 'card_badge_helpers.dart';
 
-/// New price system exports
-export 'price_display_strategy.dart';
+/// Deal presentation exports
+export 'deal_presentation.dart';
 
 /// Canonical media alias: [CardMedia] is the shared-system name for the
 /// existing, battle-tested [CardImage] (kept as-is so existing card APIs

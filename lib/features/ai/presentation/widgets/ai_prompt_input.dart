@@ -56,7 +56,7 @@ class _AiPromptInputState extends ConsumerState<AiPromptInput> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final typography = AppTypography.forBrightness(Theme.of(context).brightness);
+    final typography = AppTypography.forLight();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -141,7 +141,7 @@ class _SendButton extends StatelessWidget {
                   ? const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: <Color>[AppColors.brand, AppColors.info],
+                      colors: <Color>[AppColors.ai, AppColors.aiLight],
                     )
                   : null,
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wetravellers/core/widgets/shimmer.dart';
 
 import 'package:wetravellers/core/domain/models/offers/hotel_offer.dart';
 import 'package:wetravellers/core/widgets/cards/card.dart';
@@ -153,8 +154,8 @@ void main() {
       var lastCallbackValue = false;
       await tester.pumpWidget(_wrap(HotelSearchCard(
         offer: _makeOffer(),
-        onWishlistChanged: (v) => lastCallbackValue = v,
-        isWishlisted: false,
+        onFavorite: (v) => lastCallbackValue = v,
+        isFavorite: false,
       )));
 
       final favorite = tester.widget<CardFavorite>(find.byType(CardFavorite));
@@ -200,7 +201,7 @@ void main() {
       expect(opacity.opacity, 0.55);
     });
 
-    testWidgets('loading: shows progress indicator, tap blocked', (tester) async {
+    testWidgets('loading: renders skeleton with no fake data, tap blocked', (tester) async {
       var taps = 0;
       await tester.pumpWidget(_wrap(HotelSearchCard(
         offer: _makeOffer(),
@@ -208,7 +209,9 @@ void main() {
         onTap: () => taps++,
       )));
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      // Skeleton renders shimmer blocks and must not display any offer text
+      expect(find.byType(ShimmerBox), findsWidgets);
       await tester.tap(find.byType(BaseCard));
       expect(taps, 0);
     });

@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 import '../../core/theme/app_breakpoints.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_tokens.dart';
 
 /// Build-context / layout helpers.
 extension WidgetContextExtension on BuildContext {
@@ -24,4 +26,21 @@ extension WidgetContextExtension on BuildContext {
 
   /// Safe bottom inset (home indicator / gesture bar).
   double get safeBottom => MediaQuery.paddingOf(this).bottom;
+}
+
+/// Premium accent shortcuts for hero surfaces and primary actions.
+extension GradientContextExtension on BuildContext {
+  /// Electric-violet gradient reserved for AI surfaces.
+  LinearGradient get aiGradient => const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: <Color>[AppColors.ai, AppColors.aiLight],
+      );
+
+  /// Warm sand gradient for offers / luxury cues.
+  LinearGradient get accentGradient => const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: <Color>[AppColors.accent, Color(0xFFE2B869)],
+      );
 }

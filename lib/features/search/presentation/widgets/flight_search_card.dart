@@ -6,42 +6,62 @@ import 'package:wetravellers/core/widgets/cards/card.dart';
 import 'package:wetravellers/core/widgets/cards/badge_config.dart';
 import 'package:wetravellers/features/search/presentation/widgets/flight_route_line.dart';
 
-/// Flight search result card for vertical list in search results.
+/// Flight search result card — professional booking-result layout.
 ///
-/// Compact horizontal card with:
-/// - Airline logo + name + flight number
-/// - Visual route line with times, stops, layover
-/// - Features (cabin, baggage) as chips
-/// - Warning badges (self-transfer, airport change, risky connection)
-/// - Price block (per traveler + total)
-/// - Remaining seats indicator (when real data exists)
-/// - Entire card is tappable → Flight Details (/booking/review)
+/// Hierarchy (top → bottom):
+/// 1. Header row: airline logo + name/flight-number + favorite … PRICE
+/// 2. Route strip: large departure → arrival times over airport codes
+///    with duration/stops on the connecting line
+/// 3. Secondary row: stops text / cabin / baggage chips / seats availability
+/// 4. Warning badges (self-transfer, airport change, risky connection)
+///
+/// The whole card is tappable → Flight Details (/booking/review).
 class FlightSearchCard extends StatelessWidget {
   const FlightSearchCard({
     super.key,
-    required this.offer,
+    this.offer,
     this.onTap,
+    this.onFavorite,
+    this.isFavorite = false,
     this.enabled = true,
     this.loading = false,
   });
 
-  final FlightOffer offer;
+  /// Skeleton constructor — renders the card's loading state with no data.
+  const FlightSearchCard.loading({super.key})
+      : offer = null,
+        onTap = null,
+        onFavorite = null,
+        isFavorite = false,
+        enabled = false,
+        loading = true;
+
+  /// The flight offer. Null only in the skeleton/loading state.
+  final FlightOffer? offer;
   final VoidCallback? onTap;
+
+  /// Favorite toggle callback; null hides the favorite affordance.
+  final ValueChanged<bool>? onFavorite;
+  final bool isFavorite;
   final bool enabled;
   final bool loading;
 
+  /// Non-null offer accessor — valid everywhere except the skeleton state,
+  /// which never reads offer data.
+  FlightOffer get data => offer!;
+
   String _formatFlightNumber() {
-    if (offer.airline.isNotEmpty && offer.flightNumber.isNotEmpty) {
-      final code = offer.airline.length >= 2
-          ? offer.airline.substring(0, 2).toUpperCase()
-          : offer.airline.toUpperCase();
-      return '$code ${offer.flightNumber}';
+    if (data.airline.isNotEmpty && data.flightNumber.isNotEmpty) {
+      final code = data.airline.length >= 2
+          ? data.airline.substring(0, 2).toUpperCase()
+          : data.airline.toUpperCase();
+      return '$code ${data.flightNumber}';
     }
-    return offer.flightNumber;
+    return data.flightNumber;
   }
 
   String _calculateDuration() {
-    final diff = offer.arrivalTime.difference(offer.departureTime);
+    final diff = data.arrivalTime.difference(data.departureTime);
     final hours = diff.inHours;
     final minutes = diff.inMinutes % 60;
     if (hours > 0 && minutes > 0) {
@@ -54,8 +74,8 @@ class FlightSearchCard extends StatelessWidget {
   }
 
   String _buildStopsText() {
-    final stops = offer.stops ?? 0;
-    final stopAirport = offer.metadata['stopAirport']?.toString();
+    final stops = data.stops ?? 0;
+    final stopAirport = data.metadata['stopAirport']?.toString();
     if (stops == 0) {
       return 'Non-stop';
     } else if (stops == 1) {
@@ -69,21 +89,18 @@ class FlightSearchCard extends StatelessWidget {
 
   List<String> _buildFeatures(BuildContext context) {
     final features = <String>[];
-    if (offer.cabinClass != null && offer.cabinClass!.isNotEmpty) {
-      features.add(offer.cabinClass!);
+    if (data.cabinClass != null && data.cabinClass!.isNotEmpty) {
+      features.add(data.cabinClass!);
     }
-    final baggage = offer.metadata['baggage']?.toString();
+    final baggage = data.metadata['baggage']?.toString();
     if (baggage != null && baggage.isNotEmpty) {
       features.add(baggage);
-    }
-    if (offer.flightNumber.isNotEmpty) {
-      features.add('Flight ${_formatFlightNumber()}');
     }
     return features;
   }
 
   List<CardBadge> _buildWarnings(BuildContext context) {
-    final warningsList = offer.metadata['warnings'] as List?;
+    final warningsList = data.metadata['warnings'] as List?;
     if (warningsList == null || warningsList.isEmpty) return [];
 
     return warningsList
@@ -139,7 +156,7 @@ class FlightSearchCard extends StatelessWidget {
   }
 
   CardBadge? _buildRecommendationBadge(BuildContext context) {
-    final rec = offer.metadata['recommendation']?.toString().toLowerCase();
+    final rec = data.metadata['recommendation']?.toString().toLowerCase();
     if (rec == 'cheapest' || rec == 'fastest' || rec == 'best_value' || rec == 'best value') {
       String label;
       IconData icon;
@@ -179,7 +196,7 @@ class FlightSearchCard extends StatelessWidget {
   }
 
   double? _getSeatsLeft() {
-    final metadata = offer.metadata;
+    final metadata = data.metadata;
     final seats = metadata['seatsLeft'];
     if (seats is int) return seats.toDouble();
     if (seats is num) return seats.toDouble();
@@ -191,7 +208,7 @@ class FlightSearchCard extends StatelessWidget {
   }
 
   Map<String, double?> _buildPriceInfo() {
-    final metadata = offer.metadata;
+    final metadata = data.metadata;
     final perTraveler = metadata['pricePerTraveler'];
     final total = metadata['totalPrice'];
 
@@ -210,6 +227,19 @@ class FlightSearchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+
+    if (loading) {
+      return BaseCard(
+        onTap: null,
+        enabled: false,
+        loading: true,
+        semanticsLabel: 'Loading flight',
+        margin: const EdgeInsetsDirectional.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        child: cardLoadingSemantics(const _LoadingSkeleton()),
+      );
+    }
+
     final duration = _calculateDuration();
     final stopsText = _buildStopsText();
     final features = _buildFeatures(context);
@@ -220,17 +250,24 @@ class FlightSearchCard extends StatelessWidget {
     final hasPricePerTraveler = priceInfo['perTraveler'] != null && priceInfo['perTraveler']! > 0;
     final hasTotalPrice = priceInfo['total'] != null && priceInfo['total']! > 0;
 
+    // Primary displayed price: per-traveler when present, else total, else base.
+    final double primaryPrice = hasPricePerTraveler
+        ? priceInfo['perTraveler']!
+        : (hasTotalPrice ? priceInfo['total']! : data.price);
+
     final semanticParts = <String>[
-      offer.airline,
-      'Flight ${_formatFlightNumber()}',
-      '${offer.origin} to ${offer.destination}',
-      'Departs at ${DateFormat.Hm().format(offer.departureTime)}',
-      'Arrives at ${DateFormat.Hm().format(offer.arrivalTime)}',
+      'Flight from ${data.origin} to ${data.destination}',
+      data.airline,
+      if (data.flightNumber.isNotEmpty) 'Flight ${_formatFlightNumber()}',
+      'Departs at ${DateFormat.Hm().format(data.departureTime)}',
+      'Arrives at ${DateFormat.Hm().format(data.arrivalTime)}',
       'Duration $duration',
       if (stopsText.isNotEmpty) stopsText,
       if (features.isNotEmpty) features.join(', '),
-      if (hasPricePerTraveler) 'Per traveler ${offer.currency} ${priceInfo['perTraveler']!.toStringAsFixed(0)}',
-      if (hasTotalPrice) 'Total ${offer.currency} ${priceInfo['total']!.toStringAsFixed(0)}',
+      'Price ${data.currency} ${primaryPrice.toStringAsFixed(0)}',
+      if (hasTotalPrice && hasPricePerTraveler)
+        'Total ${data.currency} ${priceInfo['total']!.toStringAsFixed(0)}',
+      if (isFavorite) 'Saved',
       if (seatsLeft != null && seatsLeft > 0) 'Only ${seatsLeft.toInt()} seats left',
       if (recommendationBadge != null) recommendationBadge.label!,
       if (warnings.isNotEmpty) warnings.map((w) => w.label).join(', '),
@@ -240,31 +277,32 @@ class FlightSearchCard extends StatelessWidget {
     return BaseCard(
       onTap: onTap,
       enabled: enabled,
-      loading: loading,
       semanticsLabel: semanticLabel,
-      margin: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      margin: const EdgeInsetsDirectional.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header: Airline logo + name + flight number + recommendation badge
+            // ── 1. Header: airline + favorite + PRICE ──────────────────
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Airline logo
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: scheme.primaryContainer,
-                  backgroundImage: offer.imageUrl != null && offer.imageUrl!.isNotEmpty
-                      ? NetworkImage(offer.imageUrl!)
-                      : null,
-                  onBackgroundImageError: (_, __) {},
-                  child: offer.imageUrl == null || offer.imageUrl!.isEmpty
-                      ? Icon(Icons.flight, size: 20, color: scheme.onPrimaryContainer)
-                      : null,
-                ),
+                Builder(builder: (context) {
+                  final bg = CardImage.providerFor(data.imageUrl);
+                  return CircleAvatar(
+                    radius: 20,
+                    backgroundColor: scheme.primaryContainer,
+                    backgroundImage: bg,
+                    onBackgroundImageError: bg != null ? (_, __) {} : null,
+                    child: bg == null
+                        ? Icon(Icons.flight, size: 20, color: scheme.onPrimaryContainer)
+                        : null,
+                  );
+                }),
                 const SizedBox(width: AppSpacing.sm),
                 // Airline name + flight number
                 Expanded(
@@ -273,16 +311,17 @@ class FlightSearchCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        offer.airline,
+                        data.airline,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                       ),
-                      const SizedBox(height: AppSpacing.xxs),
                       Text(
                         _formatFlightNumber(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
@@ -290,63 +329,95 @@ class FlightSearchCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Recommendation badge (top area)
-                if (recommendationBadge != null) recommendationBadge,
+                // Recommendation badge (compact, next to price)
+                if (recommendationBadge != null) ...[
+                  recommendationBadge,
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+                // Price — visually prominent
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      formatCardPrice(
+                        price: primaryPrice,
+                        currency: data.currency,
+                      ),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: scheme.primary,
+                          ),
+                    ),
+                    if (hasTotalPrice && hasPricePerTraveler)
+                      Text(
+                        'total ${formatCardPrice(
+                          price: priceInfo['total'],
+                          currency: data.currency,
+                        )}',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                      ),
+                  ],
+                ),
+                // Favorite
+                if (onFavorite != null) ...[
+                  const SizedBox(width: AppSpacing.xs),
+                  CardFavorite(
+                    value: isFavorite,
+                    onChanged: onFavorite,
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            // Route line with times, stops, duration, layover
+            // ── 2. Route strip — the visual anchor ─────────────────────
+            const SizedBox(height: AppSpacing.lg),
             FlightRouteLine(
-              departureTime: offer.departureTime,
-              arrivalTime: offer.arrivalTime,
-              origin: offer.origin,
-              destination: offer.destination,
-              stops: offer.stops ?? 0,
-              stopAirport: offer.metadata['stopAirport']?.toString(),
-              layoverDuration: offer.metadata['layoverDuration']?.toString(),
+              departureTime: data.departureTime,
+              arrivalTime: data.arrivalTime,
+              origin: data.origin,
+              destination: data.destination,
+              stops: data.stops ?? 0,
+              stopAirport: data.metadata['stopAirport']?.toString(),
+              layoverDuration: data.metadata['layoverDuration']?.toString(),
               duration: duration,
             ),
+            // ── 3. Secondary metadata row ─────────────────────────────
             const SizedBox(height: AppSpacing.md),
-            // Features (cabin, baggage, flight number)
-            if (features.isNotEmpty) ...[
-              CardFeatureList(
-                features: features,
-                direction: Axis.horizontal,
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            // Warnings (self-transfer, airport change, risky connection)
-            if (warnings.isNotEmpty) ...[
-              Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xs,
-                children: warnings,
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            // Price block: per traveler + total
-            if (hasPricePerTraveler && hasTotalPrice) ...[
-              CardPriceBlock(
-                currentPrice: priceInfo['perTraveler']!,
-                currency: offer.currency,
-                showCurrency: true,
-                perTraveler: priceInfo['perTraveler'],
-                total: priceInfo['total'],
-              ),
-            ] else if (hasTotalPrice) ...[
-              CardPriceBlock(
-                currentPrice: priceInfo['total']!,
-                currency: offer.currency,
-                showCurrency: true,
-              ),
-            ] else ...[
-              CardPriceBlock(
-                currentPrice: offer.price,
-                currency: offer.currency,
-                showCurrency: true,
-              ),
-            ],
-            // Remaining seats indicator (only when real data exists)
+            Row(
+              children: [
+                Icon(
+                  Icons.schedule,
+                  size: 14,
+                  color: scheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Flexible(
+                  child: Text(
+                    stopsText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+                if (features.isNotEmpty) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  const _DotSeparator(),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: CardFeatureList(
+                      features: features,
+                      direction: Axis.horizontal,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            // ── 4. Availability + warnings ─────────────────────────────
             if (seatsLeft != null && seatsLeft > 0 && seatsLeft <= 9) ...[
               const SizedBox(height: AppSpacing.sm),
               CardAvailability(
@@ -354,9 +425,123 @@ class FlightSearchCard extends StatelessWidget {
                 label: 'Only ${seatsLeft.toInt()} seat${seatsLeft > 1 ? 's' : ''} left',
               ),
             ],
+            if (warnings.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: warnings,
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Small centered dot separating metadata items.
+class _DotSeparator extends StatelessWidget {
+  const _DotSeparator();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '·',
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+    );
+  }
+}
+
+/// Skeleton for [FlightSearchCard] — mirrors the real card's geometry
+/// (header row, route strip, metadata row, warnings) with no fake data.
+class _LoadingSkeleton extends StatelessWidget {
+  const _LoadingSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Header: avatar + airline + price
+        Row(
+          children: [
+            CardSkeleton.avatar(size: 40),
+            CardSkeleton.hGap(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CardSkeleton.title(width: 130, height: 16),
+                  CardSkeleton.gap(height: AppSpacing.xxs),
+                  CardSkeleton.text(width: 76),
+                ],
+              ),
+            ),
+            CardSkeleton.hGap(width: AppSpacing.sm),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                CardSkeleton.price(width: 96, height: 22),
+                CardSkeleton.gap(height: AppSpacing.xxs),
+                CardSkeleton.text(width: 64),
+              ],
+            ),
+          ],
+        ),
+        CardSkeleton.gap(height: AppSpacing.lg),
+        // Route strip: dep time | line+duration | arr time
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CardSkeleton.title(width: 64, height: 20),
+                  CardSkeleton.gap(height: AppSpacing.xxs),
+                  CardSkeleton.text(width: 44),
+                ],
+              ),
+            ),
+            CardSkeleton.hGap(width: AppSpacing.sm),
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  CardSkeleton.text(height: 2),
+                  SizedBox(height: AppSpacing.xxs),
+                  CardSkeleton.chip(width: 56, height: 16),
+                ],
+              ),
+            ),
+            CardSkeleton.hGap(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  CardSkeleton.title(width: 64, height: 20),
+                  CardSkeleton.gap(height: AppSpacing.xxs),
+                  CardSkeleton.text(width: 44),
+                ],
+              ),
+            ),
+          ],
+        ),
+        CardSkeleton.gap(height: AppSpacing.md),
+        // Metadata row
+        Row(
+          children: [
+            CardSkeleton.text(width: 80),
+            CardSkeleton.hGap(width: AppSpacing.sm),
+            CardSkeleton.chip(width: 64),
+            CardSkeleton.hGap(width: AppSpacing.xs),
+            CardSkeleton.chip(width: 72),
+          ],
+        ),
+      ],
     );
   }
 }

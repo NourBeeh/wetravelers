@@ -23,11 +23,17 @@
 | 15B | Complete | Context-aware AI + Card Engine integration + Home feed context extraction |
 | 15C | Complete | Code hygiene & test stabilization: bottom sheet cancellation fix, 0 analyze errors (16 non-blocking), 203 passing tests |
 | 16 | Complete | Offline support foundation: Hive-backed OfflineCache wired in main(); write-through cache for flight/hotel/car search results + AI responses (SHA-256 prompt-hash keys); cache-first read with graceful fallback on network failure; `crypto` package added; 23 new tests, 226 total passing |
-| 17 | Complete | Auth: backend register/login/me (bcryptjs, JwtStrategy+Guard, validated DTOs) + Flutter secure-storage session, `/auth` page, profile split, logout; plus Home empty-state fix (demo+cache fallback), `npm run seed:home` dev seed, CommandBar layout fix |
-| 18 | Pending | PROJECT_MEMORY cloud sync (auto-backup of memory files to external storage) + analytics foundation (AI query tracking) — **NEXT** |
-| 19 | Pending | End-to-end booking/payment and Bag synchronization |
-| 20 | Pending | Unified Trip Bag, imports, readiness, Wallet, Price Watch |
+| 17 | Complete | Auth: backend register/login/me (bcryptjs, JwtStrategy+Guard, validated DTOs) + Flutter secure-storage session, `/auth` page, profile split, logout; plus Home empty-state fix (demo+cache fallback), `npm run seed:home` dev seed, CommandBar layout fix. Booking/payment foundation later completed via the Wave workstreams (see below) |
+| W0 | Complete (2026-09-02) | "Pure White Premium" light-only design language (dark REMOVED by user decision); attached bottom nav Home/Search/AI-centre/Groups/Explore + StatefulShellRoute; seamless merged headers (fixed shell header removed); fade-through transitions; Manrope+Cairo fonts; en/ar l10n; Search Hub/Explore/Groups/Notifications/Wishlist/Settings/Onboarding pages; booking funnel pages (review/passengers/add-ons/checkout/confirmation); dead code cleanup (AiMorphControl, FloatingNavigation, CommandBar, legacy nav) |
+| W1 | Complete (2026-09-02) | Real providers: Nuitee hotel adapter (LIVE-verified; rates/prebook/book/content; sandbox key in backend/.env) + Duffel revalidateOffer + MarketContext/FX/Pricing (EGP display, spec point 5 currency separation) + cars rich mock behind CarProvider contract + POST /offers/revalidate + Flutter CustomerPrice model |
+| W2 | Complete (2026-09-02) | UI rebuild: SearchScaffold scroll-linked collapsible headers on all 4 verticals + SearchStatesView rich states (retry wired; no-op retry bug fixed) + SortChipsRow + destination picker sheets (autocomplete) + richer forms (trip type/passengers/rooms/transmission) + Home rebuild (DiscoveryProductCard, welcome line, Continue planning strip) + card unification (onFavorite) + runtime fixes (initState router read → didChangeDependencies; SearchViewToggle Expanded crash) |
+| W3 | Complete (2026-09-02) | Booking+payment: Flutter OfferRevalidationService wired into booking-review Continue (PRICE_CHANGED blocks checkout) + backend payments module (PaymentGateway, MockEgyptGateway idempotent+webhooks+3DS, PaymentRouter, LedgerService, PaymentService, /payments/*) + Flutter CheckoutPaymentService on real backend flow |
+| 18 | Pending | PROJECT_MEMORY cloud sync (auto-backup of memory files to external storage) + analytics foundation (AI query tracking) |
+| 19 | Pending | Unified Trip Bag, imports, readiness, Wallet, Price Watch (bag page + trip details v1 shipped in W0; full surfaces pending) |
+| 20 | Pending | Live Travel Companion: Today, Map, Travel Mode, event-based notifications |
 | 21 | Pending | Accessibility improvements (screen reader support, text scaling compliance) |
+| 22 | Pending | Production readiness and launch |
+| 23 | Pending | Trusted Group Trips (v1 mock Groups tab shipped in W0; full Phase-24 scope pending) |
 | 22 | Pending | Live Travel Companion, Map, Travel Mode, event notifications |
 | 23 | Pending | Production readiness and launch (performance optimization, security hardening) |
 | 24 | Pending | Trusted Group Trips: members, shared plans, safety, reviews |
@@ -75,3 +81,10 @@ Stage 1 (redesign + audit) is recorded in addendum #2. Stage 2 built ONLY the sh
 - **No new packages, no API changes, no business-logic change, no deleted files.** Only `lib/core/widgets/cards/*` + `test/core/widgets/cards/*` were touched in Stage 2.
 - **Tests:** `test/core/widgets/cards/card_system_test.dart` expanded (CardGlass, formatCardPrice, onImage variants, disabled opacity). Full suite: **293 Flutter tests pass / 6 skipped; `flutter analyze` 0 errors**.
 - **Next (unchanged order):** card sub-phases **24A → 24E** (consolidate the hotel search `_HotelCard` onto `HotelResultCard`, interaction contract, favorites, polish, QA) — then Phase 18 still awaits an explicit instruction.
+### Notes (addendum 2026-09-02) — Wave workstreams complete; how they map to old plans
+The three Wave workstreams (W0–W3 above) were executed 2026-09-02 after Phase 17. Cross-reference for older plans so nothing reads as a contradiction:
+- **Card sub-phases 24A–24E (historical plan):** superseded/absorbed by W2's card-system unification — `onFavorite`/`isFavorite` renamed everywhere, dead primitives deleted (price_display_strategy, recommendation_reason, badge_group, card_badge_helpers), skeleton colour tokenized, `DiscoveryProductCard` added for Home hotel/car/package items. The old 24A "hotel `_HotelCard` adoption" was overtaken by the full Wave-2 page rebuilds. No card favourites PERSISTENCE exists yet (heart is presentational) — that remains open work.
+- **Phase 18 (memory cloud sync + analytics): still pending — nothing shipped.**
+- **Phase 19 scope shift:** Bag PAGE + TripDetails v1 shipped in W0 (tabs, status chips, Continue planning strip on Home). The full Phase-19 vision (TripItem model, imports, readiness checklist, Wallet, Price Watch) is still pending; `lib/features/bag/domain/trip.dart` still only has `TripSummary` + `ItineraryStage` + `WatchItem` (unwired).
+- **Phase 21 (roadmap Phase 24 Trusted Groups):** only the v1 mock Groups tab shipped in W0. Roles/join requests/polls/safety are NOT implemented.
+- **Design-language caveat for card docs:** older card-system notes describe brightness-aware/dark variants — since W0 the app is LIGHT-ONLY; dark branches were removed. CardGlass/etc. now carry light defaults.

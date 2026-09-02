@@ -1,4 +1,4 @@
-import { IsString, IsDateString } from 'class-validator';
+import { IsString, IsDateString, IsOptional } from 'class-validator';
 
 export class CarSearchDto {
   @IsString()
@@ -9,4 +9,9 @@ export class CarSearchDto {
 
   @IsDateString()
   dropoffTime!: Date;
+
+  /** MarketContext selector (ISO-3166-1 alpha-2). Display currency/locale. */
+  @IsOptional()
+  @IsString()
+  market?: string;
 }

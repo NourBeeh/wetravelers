@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_radius.dart';
+import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/core/widgets/cards/card_glass.dart';
 
 /// Heart toggle for cards. Purely presentational — persistence is wired by a
@@ -35,10 +36,7 @@ class CardFavorite extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final heart = heartColor ??
-        (Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFFFF6B81)
-            : AppColors.danger);
+    final heart = heartColor ?? AppColors.danger;
     final idleColor = scheme.onSurfaceVariant;
 
     final icon = AnimatedSwitcher(
@@ -82,6 +80,10 @@ class CardFavorite extends StatelessWidget {
       );
     }
 
+    // The visual box may be smaller, but the tappable area is always expanded
+    // to at least a 48×48dp accessible hit target (Material guidance).
+    final hitTarget = AppSpacing.minimumTapTarget;
+
     return Semantics(
       button: enabled && onChanged != null,
       enabled: enabled,
@@ -89,14 +91,19 @@ class CardFavorite extends StatelessWidget {
       label: value ? 'Remove from favorites' : 'Add to favorites',
       child: Opacity(
         opacity: enabled ? 1 : 0.55,
-        child: GestureDetector(
-          onTap: enabled && onChanged != null
-              ? () {
-                  HapticFeedback.lightImpact();
-                  onChanged!(!value);
-                }
-              : null,
-          child: box,
+        child: SizedBox(
+          width: size < hitTarget ? hitTarget : size,
+          height: size < hitTarget ? hitTarget : size,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: enabled && onChanged != null
+                ? () {
+                    HapticFeedback.lightImpact();
+                    onChanged!(!value);
+                  }
+                : null,
+            child: Center(child: box),
+          ),
         ),
       ),
     );

@@ -4,15 +4,15 @@ import 'package:wetravellers/core/theme/app_theme.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 
 void main() {
-  test('Light theme uses bright white surfaces', () {
+  test('Light theme uses pure white surfaces', () {
     final theme = AppTheme.light();
     expect(theme.brightness, Brightness.light);
-    expect(theme.colorScheme.surface, AppColors.surfaceLight);
+    expect(theme.colorScheme.surface, AppColors.surface);
+    expect(theme.colorScheme.primary, AppColors.brand);
   });
 
-  test('Dark theme uses near-black surfaces', () {
-    final theme = AppTheme.dark();
-    expect(theme.brightness, Brightness.dark);
-    expect(theme.colorScheme.surface, AppColors.surfaceDark);
+  test('Theme is light-only by design', () {
+    // The "Pure White Premium" design language ships a single light theme.
+    expect(AppTheme.light().scaffoldBackgroundColor, AppColors.background);
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wetravellers/core/widgets/shimmer.dart';
 
 import 'package:wetravellers/core/domain/models/offers/car_offer.dart';
 import 'package:wetravellers/core/widgets/cards/card.dart';
@@ -99,9 +100,9 @@ void main() {
         'mileagePolicy': 'Unlimited mileage',
       }))));
 
-      expect(find.text('Unlimited mileage'), findsOneWidget);
-      // Car type badge + mileage badge = 2 badges
-      expect(find.byType(CardBadge), findsNWidgets(2));
+      expect(find.textContaining('Unlimited mileage'), findsOneWidget);
+      // Car type badge only (mileage is inline metadata, not a badge)
+      expect(find.byType(CardBadge), findsOneWidget);
     });
 
     testWidgets('renders limited mileage policy', (tester) async {
@@ -109,7 +110,7 @@ void main() {
         'mileagePolicy': '200 km/day',
       }))));
 
-      expect(find.text('200 km/day'), findsOneWidget);
+      expect(find.textContaining('200 km/day'), findsOneWidget);
     });
 
     testWidgets('does not render mileage policy when not in metadata', (tester) async {
@@ -233,7 +234,7 @@ void main() {
       expect(opacity.opacity, 0.55);
     });
 
-    testWidgets('loading: shows progress indicator, tap blocked', (tester) async {
+    testWidgets('loading: renders skeleton with no fake data, tap blocked', (tester) async {
       var taps = 0;
       await tester.pumpWidget(_wrap(CarSearchCard(
         offer: _makeOffer(),
@@ -241,7 +242,9 @@ void main() {
         onTap: () => taps++,
       )));
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      // Skeleton renders shimmer blocks and must not display any offer text
+      expect(find.byType(ShimmerBox), findsWidgets);
       await tester.tap(find.byType(BaseCard));
       expect(taps, 0);
     });

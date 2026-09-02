@@ -22,6 +22,23 @@ class CardImage extends StatelessWidget {
     this.fallbackIcon,
   });
 
+  /// Unified image-source resolver for the whole card system.
+  ///
+  /// Mock/offline data points at bundled assets (`assets/images/...`), while
+  /// the live API returns absolute http(s) URLs. One check here means every
+  /// card renders both modes without per-card special-casing — flipping the
+  /// real API on later needs zero widget changes.
+  static bool isAssetSource(String url) => url.startsWith('assets/');
+
+  /// Resolves an image source string into the matching [ImageProvider]:
+  /// bundled asset (`assets/...`) → [AssetImage], http(s) → [NetworkImage].
+  /// Returns null for null/empty input so callers can keep their
+  /// "no image → no provider" branching.
+  static ImageProvider? providerFor(String? url) {
+    if (url == null || url.isEmpty) return null;
+    return isAssetSource(url) ? AssetImage(url) : NetworkImage(url);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -44,6 +61,29 @@ class CardImage extends StatelessWidget {
       );
     }
 
+    final Widget image;
+    if (url == null || url!.isEmpty) {
+      image = _SkeletonImage();
+    } else if (isAssetSource(url!)) {
+      image = Image.asset(
+        url!,
+        fit: fit,
+        semanticLabel: semanticLabel,
+        errorBuilder: (context, error, stackTrace) => buildFallback(),
+      );
+    } else {
+      image = Image.network(
+        url!,
+        fit: fit,
+        semanticLabel: semanticLabel,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return _SkeletonImage();
+        },
+        errorBuilder: (context, error, stackTrace) => buildFallback(),
+      );
+    }
+
     return Semantics(
       label: semanticLabel,
       image: true,
@@ -51,18 +91,7 @@ class CardImage extends StatelessWidget {
         child: SizedBox(
           height: height,
           width: double.infinity,
-          child: url == null || url!.isEmpty
-              ? _SkeletonImage()
-              : Image.network(
-                  url!,
-                  fit: fit,
-                  semanticLabel: semanticLabel,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return _SkeletonImage();
-                  },
-                  errorBuilder: (context, error, stackTrace) => buildFallback(),
-                ),
+          child: image,
         ),
       ),
     );

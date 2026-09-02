@@ -14,7 +14,7 @@ class AiEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typography = AppTypography.forBrightness(Theme.of(context).brightness);
+    final typography = AppTypography.forLight();
     final scheme = Theme.of(context).colorScheme;
 
     return Center(
@@ -81,11 +81,11 @@ class AiEmptyState extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: <Color>[AppColors.brand, AppColors.info],
+            colors: <Color>[AppColors.ai, AppColors.aiLight],
           ),
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: AppColors.brand.withValues(alpha: 0.28),
+              color: AppColors.ai.withValues(alpha: 0.28),
               blurRadius: 40,
               offset: const Offset(0, 12),
             ),

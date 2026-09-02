@@ -3,15 +3,17 @@
 ## Mission
 You are the implementation agent. Work only on the requested task.
 
-## Current known state
+## Current known state (updated 2026-09-02)
 - Flutter 3.44.8 / Dart 3.12.2 (verify locally).
 - Architecture: feature-first + Riverpod + GoRouter + Repository→UseCase→Controller.
-- Phases 1–17 are complete (17 = real auth end-to-end + Home demo/cache fallback + `npm run seed:home`). Post-17 unnumbered iterations also landed and were committed: a full-screen AI chat overhaul and the **Card System Stage 1 (redesign + audit → `docs/card-system-audit.md`) & Stage 2 (shared Card Design System)**. **Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation** is the next numbered phase; do not start it or any later phase without an explicit task prompt. The approved **card sub-phases 24A–24E** run before it (24A consolidate hotel search `_HotelCard` onto `HotelResultCard`; 24B tap/action contract; 24C favorites; 24D polish; 24E QA).
-- **Card System Stage 2 (committed):** the shared card primitives in `lib/core/widgets/cards/` are theme-aware (light/dark), responsive and ready — `CardGlass` (glassmorphism recipe), shared `formatCardPrice()`, `onImage` glass variants + icons on `CardBadge`/`CardRating`/`CardFeatureList`/`CardFavorite`, `BaseCard` semantics, dark-mode contrast fixes; NO universal card and NO feature-card rebuild yet (next stages use these primitives). Suite: analyze 0 errors, 293 Flutter tests pass / 6 skipped.
-- NestJS backend lives under `backend/`.
-- Current AI backend provider is OpenAI-compatible REST, bound through `AI_PROVIDER`.
-- Backend AI request timeout is 90s and timeout failures are classified as retryable so the Mock fallback engages. Flutter AI sheet timeout is aligned to 90s.
-- CommandBar (Ask button + TextField) is wired to `showAiBottomSheet` via `onSubmitted`; search heuristics preserved in `shell.dart`.
+- Phases 1–17 complete. On top of them, the three Wave workstreams are complete (W0 UI/nav rebuild, W1 real providers, W2 search/home rebuild, W3 booking+payment). Full detail: `01_MASTER_MEMORY.md` §12.5; cross-references: `04_PHASE_HISTORY.md` addendum 2026-09-02. Baseline: 432 Flutter tests / 129 backend tests green, analyze 0 errors.
+- **Design language is LIGHT-ONLY ("Pure White Premium")** — dark theme removed by user decision; no theme toggles. Unified motion: fade-through on every route. Buttons via the `AppButton` kit. Manrope (Latin) + Cairo (Arabic) fonts; en/ar l10n everywhere (gen-l10n).
+- **Navigation**: attached bottom bar (Home / Search / **AI centre button** / Groups / Explore). AI centre pushes `/ai-chat` (root route, NOT a shell branch). Branch order Home=0, Search=1, Groups=2, Explore=3 (`shell.dart`). CommandBar/FloatingNavigation/AiMorphControl were DELETED — do not reference them.
+- **Search pages** use `SearchScaffold` (scroll-linked collapsible header) + `SearchStatesView` + `SortChipsRow` + destination picker sheets. Pages read router extras in `didChangeDependencies` (NOT initState).
+- **Providers (backend)**: Nuitee hotels LIVE-verified (one base URL api.liteapi.travel/v3.0, sandbox = `sand_` key; rates at `data[].roomTypes[].rates[]`), Duffel flights + `revalidateOffer`, MarketContext EG/EGP/ar-EG + FX + deterministic PricingEngine (offers carry `customerPrice`), cars rich mock. `POST /offers/revalidate` gates checkout.
+- **Payments (backend)**: `modules/payments` — PaymentGateway interface, MockEgyptGateway (idempotent, signed webhooks, 3DS), PaymentRouter (EG only), LedgerService, `/payments/*`. Flutter checkout calls the real backend flow. Real PSP pending (spec §K).
+- **Booking funnel**: review → passengers → add-ons → checkout → confirmation under `/booking/review/*`; review's Continue enforces revalidation (PRICE_CHANGED blocks).
+- NestJS backend lives under `backend/`; current AI provider OpenAI-compatible REST; 90s timeout with Mock fallback.
 - Flutter AI consumes normalized `AiResponse` and maps to existing Home cards.
 
 ## Mandatory rules

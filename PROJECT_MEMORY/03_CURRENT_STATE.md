@@ -1,7 +1,22 @@
 # WeTravellers — CURRENT STATE
 
-## Last known checkpoint
-**Card system — Stage 1 (redesign + audit) & Stage 2 (shared design system) complete (2026-08-26).** All Home + Search cards were brought to one luxury standard (gradient-scrim-over-image on Hotel/Package/Car, corner badge/rating glass pills, compact 200px pill FlightCard, `fallbackIcon` degraded images, `CardPrice` scrim-legible `color`). Full audit in `docs/card-system-audit.md`.
+## Last known checkpoint (2026-09-02) — AUTHORITATIVE
+**Wave workstreams W0–W3 complete.** See `01_MASTER_MEMORY.md` §12.5 for the full record; summary:
+
+- **W0 — UI/nav rebuild:** "Pure White Premium" light-only theme (dark removed by user decision); attached bottom nav (Home/Search/AI-centre/Groups/Explore) over `StatefulShellRoute` (branches Home=0/Search=1/Groups=2/Explore=3; AI is a pushed route); seamless merged headers (no fixed shell header); fade-through transitions; `AppButton` kit; Manrope+Cairo fonts; en/ar l10n (gen-l10n); Search Hub/Explore/Groups v1/Notifications/Wishlist/Settings/Onboarding pages; booking funnel pages (review/passengers/add-ons/checkout/confirmation). Deleted: AiMorphControl, FloatingNavigation, CommandBar, legacy app_router nav, dark theme.
+- **W1 — real providers (backend):** Nuitee hotel adapter **LIVE-verified** (`api.liteapi.travel/v3.0/hotels/rates`; sandbox by `sand_` key; rates at `data[].roomTypes[].rates[]`; metadata snake_case; rating halved to 5-scale); Duffel `revalidateOffer` + provenance; MarketContext (EG/EGP/ar-EG; SA/AE disabled) + FX service + deterministic PricingEngine — every search offer carries `customerPrice` (EGP) while provider amounts stay intact; cars rich mock behind the real CarProvider contract; `POST /offers/revalidate`; Flutter `CustomerPrice` model.
+- **W2 — search/home rebuild:** `SearchScaffold` (scroll-linked collapse) on all 4 verticals; `SearchStatesView` rich states (retry wired; fixed old no-op retry); `SortChipsRow`; destination picker sheets (kAirports/kCities autocomplete); richer forms (trip type/passengers/rooms/transmission); Home = welcome line + Continue-planning strip (Bag trips) + backend-driven sections (seed: Recommended for you / Trending destinations / Tour packages / Experiences & stories; dev-preview fallback when empty); `DiscoveryProductCard` for hotel/car/package Home items; card unification (`onFavorite`/`isFavorite`; dead primitives removed). **Runtime fixes:** search pages now read router extras in `didChangeDependencies` (was initState → crash); `SearchViewToggle` Expanded-in-appbar crash fixed (intrinsic sizing).
+- **W3 — booking+payment:** Flutter `OfferRevalidationService` (review Continue enforces revalidation; PRICE_CHANGED blocks checkout); backend `modules/payments` (PaymentGateway interface, MockEgyptGateway — idempotent + signed webhooks + 3DS-pending, PaymentRouter EG-only, append-only LedgerService, `/payments/*`); Flutter `CheckoutPaymentService` on the real backend flow.
+
+**Validation baseline:** 432 Flutter tests / 129 backend tests green (1 live-smoke skipped without `NUITEE_LIVE_SMOKE=1`); `dart analyze lib test` 0 errors; `tsc --noEmit` clean; visual audit 14/14; debug APK builds. Key new tests: `bottom_nav_branch_mapping_test`, `full_app_smoke_test`, `search_pages_interaction_test`, `nuitee.contract.spec`, `nuitee.live-smoke.spec`, `market.pricing.spec`, `car.provider.contract.spec`, `payments.orchestration.spec`.
+
+**Next pending:** Phase 18 (memory cloud sync + analytics). Phase 19 remaining slices: real PSP onboarding (spec §K), Duffel order + Nuitee book wiring end-to-end, booking DB tables (spec §49). Do not start any phase without explicit instruction.
+
+---
+
+# Historical checkpoints (superseded — kept for reference; see `04_PHASE_HISTORY.md` addendum 2026-09-02 for how old plans map to current reality)
+
+## Card system — Stage 1 & 2 (2026-08-26) — SUPERSEDED by Wave 2 card unification
 
 **Stage 2 — the shared Card Design System primitives in `lib/core/widgets/cards/` are now theme-aware (light/dark via ColorScheme/AppTokens), responsive, and ready to be consumed by feature cards — no full HotelCard/FlightCard rebuilt yet and NO universal card created.** Highlights:
 - **New `CardGlass`** (`card_glass.dart`): the single BackdropFilter + tint + hairline-border glassmorphism recipe now used by every on-image overlay (favorite heart, rating pill, badge, feature chips). Centralises glass so it is never re-implemented per card.
@@ -45,7 +60,7 @@ Phases 1–17 complete. Phase 17 (Auth) delivered: backend register/login/me wit
 - Flutter AI sheet timeout aligned to 90s to match the slow/free OpenRouter provider.
 - All unit and integration tests (203 Flutter tests + 84 backend tests) pass locally.
 
-## Immediate next action
+## Immediate next action (HISTORICAL — superseded; Phase 17 completed 2026-08 and Waves completed 2026-09-02; current next = Phase 18)
 
 - Next pending phase: **Phase 17 Auth** (login, profile, persisted sessions). Do not start it without an explicit instruction.
 - Phase 16 is complete: Hive offline cache for search offers + AI responses (see checkpoint above).
@@ -28333,4 +28348,233 @@ A  test/features/search/presentation/widgets/car_standard_card_test.dart
 A  test/features/search/presentation/widgets/flight_standard_card_test.dart
 A  test/features/search/presentation/widgets/hotel_search_card_test.dart
 A  test/features/search/presentation/widgets/package_search_card_test.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+66a80f94 (HEAD -> main, origin/main, origin/HEAD) feat(project): add automatic git sync and update state documentation
+b7f3f985 feat(cards): shared card design system (Stage 2) + redesign, audit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
+```
+
+### Pending status
+```
+D  PROJECT_MEMORY.zip
+M  PROJECT_MEMORY/01_MASTER_MEMORY.md
+M  PROJECT_MEMORY/02_AGENT_MEMORY.md
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  PROJECT_MEMORY/05_ARCHITECTURE.md
+M  PROJECT_MEMORY/06_DECISIONS.md
+M  PROJECT_MEMORY/07_KNOWN_ISSUES.md
+M  PROJECT_MEMORY/08_NEXT_STEPS.md
+M  PROJECT_MEMORY/09_AI_HANDOFF.md
+M  PROJECT_MEMORY/10_DEEPSEEK_CONTEXT.md
+A  WeTravellers_Travel_Providers_Market_Payment_Implementation_Spec_v2.0.docx
+A  WeTravellers_Travel_Providers_Market_Payment_Implementation_Spec_v2.0.pdf
+D  analysis_report.txt
+A  assets/fonts/Cairo-Variable.ttf
+A  assets/fonts/Manrope-Variable.ttf
+A  assets/images/placeholder_car.png
+A  assets/images/placeholder_deal.png
+A  assets/images/placeholder_destination.png
+A  assets/images/placeholder_flight.png
+A  assets/images/placeholder_hotel.png
+A  assets/images/placeholder_package.png
+M  backend/.env.example
+M  backend/src/app.module.ts
+M  backend/src/common/dto/car.search.dto.ts
+M  backend/src/common/dto/flight.search.dto.ts
+M  backend/src/common/dto/hotel.search.dto.ts
+A  backend/src/common/dto/revalidate-offer.dto.ts
+A  backend/src/common/market/fx.service.ts
+A  backend/src/common/market/market-context.ts
+A  backend/src/common/market/pricing.service.ts
+M  backend/src/modules/duffel/duffel.service.ts
+A  backend/src/modules/nuitee/nuitee.module.ts
+A  backend/src/modules/nuitee/nuitee.service.ts
+A  backend/src/modules/offers/offers.controller.ts
+M  backend/src/modules/offers/offers.module.ts
+A  backend/src/modules/payments/ledger.service.ts
+A  backend/src/modules/payments/mock.egypt.gateway.ts
+A  backend/src/modules/payments/payment.gateway.ts
+A  backend/src/modules/payments/payment.router.ts
+A  backend/src/modules/payments/payment.service.ts
+A  backend/src/modules/payments/payments.controller.ts
+A  backend/src/modules/payments/payments.module.ts
+M  backend/src/modules/providers/adapters/mock.car.provider.ts
+M  backend/src/modules/providers/providers.module.ts
+M  backend/src/modules/providers/search.controller.ts
+M  backend/src/modules/providers/search.service.ts
+A  backend/test/car.provider.contract.spec.ts
+A  backend/test/market.pricing.spec.ts
+A  backend/test/nuitee.contract.spec.ts
+A  backend/test/nuitee.live-smoke.spec.ts
+A  backend/test/payments.orchestration.spec.ts
+D  diagnostic_outputs.txt
+A  l10n.yaml
+M  lib/app/app.dart
+M  lib/app/router/go_router_config.dart
+M  lib/app/shell.dart
+D  lib/app/widgets/ai_morph_control.dart
+A  lib/app/widgets/app_bottom_nav.dart
+M  lib/core/domain/models/offers/base_offer.dart
+M  lib/core/domain/models/offers/car_offer.dart
+A  lib/core/domain/models/offers/customer_price.dart
+M  lib/core/domain/models/offers/flight_offer.dart
+M  lib/core/domain/models/offers/hotel_offer.dart
+M  lib/core/domain/models/offers/travel_package_offer.dart
+M  lib/core/mappers/offer_mapper_fixed.dart
+A  lib/core/navigation/app_transitions.dart
+D  lib/core/repositories/impl/demo_home_data.dart
+M  lib/core/theme/app_colors.dart
+M  lib/core/theme/app_motion.dart
+M  lib/core/theme/app_theme.dart
+M  lib/core/theme/app_tokens.dart
+M  lib/core/theme/app_typography.dart
+A  lib/core/ui/app_button.dart
+D  lib/core/widgets/cards/badge_group.dart
+M  lib/core/widgets/cards/base_card.dart
+M  lib/core/widgets/cards/card.dart
+M  lib/core/widgets/cards/card_badge.dart
+D  lib/core/widgets/cards/card_badge_helpers.dart
+M  lib/core/widgets/cards/card_cancellation.dart
+M  lib/core/widgets/cards/card_favorite.dart
+M  lib/core/widgets/cards/card_glass.dart
+M  lib/core/widgets/cards/card_image.dart
+M  lib/core/widgets/cards/card_price_block.dart
+M  lib/core/widgets/cards/card_primary_action.dart
+M  lib/core/widgets/cards/card_rating.dart
+A  lib/core/widgets/cards/card_scrim_overlay.dart
+A  lib/core/widgets/cards/card_skeleton.dart
+M  lib/core/widgets/cards/deal_presentation.dart
+D  lib/core/widgets/cards/price_display_strategy.dart
+D  lib/core/widgets/cards/recommendation_reason.dart
+D  lib/core/widgets/command_bar/.gitkeep
+D  lib/core/widgets/command_bar/command_bar.dart
+D  lib/core/widgets/floating_navigation/floating_nav_destination.dart
+D  lib/core/widgets/floating_navigation/floating_nav_trigger.dart
+D  lib/core/widgets/floating_navigation/floating_navigation.dart
+D  lib/core/widgets/floating_navigation/navigation_layout.dart
+A  lib/core/widgets/section_header.dart
+A  lib/core/widgets/shimmer.dart
+A  lib/core/widgets/step_progress.dart
+A  lib/core/widgets/sticky_cta_bar.dart
+M  lib/features/ai/data/mock_ai_response_data.dart
+M  lib/features/ai/presentation/pages/ai_chat_page.dart
+M  lib/features/ai/presentation/pages/ai_visual_shell_page.dart
+M  lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+M  lib/features/ai/presentation/widgets/ai_empty_state.dart
+M  lib/features/ai/presentation/widgets/ai_mode_indicator.dart
+M  lib/features/ai/presentation/widgets/ai_prompt_input.dart
+M  lib/features/ai/presentation/widgets/ai_response_content.dart
+A  lib/features/bag/presentation/pages/bag_page.dart
+M  lib/features/bag/presentation/pages/trip_details_page.dart
+A  lib/features/booking/application/providers/checkout_flow_providers.dart
+A  lib/features/booking/application/services/checkout_payment_service.dart
+A  lib/features/booking/application/services/offer_revalidation_service.dart
+A  lib/features/booking/presentation/pages/add_ons_page.dart
+A  lib/features/booking/presentation/pages/booking_confirmation_page.dart
+A  lib/features/booking/presentation/pages/checkout_page.dart
+A  lib/features/booking/presentation/pages/passenger_details_page.dart
+A  lib/features/groups/presentation/pages/groups_page.dart
+M  lib/features/home/presentation/home_card_dimensions.dart
+M  lib/features/home/presentation/home_controller.dart
+A  lib/features/home/presentation/pages/explore_page.dart
+M  lib/features/home/presentation/pages/home_page.dart
+D  lib/features/home/presentation/widgets/car_discovery_card.dart
+D  lib/features/home/presentation/widgets/car_placeholder_card.dart
+A  lib/features/home/presentation/widgets/deal_card.dart
+D  lib/features/home/presentation/widgets/deal_placeholder_card.dart
+D  lib/features/home/presentation/widgets/deal_vertical_card.dart
+M  lib/features/home/presentation/widgets/destination_discovery_card.dart
+D  lib/features/home/presentation/widgets/destination_placeholder_card.dart
+A  lib/features/home/presentation/widgets/discovery_product_card.dart
+D  lib/features/home/presentation/widgets/flight_placeholder_card.dart
+M  lib/features/home/presentation/widgets/flight_recommendation_card.dart
+M  lib/features/home/presentation/widgets/flight_recommendation_list.dart
+M  lib/features/home/presentation/widgets/home_card.dart
+M  lib/features/home/presentation/widgets/home_section.dart
+D  lib/features/home/presentation/widgets/hotel_discovery_card.dart
+D  lib/features/home/presentation/widgets/hotel_placeholder_card.dart
+D  lib/features/home/presentation/widgets/package_placeholder_card.dart
+D  lib/features/home/presentation/widgets/section_container_card.dart
+A  lib/features/notifications/presentation/pages/notifications_page.dart
+A  lib/features/profile/presentation/pages/onboarding_page.dart
+A  lib/features/profile/presentation/pages/settings_page.dart
+A  lib/features/profile/presentation/pages/wishlist_page.dart
+D  lib/features/search/application/filters/filter_engine.dart
+D  lib/features/search/application/search_results_state.dart
+A  lib/features/search/data/models/car_model.dart
+M  lib/features/search/presentation/pages/booking_review_page.dart
+M  lib/features/search/presentation/pages/car_search_page.dart
+M  lib/features/search/presentation/pages/flight_search_page.dart
+M  lib/features/search/presentation/pages/hotel_search_page.dart
+A  lib/features/search/presentation/pages/offer_details_page.dart
+M  lib/features/search/presentation/pages/packages_search_page.dart
+A  lib/features/search/presentation/pages/search_hub_page.dart
+D  lib/features/search/presentation/widgets/car_result_card.dart
+M  lib/features/search/presentation/widgets/car_search_card.dart
+D  lib/features/search/presentation/widgets/car_standard_card.dart
+A  lib/features/search/presentation/widgets/destination_picker_sheet.dart
+D  lib/features/search/presentation/widgets/flight_result_card.dart
+M  lib/features/search/presentation/widgets/flight_route_line.dart
+M  lib/features/search/presentation/widgets/flight_search_card.dart
+D  lib/features/search/presentation/widgets/flight_standard_card.dart
+D  lib/features/search/presentation/widgets/hotel_result_card.dart
+M  lib/features/search/presentation/widgets/hotel_search_card.dart
+D  lib/features/search/presentation/widgets/hotel_search_form.dart
+M  lib/features/search/presentation/widgets/package_search_card.dart
+A  lib/features/search/presentation/widgets/search_scaffold.dart
+A  lib/features/search/presentation/widgets/search_states_view.dart
+M  lib/features/search/presentation/widgets/search_view_toggle.dart
+A  lib/l10n/app_ar.arb
+A  lib/l10n/app_en.arb
+A  lib/l10n/app_localizations.dart
+A  lib/l10n/app_localizations_ar.dart
+A  lib/l10n/app_localizations_en.dart
+M  lib/shared/extensions/context_extensions.dart
+A  lib/shared/providers/locale_provider.dart
+A  lib/shared/providers/onboarding_provider.dart
+D  lib/shared/providers/theme_mode_provider.dart
+M  lib/shared/widgets/placeholder_page.dart
+M  pubspec.lock
+M  pubspec.yaml
+A  test/app/full_app_smoke_test.dart
+D  test/app/widgets/ai_morph_control_placement_test.dart
+A  test/app/widgets/bottom_nav_branch_mapping_test.dart
+M  test/core/navigation/go_router_test.dart
+M  test/core/theme/app_theme_test.dart
+M  test/core/ui/accessibility_test.dart
+A  test/core/widgets/cards/card_image_test.dart
+M  test/core/widgets/cards/card_system_test.dart
+D  test/core/widgets/command_bar_test.dart
+M  test/features/ai/ai_bottom_sheet_test.dart
+A  test/features/booking/offer_revalidation_service_test.dart
+D  test/features/home/presentation/widgets/car_discovery_card_test.dart
+A  test/features/home/presentation/widgets/deal_card_test.dart
+M  test/features/home/presentation/widgets/destination_discovery_card_test.dart
+M  test/features/home/presentation/widgets/flight_recommendation_card_test.dart
+A  test/features/home/presentation/widgets/flight_recommendation_list_test.dart
+D  test/features/home/presentation/widgets/hotel_discovery_card_test.dart
+M  test/features/search/presentation/widgets/car_search_card_test.dart
+D  test/features/search/presentation/widgets/car_standard_card_test.dart
+D  test/features/search/presentation/widgets/flight_standard_card_test.dart
+M  test/features/search/presentation/widgets/hotel_search_card_test.dart
+M  test/features/search/presentation/widgets/package_search_card_test.dart
+A  test/features/search/search_pages_interaction_test.dart
+A  test/features/ui/new_surfaces_test.dart
+A  test/visual_audit/card_visual_audit_test.dart
 ```

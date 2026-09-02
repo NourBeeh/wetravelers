@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wetravellers/core/widgets/shimmer.dart';
 
 import 'package:wetravellers/core/widgets/cards/card.dart';
 
@@ -24,12 +25,15 @@ void main() {
       expect(tapped, 0);
     });
 
-    testWidgets('loading: shows a progress indicator and blocks tap',
+    testWidgets('loading: blocks tap and renders provided child (skeletons are card-owned)',
         (tester) async {
       var tapped = 0;
       await tester.pumpWidget(_wrap(
           BaseCard(loading: true, onTap: () => tapped++, child: const Text('x'))));
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      // The container no longer paints a spinner overlay; cards own their
+      // skeleton content. Loading only blocks interaction.
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('x'), findsOneWidget);
       await tester.tap(find.byType(BaseCard));
       expect(tapped, 0);
     });

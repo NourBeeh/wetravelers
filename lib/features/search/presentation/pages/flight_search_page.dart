@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:wetravellers/features/search/application/providers/search_providers.dart';
 import 'package:wetravellers/features/search/application/controllers/flight_search_controller.dart';
-import 'package:wetravellers/features/search/presentation/widgets/flight_search_form.dart';
+import 'package:wetravellers/core/domain/models/search/flight_search_params.dart';
+import 'package:wetravellers/features/search/presentation/widgets/search_scaffold.dart';
+import 'package:wetravellers/features/search/presentation/widgets/search_states_view.dart';
+import 'package:wetravellers/features/search/presentation/widgets/destination_picker_sheet.dart';
 import 'package:wetravellers/features/search/presentation/widgets/flight_search_card.dart';
+import 'package:wetravellers/core/domain/models/offers/flight_offer.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
-import 'package:wetravellers/features/search/presentation/widgets/sort_selector.dart';
+import 'package:wetravellers/core/theme/app_radius.dart';
+import 'package:wetravellers/core/theme/app_typography.dart';
 import 'package:wetravellers/features/search/domain/sort_option.dart';
 import 'package:wetravellers/features/search/application/sort_utils.dart';
-import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
 import 'package:wetravellers/features/search/domain/search_filters.dart';
 import 'package:wetravellers/features/search/presentation/widgets/filter_panel.dart';
 
@@ -24,140 +29,162 @@ class FlightSearchPage extends ConsumerStatefulWidget {
   ConsumerState<FlightSearchPage> createState() => _FlightSearchPageState();
 }
 
-class _FlightSearchPageState extends ConsumerState<FlightSearchPage>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _headerController;
-  late final Animation<double> _headerAnimation;
+class _FlightSearchPageState extends ConsumerState<FlightSearchPage> {
+  final _originCtrl = TextEditingController();
+  final _destCtrl = TextEditingController();
+  final _departureCtrl = TextEditingController();
+  final _returnCtrl = TextEditingController();
 
-  String _routeLabel = '';
-  bool _formExpanded = true;
+  DateTime _departure = DateTime.now().add(const Duration(days: 7));
+  DateTime? _returnDate;
+  bool _roundTrip = false;
+  int _passengers = 1;
+
+  static const List<String> _sortLabels = ['Recommended', 'Cheapest', 'Fastest', 'Longest'];
+  String _sortLabel = 'Recommended';
+
+  FlightSearchParams? _lastParams;
+  bool _prefilled = false;
 
   @override
   void initState() {
     super.initState();
-    _headerController = AnimationController(vsync: this, duration: const Duration(milliseconds: 350));
-    _headerAnimation = CurvedAnimation(parent: _headerController, curve: Curves.easeOut);
-    _headerController.forward();
+    _departureCtrl.text = DateFormat('EEE, MMM d').format(_departure);
+    // Sync chip label from the existing sort provider (kept wiring).
+    _sortLabel = ref.read(flightSortProvider) == SortOption.recommended
+        ? 'Recommended'
+        : 'Cheapest';
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_prefilled) return;
+    _prefilled = true;
+    // Pre-fill from navigation extras — must read the router AFTER
+    // initState completes (inherited widgets are legal here).
+    final extra = GoRouterState.of(context).extra as Map<String, dynamic>?;
+    if (extra != null) {
+      _originCtrl.text = extra['origin']?.toString() ?? '';
+      _destCtrl.text = extra['destination']?.toString() ?? '';
+      final initialDeparture = extra['departureDate'] as DateTime?;
+      if (initialDeparture != null) {
+        _departure = initialDeparture;
+        _departureCtrl.text = DateFormat('EEE, MMM d').format(_departure);
+      }
+    }
   }
 
   @override
   void dispose() {
-    _headerController.dispose();
+    _originCtrl.dispose();
+    _destCtrl.dispose();
+    _departureCtrl.dispose();
+    _returnCtrl.dispose();
     super.dispose();
   }
 
-  void _collapseForm() {
-    setState(() {
-      _formExpanded = false;
-    });
+  String get _routeLabel => [_originCtrl.text, _destCtrl.text]
+      .where((s) => s.trim().isNotEmpty)
+      .join(' → ');
+
+  SortOption get _sortOption {
+    switch (_sortLabel) {
+      case 'Cheapest':
+        return SortOption.priceLowHigh;
+      case 'Fastest':
+      case 'Longest':
+        return SortOption.duration;
+      default:
+        return SortOption.recommended;
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(flightSearchControllerProvider);
-    final sort = ref.watch(flightSortProvider);
-    final filters = ref.watch(flightFiltersProvider);
+  List<FlightOffer> _applySort(List<FlightOffer> items) {
+    if (_sortLabel == 'Longest') {
+      final sorted = List<FlightOffer>.from(items)
+        ..sort((a, b) => b.arrivalTime
+            .difference(b.departureTime)
+            .inMinutes
+            .compareTo(a.arrivalTime.difference(a.departureTime).inMinutes));
+      return sorted;
+    }
+    return sortFlights(items, _sortOption);
+  }
 
-    // Extract initial search parameters from GoRouter state
-    final goRouterState = GoRouterState.of(context);
-    final extra = goRouterState.extra as Map<String, dynamic>?;
-    final initialOrigin = extra?['origin'] as String?;
-    final initialDestination = extra?['destination'] as String?;
-    final initialDeparture = extra?['departureDate'] as DateTime?;
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: CustomScrollView(
-        slivers: [
-          // ─── Gradient App Bar ───────────────────────────────────────────
-          SliverAppBar(
-            expandedHeight: _formExpanded ? 460 : 70,
-            pinned: true,
-            backgroundColor: AppColors.brand,
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.pin,
-              background: _buildHeader(initialOrigin, initialDestination, initialDeparture),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => context.pop(),
-            ),
-            title: AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: _formExpanded ? 0 : 1,
-              child: Text(
-                _routeLabel.isEmpty ? 'Flights' : 'Flights · $_routeLabel',
-                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ),
-            actions: [
-              if (!_formExpanded)
-                IconButton(
-                  icon: const Icon(Icons.tune, color: Colors.white),
-                  onPressed: () => setState(() => _formExpanded = true),
-                  tooltip: 'Edit Search',
-                ),
-            ],
-          ),
-
-          // ─── Sort & Filters row ────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(AppSpacing.sm),
-              child: Row(
-                children: [
-                  SortSelector(selected: sort, onChanged: (v) => ref.read(flightSortProvider.notifier).state = v),
-                  const Spacer(),
-                  TextButton(onPressed: () => _showFilters(context, ref), child: const Text('Filters')),
-                ],
-              ),
-            ),
-          ),
-
-          // ─── Results ────────────────────────────────────────────────────
-          _buildResultsSliver(state, sort, filters, ref),
-        ],
-      ),
+  void _pickOrigin() {
+    showPickerSheet(
+      context,
+      title: 'From where?',
+      entries: kAirports,
+      onSelected: (entry) => setState(() => _originCtrl.text = entry.code),
     );
   }
 
-  Widget _buildHeader(String? initialOrigin, String? initialDestination, DateTime? initialDeparture) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF0057B3), AppColors.brand, Color(0xFF5EA4FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      padding: EdgeInsets.fromLTRB(AppSpacing.lg, MediaQuery.of(context).padding.top + 56, AppSpacing.lg, AppSpacing.lg),
-      child: FadeTransition(
-        opacity: _headerAnimation,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Flights', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 4),
-            Text('Compare fares across airlines for your next trip',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13)),
-            const SizedBox(height: AppSpacing.md),
-            FlightSearchForm(
-              initialOrigin: initialOrigin,
-              initialDestination: initialDestination,
-              initialDeparture: initialDeparture,
-              onRouteChanged: (origin, destination) {
-                final label = [origin, destination].where((s) => s.trim().isNotEmpty).join(' → ');
-                if (label != _routeLabel) setState(() => _routeLabel = label);
-              },
-              onSearchStarted: _collapseForm,
-            ),
-          ],
-        ),
-      ),
+  void _pickDestination() {
+    showPickerSheet(
+      context,
+      title: 'Where to?',
+      entries: kAirports,
+      onSelected: (entry) => setState(() => _destCtrl.text = entry.code),
     );
   }
 
-  void _showFilters(BuildContext context, WidgetRef ref) {
+  Future<void> _pickDepartureDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _departure,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _departure = picked;
+        _departureCtrl.text = DateFormat('EEE, MMM d').format(_departure);
+        if (_returnDate != null && _returnDate!.isBefore(_departure)) {
+          _returnDate = null;
+          _returnCtrl.clear();
+        }
+      });
+    }
+  }
+
+  Future<void> _pickReturnDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _returnDate ?? _departure.add(const Duration(days: 3)),
+      firstDate: _departure,
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _returnDate = picked;
+        _returnCtrl.text = DateFormat('EEE, MMM d').format(_returnDate!);
+      });
+    }
+  }
+
+  void _search() {
+    final params = FlightSearchParams(
+      origin: _originCtrl.text.trim(),
+      destination: _destCtrl.text.trim(),
+      departureDate: _departure,
+      returnDate: _roundTrip ? _returnDate : null,
+      tripType: _roundTrip ? 'roundtrip' : 'oneway',
+      adults: _passengers,
+    );
+    _lastParams = params;
+    ref.read(flightSearchControllerProvider.notifier).search(params);
+  }
+
+  void _retry() {
+    final params = _lastParams;
+    if (params != null) {
+      ref.read(flightSearchControllerProvider.notifier).search(params);
+    }
+  }
+
+  void _showFilters() {
     showModalBottomSheet(
       context: context,
       builder: (_) => FilterPanel(
@@ -167,141 +194,239 @@ class _FlightSearchPageState extends ConsumerState<FlightSearchPage>
     );
   }
 
-  Widget _buildResultsSliver(FlightSearchState state, SortOption sort, SearchFilters filters, WidgetRef ref) {
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(flightSearchControllerProvider);
+    final filters = ref.watch(flightFiltersProvider);
+
+    return SearchScaffold(
+      hue: AppColors.flightHue,
+      title: 'Flights',
+      subtitle: 'Search flights across providers',
+      collapsedTitle: _routeLabel.isEmpty ? 'Flights' : 'Flights · $_routeLabel',
+      form: _buildForm(),
+      bottomContent: SortChipsRow(
+        options: _sortLabels,
+        selected: _sortLabel,
+        onSelected: (label) {
+          setState(() => _sortLabel = label);
+          // Keep the existing sort provider in sync (kept wiring).
+          ref.read(flightSortProvider.notifier).state = switch (label) {
+            'Cheapest' => SortOption.priceLowHigh,
+            'Fastest' || 'Longest' => SortOption.duration,
+            _ => SortOption.recommended,
+          };
+        },
+        filtersLabel: 'Filters',
+        filtersActive: !filters.isEmpty,
+        onFilters: _showFilters,
+      ),
+      body: _buildResults(state, filters),
+    );
+  }
+
+  // ── Form ────────────────────────────────────────────────────────────────
+  Widget _buildForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTripTypeChips(),
+        const SizedBox(height: AppSpacing.md),
+        SearchFieldInput(
+          icon: Icons.flight_takeoff_rounded,
+          hint: 'From where?',
+          controller: _originCtrl,
+          readOnly: true,
+          onTap: _pickOrigin,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        SearchFieldInput(
+          icon: Icons.flight_land_rounded,
+          hint: 'Where to?',
+          controller: _destCtrl,
+          readOnly: true,
+          onTap: _pickDestination,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: SearchFieldInput(
+                icon: Icons.calendar_today_outlined,
+                hint: 'Departure',
+                controller: _departureCtrl,
+                readOnly: true,
+                onTap: _pickDepartureDate,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _roundTrip
+                  ? SearchFieldInput(
+                      icon: Icons.calendar_today_outlined,
+                      hint: 'Return',
+                      controller: _returnCtrl,
+                      readOnly: true,
+                      onTap: _pickReturnDate,
+                    )
+                  : SearchFieldInput(
+                      icon: Icons.calendar_today_outlined,
+                      hint: 'One-way',
+                      readOnly: true,
+                      onTap: () => setState(() => _roundTrip = true),
+                    ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _buildPassengersRow(),
+        const SizedBox(height: AppSpacing.lg),
+        SearchSubmitButton(
+          label: 'Search flights',
+          onPressed: _search,
+          hue: AppColors.flightHue,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTripTypeChips() {
+    return Row(
+      children: [
+        _tripTypeChip('One-way', !_roundTrip, () => setState(() => _roundTrip = false)),
+        const SizedBox(width: AppSpacing.sm),
+        _tripTypeChip('Round-trip', _roundTrip, () => setState(() => _roundTrip = true)),
+      ],
+    );
+  }
+
+  Widget _tripTypeChip(String label, bool selected, VoidCallback onTap) {
+    final typography = AppTypography.forLight();
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.sm + 2),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(
+              color: selected ? Colors.white : Colors.white.withValues(alpha: 0.4)),
+        ),
+        child: Text(
+          label,
+          style: typography.captionSemibold.copyWith(
+            color: selected ? AppColors.flightHue : Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPassengersRow() {
+    final typography = AppTypography.forLight();
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm + 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.people_outline_rounded, size: 20, color: AppColors.brand),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              '$_passengers passenger${_passengers > 1 ? 's' : ''}',
+              style: typography.bodyLarge.copyWith(color: AppColors.textPrimary),
+            ),
+          ),
+          _stepperButton(Icons.remove_rounded,
+              () => setState(() { if (_passengers > 1) _passengers--; })),
+          const SizedBox(width: AppSpacing.md),
+          Text('$_passengers',
+              style: typography.bodyLargeMedium
+                  .copyWith(color: AppColors.textPrimary)),
+          const SizedBox(width: AppSpacing.md),
+          _stepperButton(Icons.add_rounded,
+              () => setState(() { if (_passengers < 9) _passengers++; })),
+        ],
+      ),
+    );
+  }
+
+  Widget _stepperButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: AppColors.brandContainer,
+          borderRadius: BorderRadius.circular(AppRadius.xs),
+        ),
+        child: Icon(icon, size: 18, color: AppColors.brand),
+      ),
+    );
+  }
+
+  // ── Results ─────────────────────────────────────────────────────────────
+  Widget _buildResults(FlightSearchState state, SearchFilters filters) {
     switch (state.status) {
       case SearchStatus.idle:
-        return const SliverToBoxAdapter(child: Center(child: Padding(
-          padding: EdgeInsets.all(AppSpacing.xl),
-          child: Text('Enter search criteria'),
-        )));
+        return const SearchStatesView.idle(
+          icon: Icons.flight_takeoff_rounded,
+          title: 'Find your flight',
+          body: 'Compare fares across airlines for your next trip',
+        );
       case SearchStatus.loading:
-        return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (_, _) => const _FlightCardSkeleton(),
-            childCount: 6,
+        return const SearchStatesView.loading(
+          skeleton: Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: FlightSearchCard.loading(),
           ),
         );
       case SearchStatus.success:
-        var items = List.of(state.results);
-        items = sortFlights(items, sort);
-        if (!filters.isEmpty && filters.priceMin != null) {
-          items = items.where((o) => o.price >= filters.priceMin!).toList();
-        }
-        if (!filters.isEmpty && filters.priceMax != null) {
-          items = items.where((o) => o.price <= filters.priceMax!).toList();
-        }
-        if (!filters.isEmpty && filters.maxStops != null) {
-          items = items.where((o) => (o.stops ?? 0) <= filters.maxStops!).toList();
-        }
-        return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (_, i) => FlightSearchCard(
-              offer: items[i],
-              onTap: () {
-                ref.read(selectedOfferProvider.notifier).state = SelectedOffer(
-                  offerId: items[i].id,
-                  providerId: items[i].providerId,
-                  providerName: items[i].providerName,
-                  price: items[i].price,
-                  currency: items[i].currency,
-                  searchId: '',
-                  offerType: 'flight',
-                );
-                context.push('/booking/review');
-              },
-            ),
-            childCount: items.length,
-          ),
-        );
+        return _buildResultsList(state, filters);
       case SearchStatus.empty:
-        return const SliverToBoxAdapter(child: Center(child: Padding(
-          padding: EdgeInsets.all(AppSpacing.xl),
-          child: Text('No flights found'),
-        )));
+        return const SearchStatesView.empty(
+          icon: Icons.search_off_rounded,
+          title: 'No flights found',
+          body: 'Try different dates or nearby airports',
+        );
       case SearchStatus.error:
-        return SliverToBoxAdapter(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(state.errorMessage ?? 'Error'),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          ),
+        return SearchStatesView.error(
+          title: 'Connection error',
+          body: state.errorMessage ?? 'Something went wrong. Please try again.',
+          onAction: _retry,
         );
     }
   }
-}
 
-// ─── Skeleton ──────────────────────────────────────────────────────────────────
+  Widget _buildResultsList(FlightSearchState state, SearchFilters filters) {
+    var items = List.of(state.results);
+    items = _applySort(items);
 
-class _FlightCardSkeleton extends StatefulWidget {
-  const _FlightCardSkeleton();
+    // Inline price/stops filtering (kept from the old page).
+    if (filters.priceMin != null) {
+      items = items.where((o) => o.price >= filters.priceMin!).toList();
+    }
+    if (filters.priceMax != null) {
+      items = items.where((o) => o.price <= filters.priceMax!).toList();
+    }
+    if (filters.maxStops != null) {
+      items = items.where((o) => (o.stops ?? 0) <= filters.maxStops!).toList();
+    }
 
-  @override
-  State<_FlightCardSkeleton> createState() => _FlightCardSkeletonState();
-}
-
-class _FlightCardSkeletonState extends State<_FlightCardSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _anim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
-    _anim = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-  }
-
-  @override
-  void dispose() { _controller.dispose(); super.dispose(); }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _anim,
-      builder: (_, _) {
-        final opacity = 0.5 + _anim.value * 0.3;
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(20),
+    return Column(
+      children: [
+        for (final offer in items)
+          FlightSearchCard(
+            offer: offer,
+            onTap: () => context.push('/offer-details', extra: offer),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(height: 16, width: 180, color: Colors.grey.withValues(alpha: opacity), margin: const EdgeInsets.only(bottom: 8)),
-                    Container(height: 12, width: 240, color: Colors.grey.withValues(alpha: opacity * 0.7), margin: const EdgeInsets.only(bottom: 8)),
-                    Container(height: 12, width: 120, color: Colors.grey.withValues(alpha: opacity * 0.5), margin: const EdgeInsets.only(bottom: 12)),
-                    Row(
-                      children: [
-                        Container(height: 32, width: 32, decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: opacity),
-                          borderRadius: BorderRadius.circular(AppSpacing.xl),
-                        )),
-                        const Spacer(),
-                        Container(height: 28, width: 90, color: Colors.grey.withValues(alpha: opacity * 0.7)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      ],
     );
   }
 }

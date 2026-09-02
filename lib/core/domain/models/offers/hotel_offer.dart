@@ -18,6 +18,7 @@ class HotelOffer extends BaseOffer {
     super.metadata,
     super.rating,
     super.reviewCount,
+    super.customerPrice,
     required this.city,
     required this.country,
     required this.checkIn,

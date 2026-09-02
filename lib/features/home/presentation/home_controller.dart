@@ -5,6 +5,7 @@ import 'package:wetravellers/core/domain/models/home/home_types.dart';
 import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/repositories/contracts/home_repository.dart';
 
+
 enum HomeStatus { loading, success, empty, error, partial, developmentPreview }
 
 class HomeState {
@@ -73,273 +74,73 @@ class HomeController extends StateNotifier<HomeState> {
   }
 
   List<HomeSection> _developmentPreviewSections() {
-    // Return sections with skeleton/placeholder items (no fake travel data)
-    // The approved cards will render their skeleton/loading states when data is null
-    return [
+    // Development preview — shown while the backend home feed is empty.
+    //
+    // Renders the approved card layouts as skeleton/loading UI ONLY. The
+    // HomeItem entries carry NO fake travel data: empty titles, null images,
+    // null prices, empty metadata. Cards detect these empty items via
+    // `_isSkeletonItem` in HomeSectionWidget and render their loading state.
+    HomeItem skeleton(HomeCardType type, int index) => HomeItem(
+          id: 'dev-${type.name}-$index',
+          type: type,
+          title: '',
+          subtitle: '',
+          description: '',
+          imageUrl: null,
+          price: null,
+          currency: null,
+          metadata: const <String, dynamic>{},
+        );
+
+    return <HomeSection>[
       HomeSection(
         id: 'dev-flights',
         title: 'Flight Recommendations',
-        subtitle: 'Cheapest & recommended flights',
+        subtitle: 'Recommended flights will appear here',
         layout: HomeSectionLayout.flightRecommendationList,
-        items: [
-          HomeItem(
-            id: 'dev-flight-1',
-            type: HomeCardType.flight,
-            title: '',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'origin': 'CAI',
-              'destination': 'DXB',
-              'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-              'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-              'airline': 'EgyptAir',
-              'flightNumber': 'MS 123',
-              'stops': 0,
-              'cabinClass': 'Economy',
-              'baggage': '1 bag (23kg)',
-            },
-          ),
-          HomeItem(
-            id: 'dev-flight-2',
-            type: HomeCardType.flight,
-            title: '',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'origin': 'JFK',
-              'destination': 'LHR',
-              'departureTime': DateTime.now().add(const Duration(days: 2, hours: 14)).toIso8601String(),
-              'arrivalTime': DateTime.now().add(const Duration(days: 2, hours: 21)).toIso8601String(),
-              'airline': 'British Airways',
-              'flightNumber': 'BA 177',
-              'stops': 0,
-              'cabinClass': 'Business',
-              'baggage': '2 bags (32kg)',
-            },
-          ),
-          HomeItem(
-            id: 'dev-flight-3',
-            type: HomeCardType.flight,
-            title: '',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'origin': 'DXB',
-              'destination': 'SYD',
-              'departureTime': DateTime.now().add(const Duration(days: 3, hours: 22)).toIso8601String(),
-              'arrivalTime': DateTime.now().add(const Duration(days: 4, hours: 18)).toIso8601String(),
-              'airline': 'Emirates',
-              'flightNumber': 'EK 413',
-              'stops': 1,
-              'stopAirport': 'SIN',
-              'cabinClass': 'Economy',
-              'baggage': '1 bag (23kg)',
-            },
-          ),
+        items: <HomeItem>[
+          skeleton(HomeCardType.flight, 0),
+          skeleton(HomeCardType.flight, 1),
         ],
       ),
       HomeSection(
         id: 'dev-hotels',
-        title: 'Hotel Recommendations',
-        subtitle: 'Top-rated stays',
-        layout: HomeSectionLayout.horizontal,
-        items: [
-          HomeItem(
-            id: 'dev-hotel-1',
-            type: HomeCardType.hotel,
-            title: '',
-            subtitle: 'Paris, France',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'roomType': 'Deluxe King',
-              'amenities': ['WiFi', 'Pool', 'Spa', 'Gym'],
-            },
-          ),
-          HomeItem(
-            id: 'dev-hotel-2',
-            type: HomeCardType.hotel,
-            title: '',
-            subtitle: 'Tokyo, Japan',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'roomType': 'Premium Suite',
-              'amenities': ['WiFi', 'Breakfast', 'Spa'],
-            },
-          ),
-          HomeItem(
-            id: 'dev-hotel-3',
-            type: HomeCardType.hotel,
-            title: '',
-            subtitle: 'Dubai, UAE',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'roomType': 'Ocean View',
-              'amenities': ['Pool', 'Beach Access', 'Spa'],
-            },
-          ),
-        ],
-      ),
-      HomeSection(
-        id: 'dev-packages',
-        title: 'Tour Packages',
-        subtitle: 'Curated journeys',
-        layout: HomeSectionLayout.horizontal,
-        items: [
-          HomeItem(
-            id: 'dev-package-1',
-            type: HomeCardType.package,
-            title: 'Turkey Discovery',
-            subtitle: 'Istanbul · Cappadocia · Antalya',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'destination': 'Istanbul · Cappadocia · Antalya',
-              'durationDays': 7,
-              'inclusions': ['Flights', 'Hotels', 'Tours', 'Transfers', 'Breakfast'],
-            },
-          ),
-          HomeItem(
-            id: 'dev-package-2',
-            type: HomeCardType.package,
-            title: 'Japan Explorer',
-            subtitle: 'Tokyo · Kyoto · Osaka',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'destination': 'Tokyo · Kyoto · Osaka',
-              'durationDays': 10,
-              'inclusions': ['Flights', 'Hotels', 'JR Pass', 'Tours'],
-            },
-          ),
-          HomeItem(
-            id: 'dev-package-3',
-            type: HomeCardType.package,
-            title: 'Greek Islands',
-            subtitle: 'Santorini · Mykonos · Crete',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'destination': 'Santorini · Mykonos · Crete',
-              'durationDays': 8,
-              'inclusions': ['Flights', 'Hotels', 'Ferries', 'Tours'],
-            },
-          ),
+        title: 'Hotels',
+        subtitle: 'Top-rated stays will appear here',
+        layout: HomeSectionLayout.horizontalPeek,
+        items: <HomeItem>[
+          skeleton(HomeCardType.hotel, 0),
+          skeleton(HomeCardType.hotel, 1),
         ],
       ),
       HomeSection(
         id: 'dev-cars',
         title: 'Car Rentals',
-        subtitle: 'Drive your journey',
-        layout: HomeSectionLayout.horizontal,
-        items: [
-          HomeItem(
-            id: 'dev-car-1',
-            type: HomeCardType.car,
-            title: 'Toyota Camry',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'type': 'Sedan',
-              'transmission': 'Automatic',
-              'seats': 5,
-              'luggage': '2 bags',
-              'ac': 'Yes',
-            },
-          ),
-          HomeItem(
-            id: 'dev-car-2',
-            type: HomeCardType.car,
-            title: 'Toyota RAV4',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'type': 'SUV',
-              'transmission': 'Automatic',
-              'seats': 5,
-              'luggage': '3 bags',
-              'ac': 'Yes',
-            },
-          ),
-          HomeItem(
-            id: 'dev-car-3',
-            type: HomeCardType.car,
-            title: 'BMW 3 Series',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'type': 'Premium Sedan',
-              'transmission': 'Automatic',
-              'seats': 5,
-              'luggage': '2 bags',
-              'ac': 'Yes',
-            },
-          ),
+        subtitle: 'Drive offers will appear here',
+        layout: HomeSectionLayout.horizontalPeek,
+        items: <HomeItem>[
+          skeleton(HomeCardType.car, 0),
+          skeleton(HomeCardType.car, 1),
+        ],
+      ),
+      HomeSection(
+        id: 'dev-packages',
+        title: 'Tour Packages',
+        subtitle: 'Curated journeys will appear here',
+        layout: HomeSectionLayout.horizontalPeek,
+        items: <HomeItem>[
+          skeleton(HomeCardType.package, 0),
+          skeleton(HomeCardType.package, 1),
         ],
       ),
       HomeSection(
         id: 'dev-deals',
         title: 'Hot Deals',
-        subtitle: 'Limited time offers',
-        layout: HomeSectionLayout.vertical,
-        items: [
-          HomeItem(
-            id: 'dev-deal-1',
-            type: HomeCardType.deal,
-            title: 'Maldives Getaway',
-            subtitle: '5 nights all-inclusive',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'savingsPercent': 35,
-              'savingsAmount': 800.0,
-              'validUntil': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
-            },
-          ),
-          HomeItem(
-            id: 'dev-deal-2',
-            type: HomeCardType.deal,
-            title: 'European Rail Pass',
-            subtitle: '15 days unlimited travel',
-            imageUrl: null,
-            price: null,
-            currency: 'EUR',
-            metadata: {
-              'savingsPercent': 25,
-              'savingsAmount': 150.0,
-              'validUntil': DateTime.now().add(const Duration(days: 60)).toIso8601String(),
-            },
-          ),
-          HomeItem(
-            id: 'dev-deal-3',
-            type: HomeCardType.deal,
-            title: 'Safari Adventure',
-            subtitle: '5-day Kenya & Tanzania',
-            imageUrl: null,
-            price: null,
-            currency: 'USD',
-            metadata: {
-              'savingsPercent': 20,
-              'savingsAmount': 400.0,
-              'validUntil': DateTime.now().add(const Duration(days: 45)).toIso8601String(),
-            },
-          ),
+        subtitle: 'Limited-time offers will appear here',
+        layout: HomeSectionLayout.verticalDealList,
+        items: <HomeItem>[
+          skeleton(HomeCardType.deal, 0),
+          skeleton(HomeCardType.deal, 1),
         ],
       ),
       HomeSection(
@@ -347,52 +148,9 @@ class HomeController extends StateNotifier<HomeState> {
         title: 'Destinations',
         subtitle: 'Discover your next adventure',
         layout: HomeSectionLayout.horizontal,
-        items: [
-          HomeItem(
-            id: 'dev-dest-1',
-            type: HomeCardType.destination,
-            title: 'Paris',
-            subtitle: 'France',
-            imageUrl: null,
-            currency: 'EUR',
-            metadata: {'country': 'France'},
-          ),
-          HomeItem(
-            id: 'dev-dest-2',
-            type: HomeCardType.destination,
-            title: 'Tokyo',
-            subtitle: 'Japan',
-            imageUrl: null,
-            currency: 'JPY',
-            metadata: {'country': 'Japan'},
-          ),
-          HomeItem(
-            id: 'dev-dest-3',
-            type: HomeCardType.destination,
-            title: 'New York',
-            subtitle: 'USA',
-            imageUrl: null,
-            currency: 'USD',
-            metadata: {'country': 'United States'},
-          ),
-          HomeItem(
-            id: 'dev-dest-4',
-            type: HomeCardType.destination,
-            title: 'Dubai',
-            subtitle: 'UAE',
-            imageUrl: null,
-            currency: 'AED',
-            metadata: {'country': 'United Arab Emirates'},
-          ),
-          HomeItem(
-            id: 'dev-dest-5',
-            type: HomeCardType.destination,
-            title: 'Bali',
-            subtitle: 'Indonesia',
-            imageUrl: null,
-            currency: 'IDR',
-            metadata: {'country': 'Indonesia'},
-          ),
+        items: <HomeItem>[
+          skeleton(HomeCardType.destination, 0),
+          skeleton(HomeCardType.destination, 1),
         ],
       ),
     ];

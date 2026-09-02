@@ -30,25 +30,28 @@ class CardPrimaryAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final foreground = scheme.onPrimary;
+
     final child = Row(
       mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (loading)
-          const SizedBox(
+          SizedBox(
             width: 18,
             height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
           )
         else ...[
           if (icon != null) ...[
-            Icon(icon, size: 18, color: Colors.white),
+            Icon(icon, size: 18, color: foreground),
             const SizedBox(width: AppSpacing.sm),
           ],
           Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: _disabled ? Colors.white70 : Colors.white,
+                  color: foreground,
                   fontWeight: FontWeight.w600,
                 ),
           ),
@@ -64,12 +67,12 @@ class CardPrimaryAction extends StatelessWidget {
           height: height,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF0057B3), AppColors.brand],
+            gradient: LinearGradient(
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
+              colors: [AppColors.brand, AppColors.brand],
             ),
-            borderRadius: BorderRadius.circular(AppRadius.pill),
+            borderRadius: AppRadius.pillBorder,
           ),
           child: child,
         ),

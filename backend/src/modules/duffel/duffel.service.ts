@@ -162,6 +162,14 @@ export class DuffelService implements FlightProvider {
           currency: offer.total_currency ?? offer.currency ?? 'USD',
           duration: firstSlice?.duration,
           stops: Math.max(0, (firstSlice?.segments?.length ?? 1) - 1),
+          // Price provenance (spec point 7): search prices are provisional.
+          metadata: {
+            providerOfferId: offer.id,
+            retrievedAt: new Date().toISOString(),
+            expiresAt:
+              offer.expires_at ??
+              new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+          },
         };
       });
 
@@ -211,6 +219,52 @@ export class DuffelService implements FlightProvider {
       return response.data;
     } catch (error) {
       throw new Error(`Failed to create booking: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Revalidation (spec points 7-8): fetch the live offer and return its
+   * authoritative price/availability + expiry. The caller (offers
+   * controller) compares against the known price and produces a structured
+   * PRICE_CHANGED outcome instead of charging silently.
+   */
+  async revalidateOffer(offerId: string): Promise<ProviderResult<any>> {
+    if (!this.duffelClient) {
+      return {
+        success: false,
+        providerId: this.providerId,
+        providerName: this.providerName,
+        error: 'Duffel API is not configured',
+        timestamp: new Date(),
+      };
+    }
+    try {
+      const response = await this.duffelClient.offers.get(offerId);
+      const offer = response?.data ?? response;
+      const price = parseFloat(offer?.total_amount ?? '0');
+      const currency = offer?.total_currency ?? 'USD';
+      return {
+        success: true,
+        providerId: this.providerId,
+        providerName: this.providerName,
+        data: {
+          price,
+          currency,
+          // Duffel offers expire; expose provider truth when present.
+          expiresAt: offer?.expires_at ?? new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+          available: price > 0,
+          rawId: offerId,
+        },
+        timestamp: new Date(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        providerId: this.providerId,
+        providerName: this.providerName,
+        error: `Failed to revalidate offer: ${(error as Error).message}`,
+        timestamp: new Date(),
+      };
     }
   }
 }

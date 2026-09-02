@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_radius.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/core/widgets/cards/card_glass.dart';
+import 'package:wetravellers/core/widgets/cards/card_scrim_overlay.dart';
 
 /// Star rating row. Inline by default; pass [onImage] to render as a
 /// translucent dark glass pill for placement over a photo (this is the single
@@ -32,12 +34,12 @@ class CardRating extends StatelessWidget {
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.star, size: 14, color: Colors.amber),
+        const Icon(Icons.star, size: 14, color: AppColors.warning),
         const SizedBox(width: 2),
         Text(
           rating!.toStringAsFixed(1),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: textColor ?? (onImage ? Colors.white : null),
+                color: textColor ?? (onImage ? CardScrimColors.onScrim : null),
               ),
         ),
         if (reviewCount != null) ...[
@@ -46,7 +48,7 @@ class CardRating extends StatelessWidget {
             '($reviewCount)',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: onImage
-                      ? Colors.white70
+                      ? CardScrimColors.onScrimVariant
                       : (textColor ?? Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
           ),
@@ -61,9 +63,9 @@ class CardRating extends StatelessWidget {
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.xxs,
       ),
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-      tint: Colors.black.withValues(alpha: 0.45),
-      borderColor: Colors.white.withValues(alpha: 0.25),
+      borderRadius: AppRadius.pillBorder,
+      tint: const Color(0x73000000),
+      borderColor: CardScrimColors.onScrimBorder,
       child: content,
     );
   }

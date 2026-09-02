@@ -1,27 +1,150 @@
 import 'package:flutter/material.dart';
-import 'package:wetravellers/features/bag/domain/trip.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:wetravellers/core/theme/app_colors.dart';
+import 'package:wetravellers/core/theme/app_radius.dart';
+import 'package:wetravellers/core/theme/app_spacing.dart';
+import 'package:wetravellers/core/theme/app_typography.dart';
+import 'package:wetravellers/core/widgets/step_progress.dart' show StatusChip;
+
+/// Trip details — the deep-dive surface of one trip in the Bag.
+///
+/// v1 renders the trip summary as a premium fact card; the full
+/// Today/Itinerary/Map/Wallet surfaces arrive with the travel-mode phase.
 class TripDetailsPage extends StatelessWidget {
-  final TripSummary trip;
-  const TripDetailsPage({super.key, required this.trip});
+  const TripDetailsPage({super.key, required this.tripId});
+
+  final String tripId;
 
   @override
   Widget build(BuildContext context) {
+    final typography = AppTypography.forLight();
+
     return Scaffold(
-      appBar: AppBar(title: Text(trip.destination)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Type: ${trip.type}', style: Theme.of(context).textTheme.titleMedium),
-            Text('Status: ${trip.status}'),
-            Text('Dates: ${trip.startDate.toLocal()} - ${trip.endDate.toLocal()}'),
-            Text('Provider: ${trip.providerName}'),
-            Text('Reference: ${trip.bookingReference}'),
-            Text('Total: ${trip.total} ${trip.currency}'),
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.lg,
+                0,
+              ),
+              child: Row(
+                children: <Widget>[
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    onPressed: () => context.canPop()
+                        ? context.pop()
+                        : context.go('/bag'),
+                    tooltip: 'Back',
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    'Trip details',
+                    style: typography.title.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    decoration: BoxDecoration(
+                      color: AppColors.brandContainer,
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
+                    child: Column(
+                      children: <Widget>[
+                        Icon(
+                          Icons.luggage_rounded,
+                          size: 44,
+                          color: AppColors.brand,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          'Trip $tripId',
+                          style: typography.headline.copyWith(
+                            color: AppColors.onBrandContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  _FactCard(
+                    rows: <(String, String)>[
+                      ('Status', 'confirmed'),
+                      ('Type', 'booking'),
+                      ('Provider', 'WeTravellers'),
+                      ('Reference', tripId),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    'Itinerary, map, wallet and readiness arrive with the travel-mode phase.',
+                    style: typography.caption.copyWith(
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _FactCard extends StatelessWidget {
+  const _FactCard({required this.rows});
+
+  final List<(String, String)> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = AppTypography.forLight();
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.outline),
+      ),
+      child: Column(
+        children: <Widget>[
+          for (final (label, value) in rows) ...<Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    label,
+                    style: typography.body.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: typography.bodyMedium.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            if (value != rows.last.$2) const Divider(height: AppSpacing.lg),
+          ],
+        ],
       ),
     );
   }

@@ -6,11 +6,13 @@ import 'package:wetravellers/core/widgets/cards/card_badge.dart';
 /// A visual route line for flights showing departure, stops, and arrival.
 ///
 /// Renders a horizontal line with:
-/// - Departure time on the left
+/// - Departure time on the start side
 /// - Visual line with stop indicator (●) when stops > 0
 /// - Stop city/country label under the stop indicator
 /// - Layover duration when available
-/// - Arrival time on the right
+/// - Arrival time on the end side
+///
+/// Fully RTL-safe: uses directional alignment only.
 class FlightRouteLine extends StatelessWidget {
   const FlightRouteLine({
     super.key,
@@ -22,6 +24,7 @@ class FlightRouteLine extends StatelessWidget {
     this.stopAirport,
     this.layoverDuration,
     this.duration,
+    this.compact = false,
   });
 
   final DateTime departureTime;
@@ -33,6 +36,9 @@ class FlightRouteLine extends StatelessWidget {
   final String? layoverDuration;
   final String? duration;
 
+  /// Compact variant for recommendation cards: slightly smaller typography.
+  final bool compact;
+
   String _formatTime(DateTime dt) {
     final hour = dt.hour.toString().padLeft(2, '0');
     final minute = dt.minute.toString().padLeft(2, '0');
@@ -43,6 +49,10 @@ class FlightRouteLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final lineColor = scheme.outlineVariant;
+    final timeStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          fontSize: compact ? null : 20,
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,17 +63,14 @@ class FlightRouteLine extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Departure column
-            SizedBox(
-              width: 72,
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     _formatTime(departureTime),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                    style: timeStyle,
                   ),
                   const SizedBox(height: AppSpacing.xxs),
                   Text(
@@ -72,6 +79,8 @@ class FlightRouteLine extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                   ),
                 ],
@@ -79,10 +88,12 @@ class FlightRouteLine extends StatelessWidget {
             ),
             // Route line with stops
             Expanded(
+              flex: 2,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Line with stop indicator
+                  const SizedBox(height: AppSpacing.xs),
+                  // Line with stop indicators
                   Stack(
                     alignment: Alignment.center,
                     children: [
@@ -90,6 +101,11 @@ class FlightRouteLine extends StatelessWidget {
                       Container(
                         height: 2,
                         color: lineColor,
+                      ),
+                      // Plane icon travelling the route
+                      const PositionedDirectional(
+                        end: 0,
+                        child: Icon(Icons.flight, size: 14),
                       ),
                       // Stop indicators
                       if (stops > 0) ..._buildStopIndicators(context, lineColor),
@@ -107,7 +123,7 @@ class FlightRouteLine extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: scheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                          borderRadius: AppRadius.pillBorder,
                         ),
                         child: Text(
                           duration!,
@@ -123,17 +139,14 @@ class FlightRouteLine extends StatelessWidget {
               ),
             ),
             // Arrival column
-            SizedBox(
-              width: 72,
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     _formatTime(arrivalTime),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                    style: timeStyle,
                   ),
                   const SizedBox(height: AppSpacing.xxs),
                   Text(
@@ -143,6 +156,8 @@ class FlightRouteLine extends StatelessWidget {
                     textAlign: TextAlign.end,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                   ),
                 ],
@@ -161,7 +176,7 @@ class FlightRouteLine extends StatelessWidget {
 
   List<Widget> _buildStopIndicators(BuildContext context, Color lineColor) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
 
     if (stops == 1) {
       return [
@@ -176,7 +191,7 @@ class FlightRouteLine extends StatelessWidget {
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: isDark ? scheme.primary : scheme.onSurface,
+                  color: scheme.onSurface,
                   shape: BoxShape.circle,
                   border: Border.all(color: lineColor, width: 2),
                 ),
@@ -190,13 +205,13 @@ class FlightRouteLine extends StatelessWidget {
       final widgets = <Widget>[];
       for (int i = 0; i < stops; i++) {
         widgets.add(
-          Positioned(
-            left: (1.0 / (stops + 1)) * (i + 1),
+          Align(
+            alignment: Alignment(-1.0 + (2.0 / (stops + 1)) * (i + 1), 0),
             child: Container(
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: isDark ? scheme.primary : scheme.onSurface,
+                color: scheme.onSurface,
                 shape: BoxShape.circle,
                 border: Border.all(color: lineColor, width: 2),
               ),

@@ -3,167 +3,108 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
-import 'package:wetravellers/core/widgets/cards/card.dart';
+import 'package:wetravellers/core/widgets/shimmer.dart';
 import 'package:wetravellers/features/home/presentation/widgets/flight_recommendation_card.dart';
+import 'package:wetravellers/features/search/presentation/widgets/flight_route_line.dart';
 
-Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: Center(child: SizedBox(width: 300, height: 250, child: child))));
+Widget _wrap(Widget child) => MaterialApp(
+    home: Scaffold(body: Center(child: SingleChildScrollView(child: child))));
 
 HomeItem _makeItem({
   String id = 'f1',
   String title = 'EgyptAir',
-  String? subtitle,
-  String? imageUrl,
-  double? price = 15000,
-  String? currency = 'EGP',
   Map<String, dynamic>? metadata,
 }) =>
     HomeItem(
       id: id,
       type: HomeCardType.flight,
       title: title,
-      subtitle: subtitle,
-      imageUrl: imageUrl,
-      price: price,
-      currency: currency,
-      metadata: metadata ?? {},
+      price: 15000,
+      currency: 'EGP',
+      metadata: metadata ?? const {},
     );
 
 void main() {
   group('FlightRecommendationCard', () {
-    testWidgets('renders all core elements for direct flight', (tester) async {
+    testWidgets('renders tile with route strip, airline and price', (tester) async {
       await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(
-        imageUrl: null,
         metadata: {
           'origin': 'CAI',
           'destination': 'DXB',
-          'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-          'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
+          'departureTime': DateTime(2026, 1, 1, 8, 0).toIso8601String(),
+          'arrivalTime': DateTime(2026, 1, 1, 11, 30).toIso8601String(),
           'airline': 'EgyptAir',
           'flightNumber': 'MS 123',
           'stops': 0,
-          'cabinClass': 'Economy',
-          'baggage': '1 bag (23kg)',
+          'recommendation': 'cheapest',
         },
       ))));
 
+      expect(find.text('EgyptAir'), findsOneWidget);
       expect(find.text('CAI'), findsOneWidget);
       expect(find.text('DXB'), findsOneWidget);
-      expect(find.text('EgyptAir'), findsOneWidget);
-      expect(find.text('MS 123'), findsOneWidget);
-      expect(find.textContaining('Economy'), findsOneWidget);
-      expect(find.textContaining('1 bag'), findsOneWidget);
-      expect(find.text('EGP 15000'), findsOneWidget);
-      expect(find.byType(CardImage), findsOneWidget);
-      expect(find.byType(CardPrice), findsOneWidget);
-      expect(find.byType(CardFavorite), findsOneWidget);
-    });
-
-    testWidgets('renders cheapest recommendation badge', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'CAI',
-        'destination': 'DXB',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-        'recommendation': 'cheapest',
-      }))));
-
+      expect(find.text('08:00'), findsOneWidget);
+      expect(find.text('11:30'), findsOneWidget);
+      expect(find.text('3h 30m'), findsOneWidget);
+      expect(find.text('Non-stop'), findsOneWidget);
       expect(find.text('Cheapest'), findsOneWidget);
-      expect(find.byIcon(Icons.attach_money), findsOneWidget);
-      // Badge should be glass variant
-      final badge = tester.widget<CardBadge>(find.byType(CardBadge).first);
-      expect(badge.variant, CardBadgeVariant.glass);
+      // Price over scrim-free surface
+      expect(find.textContaining('EGP'), findsOneWidget);
+      // Uses the shared route line primitive
+      expect(find.byType(FlightRouteLine), findsOneWidget);
     });
 
-    testWidgets('renders fastest recommendation badge', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'CAI',
-        'destination': 'DXB',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-        'recommendation': 'fastest',
-      }))));
+    testWidgets('renders stops text for 1-stop flights with stop airport', (tester) async {
+      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(
+        metadata: {
+          'origin': 'CAI',
+          'destination': 'LHR',
+          'stops': 1,
+          'stopAirport': 'IST',
+        },
+      ))));
 
-      expect(find.text('Fastest'), findsOneWidget);
-      expect(find.byIcon(Icons.speed), findsOneWidget);
+      expect(find.text('1 stop (IST)'), findsOneWidget);
     });
 
-    testWidgets('renders best value recommendation badge', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'CAI',
-        'destination': 'DXB',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-        'recommendation': 'best_value',
-      }))));
+    testWidgets('renders seats-left badge when few seats remain', (tester) async {
+      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(
+        metadata: {
+          'seatsLeft': 3,
+          'recommendation': 'best_value',
+        },
+      ))));
 
       expect(find.text('Best Value'), findsOneWidget);
-      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.text('3 seats left'), findsOneWidget);
     });
 
-    testWidgets('renders one stop with airport', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'CAI',
-        'destination': 'DXB',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 13)).toIso8601String(),
-        'stops': 1,
-        'stopAirport': 'JED',
-      }))));
+    testWidgets('hides seats badge when many seats remain', (tester) async {
+      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(
+        metadata: {'seatsLeft': 30},
+      ))));
 
-      expect(find.textContaining('1 stop'), findsOneWidget);
-      expect(find.textContaining('JED'), findsOneWidget);
-      // Stop badge should be glass variant and centered
-      final badges = tester.widgetList<CardBadge>(find.byType(CardBadge));
-      final stopBadge = badges.firstWhere((b) => b.label?.contains('stop') == true);
-      expect(stopBadge.variant, CardBadgeVariant.glass);
+      expect(find.textContaining('seats left'), findsNothing);
     });
 
-    testWidgets('renders multiple stops', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'CAI',
-        'destination': 'DXB',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 15)).toIso8601String(),
-        'stops': 2,
-      }))));
-
-      expect(find.textContaining('2 stops'), findsOneWidget);
-    });
-
-    testWidgets('wishlist heart renders as glass variant and toggles', (tester) async {
-      var lastCallbackValue = false;
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(
-        item: _makeItem(
-          imageUrl: null,
-          metadata: {
-            'origin': 'CAI',
-            'destination': 'DXB',
-            'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-            'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-          },
-        ),
-        onWishlistChanged: (v) => lastCallbackValue = v,
+    testWidgets('loading: skeleton, no fake data', (tester) async {
+      await tester.pumpWidget(_wrap(const FlightRecommendationCard(
+        item: HomeItem(id: '', type: HomeCardType.flight, title: ''),
+        loading: true,
       )));
+      await tester.pump(const Duration(milliseconds: 100));
 
-      final favorite = tester.widget<CardFavorite>(find.byType(CardFavorite));
-      expect(favorite.onImage, true);
-      expect(favorite.value, false);
-      await tester.pump(); // Allow AnimatedSwitcher to render
-
-      // Tap the heart - should call onChanged with true
-      await tester.tap(find.byType(CardFavorite));
-      expect(lastCallbackValue, true);
+      expect(find.byType(ShimmerBox), findsWidgets);
+      // No airline, route or price text may render in loading state
+      expect(find.text('EgyptAir'), findsNothing);
+      expect(find.text('CAI'), findsNothing);
+      expect(find.textContaining('EGP'), findsNothing);
     });
 
     testWidgets('onTap callback fires', (tester) async {
       var taps = 0;
       await tester.pumpWidget(_wrap(FlightRecommendationCard(
-        item: _makeItem(metadata: {
-          'origin': 'CAI',
-          'destination': 'DXB',
-          'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-          'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-        }),
+        item: _makeItem(),
         onTap: () => taps++,
       )));
 
@@ -171,113 +112,82 @@ void main() {
       expect(taps, 1);
     });
 
-    testWidgets('price uses CardPrice with white color over scrim', (tester) async {
+    testWidgets('semantics label aggregates info', (tester) async {
       await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(
-        price: 25000,
-        currency: 'EGP',
         metadata: {
           'origin': 'CAI',
           'destination': 'DXB',
-          'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-          'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
+          'recommendation': 'cheapest',
         },
       ))));
 
-      final price = tester.widget<CardPrice>(find.byType(CardPrice));
-      expect(price.color, Colors.white);
-      expect(find.text('EGP 25000'), findsOneWidget);
-    });
-
-    testWidgets('semantics label aggregates all info', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'CAI',
-        'destination': 'DXB',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-        'recommendation': 'fastest',
-        'airline': 'EgyptAir',
-        'flightNumber': 'MS 123',
-        'stops': 0,
-        'cabinClass': 'Business',
-        'baggage': '2 bags',
-      }))));
-
       final semantics = tester.getSemantics(find.byType(FlightRecommendationCard));
       expect(semantics.label, contains('Recommended flight'));
-      expect(semantics.label, contains('Fastest'));
       expect(semantics.label, contains('EgyptAir'));
-      expect(semantics.label, contains('Flight MS 123'));
-      expect(semantics.label, contains('CAI'));
-      expect(semantics.label, contains('DXB'));
-      expect(semantics.label, contains('Business'));
-      expect(semantics.label, contains('2 bags'));
-      expect(semantics.label, contains('Price 15000 EGP'));
-    });
-
-    testWidgets('long airline name ellipsizes in scrim', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'CAI',
-        'destination': 'DXB',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-        'airline': 'Very Long Airline Name That Should Be Truncated',
-      }))));
-
-      expect(find.byType(FlightRecommendationCard), findsOneWidget);
-    });
-
-    testWidgets('long airport names ellipsize in route line', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'VeryLongOriginCode',
-        'destination': 'VeryLongDestinationCode',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-      }))));
-
-      expect(find.byType(FlightRecommendationCard), findsOneWidget);
+      expect(semantics.label, contains('CAI to DXB'));
+      expect(semantics.label, contains('cheapest'));
     });
 
     testWidgets('dark mode renders without errors', (tester) async {
       await tester.pumpWidget(MaterialApp(
         theme: ThemeData.dark(),
-        home: Scaffold(body: FlightRecommendationCard(item: _makeItem(metadata: {
-          'origin': 'CAI',
-          'destination': 'DXB',
-          'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-          'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-        }))),
+        home: Scaffold(
+          body: FlightRecommendationCard(item: _makeItem(metadata: {
+            'origin': 'CAI',
+            'destination': 'DXB',
+          })),
+        ),
       ));
-
       expect(find.byType(FlightRecommendationCard), findsOneWidget);
     });
 
     testWidgets('RTL layout renders without overflow', (tester) async {
       await tester.pumpWidget(MaterialApp(
         locale: const Locale('ar'),
-        home: Scaffold(body: FlightRecommendationCard(item: _makeItem(metadata: {
-          'origin': 'CAI',
-          'destination': 'DXB',
-          'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-          'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-        }))),
+        home: Scaffold(
+          body: FlightRecommendationCard(item: _makeItem(metadata: {
+            'origin': 'CAI',
+            'destination': 'DXB',
+            'airline': 'طيران مصر',
+            'flightNumber': 'MS 985',
+          })),
+        ),
       ));
-
-      expect(find.byType(FlightRecommendationCard), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
-    testWidgets('no recommendation badge when not in metadata', (tester) async {
-      await tester.pumpWidget(_wrap(FlightRecommendationCard(item: _makeItem(metadata: {
-        'origin': 'CAI',
-        'destination': 'DXB',
-        'departureTime': DateTime.now().add(const Duration(days: 1, hours: 8)).toIso8601String(),
-        'arrivalTime': DateTime.now().add(const Duration(days: 1, hours: 11)).toIso8601String(),
-      }))));
+    testWidgets('large text scale renders without overflow', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+          child: child!,
+        ),
+        home: Scaffold(
+          body: FlightRecommendationCard(item: _makeItem(metadata: {
+            'origin': 'CAI',
+            'destination': 'DXB',
+            'airline': 'EgyptAir',
+            'flightNumber': 'MS 985',
+          })),
+        ),
+      ));
+      expect(tester.takeException(), isNull);
+    });
 
-      // Should have badges for wishlist, airline logo (not CardBadge)
-      // Recommendation badge should not exist
-      final recommendationBadges = tester.widgetList<CardBadge>(find.byType(CardBadge))
-          .where((b) => b.label == 'Cheapest' || b.label == 'Fastest' || b.label == 'Best Value');
-      expect(recommendationBadges, isEmpty);
+    testWidgets('narrow width (320) renders without overflow', (tester) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: FlightRecommendationCard(item: _makeItem(metadata: {
+            'origin': 'CAI',
+            'destination': 'DXB',
+          })),
+        ),
+      ));
+      expect(tester.takeException(), isNull);
     });
   });
 }

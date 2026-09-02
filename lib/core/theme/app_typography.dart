@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 /// Typography scale for WeTravellers.
 ///
-/// Weights, sizes and letter spacing follow an Apple-quality system while
-/// remaining fully adaptive on Android (system font families are used so no
-/// bundled font assets are required).
+/// A premium, travel-magazine type system built on Manrope (Latin) with
+/// Cairo as the Arabic counterpart. Variable fonts are bundled, so every
+/// weight from 400-800 renders without extra assets.
 @immutable
 class AppTypography {
   const AppTypography._({
@@ -13,18 +14,18 @@ class AppTypography {
     required this.textMutedColor,
   });
 
-  factory AppTypography.forBrightness(Brightness brightness) {
-    final isDark = brightness == Brightness.dark;
-    return AppTypography._(
-      textColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-      textMutedColor: isDark
-          ? AppColors.textSecondaryDark
-          : AppColors.textSecondaryLight,
-    );
-  }
+  const AppTypography.forLight()
+      : textColor = AppColors.textPrimary,
+        textMutedColor = AppColors.textSecondary;
 
   final Color textColor;
   final Color textMutedColor;
+
+  // ---------------------------------------------------------------------------
+  // Font families
+  // ---------------------------------------------------------------------------
+  static const String fontFamily = 'Manrope';
+  static const String fontFamilyFallback = 'Cairo';
 
   // ---------------------------------------------------------------------------
   // Font sizes
@@ -44,25 +45,37 @@ class AppTypography {
   static const FontWeight weightMedium = FontWeight.w500;
   static const FontWeight weightSemibold = FontWeight.w600;
   static const FontWeight weightBold = FontWeight.w700;
+  static const FontWeight weightExtraBold = FontWeight.w800;
+
+  /// Tracks whether the active session renders Arabic copy (RTL) so the type
+  /// system can swap to Cairo. Set by the app's locale observer.
+  static bool _isArabicLocale = false;
+
+  // ignore: avoid_setters_without_getters
+  static set isArabicLocale(bool value) => _isArabicLocale = value;
 
   TextStyle _style({
     required double size,
     required FontWeight weight,
     Color? color,
     double? height,
+    double? letterSpacing,
   }) {
+    final isArabic = _isArabicLocale;
     return TextStyle(
       fontSize: size,
       fontWeight: weight,
       color: color ?? textColor,
       height: height,
-      fontFamilyFallback: const <String>['.SF Pro Text', 'Roboto'],
+      letterSpacing: isArabic ? 0 : letterSpacing,
+      fontFamily: isArabic ? fontFamilyFallback : fontFamily,
+      fontFamilyFallback: const <String>['Manrope', 'Cairo', '.SF Pro Text', 'Roboto'],
     );
   }
 
-  TextStyle get display => _style(size: fontSizeDisplay, weight: weightBold, height: 1.15);
-  TextStyle get headline => _style(size: fontSizeHeadline, weight: weightBold, height: 1.2);
-  TextStyle get title => _style(size: fontSizeTitle, weight: weightSemibold, height: 1.25);
+  TextStyle get display => _style(size: fontSizeDisplay, weight: weightExtraBold, height: 1.12, letterSpacing: -0.5);
+  TextStyle get headline => _style(size: fontSizeHeadline, weight: weightBold, height: 1.18, letterSpacing: -0.4);
+  TextStyle get title => _style(size: fontSizeTitle, weight: weightSemibold, height: 1.25, letterSpacing: -0.2);
   TextStyle get bodyLarge => _style(size: fontSizeBodyLarge, weight: weightRegular, height: 1.4);
   TextStyle get bodyLargeMedium =>
       _style(size: fontSizeBodyLarge, weight: weightSemibold, height: 1.35);
@@ -76,12 +89,10 @@ class AppTypography {
         weight: weightSemibold,
         color: textMutedColor,
         height: 1.2,
+        letterSpacing: 0.3,
       );
 
   /// Builds a full [TextTheme] wired to the active palette.
-  ///
-  /// No [baseStyle] is applied; adjust text styles globally via
-  /// [ThemeData.textTheme] or per-widget.
   TextTheme buildTextTheme() {
     return TextTheme(
       displayLarge: display.copyWith(color: textColor),

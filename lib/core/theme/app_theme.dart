@@ -7,33 +7,32 @@ import 'app_spacing.dart';
 import 'app_tokens.dart';
 import 'app_typography.dart';
 
-/// Builds the central [ThemeData] for WeTravellers.
+/// Builds the central light-only [ThemeData] for WeTravellers.
 ///
-/// Produces a bright, soft-edged Light theme and a near-black Dark theme,
-/// both mapped from the shared [AppTokens] so visual identity stays coherent.
+/// "Pure White Premium": stark white canvas, crisp hairline borders, soft
+/// diffused shadows, and a royal indigo primary mapped through the full
+/// Material 3 [ColorScheme]. There is intentionally no dark variant.
 @immutable
 abstract final class AppTheme {
-  static ThemeData light() => _build(Brightness.light);
-  static ThemeData dark() => _build(Brightness.dark);
-
-  static ThemeData _build(Brightness brightness) {
-    final tokens = AppTokens.forBrightness(brightness);
+  static ThemeData light() {
+    final tokens = AppTokens.standard();
     final palette = tokens.colors;
-    final isDark = brightness == Brightness.dark;
-    final typography = AppTypography.forBrightness(brightness);
+    final typography = AppTypography.forLight();
 
     final colorScheme = ColorScheme(
-      brightness: brightness,
+      brightness: Brightness.light,
       primary: AppColors.brand,
       onPrimary: AppColors.onBrand,
       primaryContainer: AppColors.brandContainer,
       onPrimaryContainer: AppColors.onBrandContainer,
-      secondary: AppColors.brand,
-      onSecondary: AppColors.onBrand,
-      secondaryContainer: palette.surfaceSecondary,
-      onSecondaryContainer: palette.textPrimary,
-      tertiary: AppColors.info,
-      onTertiary: AppColors.onBrand,
+      secondary: AppColors.accent,
+      onSecondary: Colors.white,
+      secondaryContainer: AppColors.accentContainer,
+      onSecondaryContainer: AppColors.onAccentContainer,
+      tertiary: AppColors.ai,
+      onTertiary: Colors.white,
+      tertiaryContainer: AppColors.aiContainer,
+      onTertiaryContainer: AppColors.onAiContainer,
       error: AppColors.danger,
       onError: Colors.white,
       surface: palette.surface,
@@ -46,25 +45,23 @@ abstract final class AppTheme {
       scrim: Colors.black,
       inverseSurface: palette.textPrimary,
       onInverseSurface: palette.surface,
-      inversePrimary: AppColors.brandContainer,
+      inversePrimary: AppColors.brandLight,
     );
 
     final base = ThemeData(
       useMaterial3: true,
-      brightness: brightness,
+      brightness: Brightness.light,
       colorScheme: colorScheme,
       textTheme: tokens.typography.buildTextTheme(),
       scaffoldBackgroundColor: palette.background,
+      fontFamily: AppTypography.fontFamily,
     );
-
-    final shadowSm = AppElevation.shadow(background: palette.surface, level: AppElevation.sm);
 
     return base.copyWith(
       visualDensity: VisualDensity.adaptivePlatformDensity,
       cardTheme: CardThemeData(
         color: palette.surface,
-        elevation: AppElevation.md,
-        shadowColor: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
+        elevation: AppElevation.none,
         margin: EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.sm,
@@ -76,13 +73,13 @@ abstract final class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: palette.surface,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
       ),
-      appBarTheme: AppBarTheme(
-        backgroundColor: palette.background,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
         elevation: AppElevation.none,
-        scrolledUnderElevation: shadowSm.first.blurRadius,
-        foregroundColor: palette.textPrimary,
+        scrolledUnderElevation: AppElevation.none,
+        foregroundColor: AppColors.textPrimary,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
       ),
@@ -91,8 +88,25 @@ abstract final class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.brand,
           foregroundColor: AppColors.onBrand,
+          disabledBackgroundColor: AppColors.surfaceTertiary,
+          disabledForegroundColor: AppColors.textTertiary,
           minimumSize: const Size(64, 52),
           shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+          textStyle: typography.bodyLargeMedium,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.brand,
+          side: const BorderSide(color: AppColors.brand),
+          minimumSize: const Size(64, 52),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+          textStyle: typography.bodyLargeMedium,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.brand,
           textStyle: typography.bodyLargeMedium,
         ),
       ),
@@ -111,6 +125,10 @@ abstract final class AppTheme {
           borderRadius: AppRadius.mdBorder,
           borderSide: BorderSide(color: palette.outline),
         ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppRadius.mdBorder,
+          borderSide: const BorderSide(color: AppColors.brand, width: 1.5),
+        ),
         hintStyle: typography.bodyMedium.copyWith(color: palette.textTertiary),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -118,6 +136,13 @@ abstract final class AppTheme {
         indicatorColor: AppColors.brandContainer,
         elevation: AppElevation.none,
         surfaceTintColor: Colors.transparent,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
       ),
     );
   }

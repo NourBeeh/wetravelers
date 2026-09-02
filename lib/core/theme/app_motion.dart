@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
-/// Motion tokens driving the premium, smooth animations (opening of the
-/// floating navigation, sheet transitions, etc.).
+/// Motion tokens driving the premium, unified animations (page transitions,
+/// sheets, staggered lists, the AI pulse).
 @immutable
 abstract final class AppMotion {
   static const Duration fast = Duration(milliseconds: 150);
@@ -18,6 +19,5 @@ abstract final class AppMotion {
   static Duration durationFor(double distance) =>
       Duration(milliseconds: (120 + distance * 18).clamp(150, 420).round());
 
-  static Color scrimColor(Brightness brightness) =>
-      brightness == Brightness.dark ? AppColors.overlayDark : AppColors.overlayLight;
+  static Color scrimColor() => AppColors.overlay;
 }

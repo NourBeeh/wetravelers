@@ -14,4 +14,9 @@ export class HotelSearchDto {
   @IsInt()
   @Min(1)
   guests?: number;
+
+  /** MarketContext selector (ISO-3166-1 alpha-2). Display currency/locale. */
+  @IsOptional()
+  @IsString()
+  market?: string;
 }

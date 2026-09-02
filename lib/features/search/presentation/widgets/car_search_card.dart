@@ -19,19 +19,39 @@ import 'package:wetravellers/core/widgets/cards/card_price_block.dart';
 class CarSearchCard extends StatelessWidget {
   const CarSearchCard({
     super.key,
-    required this.offer,
+    this.offer,
     this.onTap,
+    this.onFavorite,
+    this.isFavorite = false,
     this.enabled = true,
     this.loading = false,
   });
 
-  final CarOffer offer;
+  /// Skeleton constructor — renders the card's loading state with no data.
+  const CarSearchCard.loading({super.key})
+      : offer = null,
+        onTap = null,
+        onFavorite = null,
+        isFavorite = false,
+        enabled = false,
+        loading = true;
+
+  /// The car data. Null only in the skeleton/loading state.
+  final CarOffer? offer;
+
+  /// Non-null offer accessor — valid everywhere except the skeleton state,
+  /// which never reads offer data.
+  CarOffer get data => offer!;
   final VoidCallback? onTap;
+
+  /// Favorite toggle callback; null hides the favorite affordance.
+  final ValueChanged<bool>? onFavorite;
+  final bool isFavorite;
   final bool enabled;
   final bool loading;
 
   int get _rentalDays {
-    final diff = offer.dropoffTime.difference(offer.pickupTime);
+    final diff = data.dropoffTime.difference(data.pickupTime);
     final days = diff.inDays;
     final hours = diff.inHours % 24;
     // Round up if there are remaining hours
@@ -39,30 +59,30 @@ class CarSearchCard extends StatelessWidget {
   }
 
   bool get _hasDiscount {
-    final metadata = offer.metadata;
+    final metadata = data.metadata;
     final originalPrice = metadata['originalPrice'];
     if (originalPrice == null) return false;
     final numVal = originalPrice is num ? originalPrice.toDouble() : double.tryParse(originalPrice.toString());
-    return numVal != null && numVal > offer.price;
+    return numVal != null && numVal > data.price;
   }
 
   int? _getDiscountPercent() {
-    final metadata = offer.metadata;
+    final metadata = data.metadata;
     final originalPrice = metadata['originalPrice'];
     if (originalPrice == null) return null;
     final numVal = originalPrice is num ? originalPrice.toDouble() : double.tryParse(originalPrice.toString());
-    if (numVal == null || numVal <= offer.price) return null;
-    final discount = ((numVal - offer.price) / numVal * 100).round();
+    if (numVal == null || numVal <= data.price) return null;
+    final discount = ((numVal - data.price) / numVal * 100).round();
     return discount > 0 ? discount : null;
   }
 
   bool get _hasOrSimilar {
-    final metadata = offer.metadata;
+    final metadata = data.metadata;
     return metadata['orSimilar'] == true;
   }
 
   String? get _mileagePolicy {
-    final metadata = offer.metadata;
+    final metadata = data.metadata;
     final mileage = metadata['mileagePolicy']?.toString() ?? metadata['unlimitedMileage']?.toString();
     if (mileage == null) return null;
     if (mileage.toLowerCase() == 'true' || mileage.toLowerCase() == 'unlimited') {
@@ -72,24 +92,24 @@ class CarSearchCard extends StatelessWidget {
   }
 
   bool get _hasFreeCancellation {
-    final metadata = offer.metadata;
+    final metadata = data.metadata;
     return metadata['freeCancellation'] == true;
   }
 
   String? get _cancellationLabel {
-    final metadata = offer.metadata;
+    final metadata = data.metadata;
     return metadata['cancellationPolicy']?.toString();
   }
 
   List<String> _buildFeatures() {
     final features = <String>[];
-    if (offer.transmission != null && offer.transmission!.isNotEmpty) {
-      features.add(offer.transmission!);
+    if (data.transmission != null && data.transmission!.isNotEmpty) {
+      features.add(data.transmission!);
     }
-    if (offer.seats != null) {
-      features.add('${offer.seats} seats');
+    if (data.seats != null) {
+      features.add('${data.seats} seats');
     }
-    final luggage = offer.metadata['luggage']?.toString();
+    final luggage = data.metadata['luggage']?.toString();
     if (luggage != null && luggage.isNotEmpty) {
       features.add(luggage);
     }
@@ -99,6 +119,19 @@ class CarSearchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+
+    if (loading) {
+      return BaseCard(
+        onTap: null,
+        enabled: false,
+        loading: true,
+        semanticsLabel: 'Loading car',
+        margin: const EdgeInsetsDirectional.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        child: cardLoadingSemantics(const _LoadingSkeleton()),
+      );
+    }
+
     final features = _buildFeatures();
     final discountPercent = _getDiscountPercent();
     final hasDiscount = _hasDiscount;
@@ -108,28 +141,29 @@ class CarSearchCard extends StatelessWidget {
     final rentalDays = _rentalDays;
 
     final semanticParts = <String>[
-      offer.title,
-      offer.carType,
-      if (offer.transmission != null) offer.transmission!,
-      if (offer.seats != null) '${offer.seats} seats',
+      data.title,
+      data.carType,
+      if (data.transmission != null) data.transmission!,
+      if (data.seats != null) '${data.seats} seats',
       if (features.isNotEmpty) features.join(', '),
-      if (mileagePolicy != null) mileagePolicy!,
-      'Pickup: ${offer.pickupLocation} at ${_formatTime(offer.pickupTime)}',
-      'Dropoff: ${offer.dropoffLocation} at ${_formatTime(offer.dropoffTime)}',
+      if (mileagePolicy != null) mileagePolicy,
+      'Pickup: ${data.pickupLocation} at ${_formatTime(data.pickupTime)}',
+      'Dropoff: ${data.dropoffLocation} at ${_formatTime(data.dropoffTime)}',
       'Rental: $rentalDays day${rentalDays > 1 ? 's' : ''}',
       if (hasFreeCancellation) 'Free cancellation',
-      'Price ${NumberFormat.currency(symbol: '', locale: 'en_US').format(offer.price)} ${offer.currency} / day',
+      if (isFavorite) 'Saved',
+      'Price ${NumberFormat.currency(symbol: '', locale: 'en_US').format(data.price)} ${data.currency} / day',
     ];
     final semanticLabel = semanticParts.join(', ');
 
     return BaseCard(
       onTap: onTap,
       enabled: enabled,
-      loading: loading,
       semanticsLabel: semanticLabel,
-      margin: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      margin: const EdgeInsetsDirectional.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Image section - approximately 50-55% width
           Expanded(
@@ -137,9 +171,9 @@ class CarSearchCard extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: 4 / 3,
               child: CardImage(
-                url: offer.imageUrl,
+                url: data.imageUrl,
                 fallbackIcon: Icons.directions_car,
-                semanticLabel: offer.title,
+                semanticLabel: data.title,
                 fit: BoxFit.cover,
               ),
             ),
@@ -153,19 +187,30 @@ class CarSearchCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Discount badge
-                  if (hasDiscount && discountPercent != null) ...[
-                    CardBadge(
-                      label: '$discountPercent% OFF',
-                      icon: Icons.local_offer,
-                      variant: CardBadgeVariant.tinted,
-                      type: BadgeType.discount,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                  ],
+                  // Discount badge + favorite row
+                  Row(
+                    children: [
+                      if (hasDiscount && discountPercent != null) ...[
+                        CardBadge(
+                          label: '$discountPercent% OFF',
+                          icon: Icons.local_offer,
+                          variant: CardBadgeVariant.tinted,
+                          type: BadgeType.discount,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                      ],
+                      const Spacer(),
+                      if (onFavorite != null)
+                        CardFavorite(
+                          value: isFavorite,
+                          onChanged: onFavorite,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
                   // Vehicle model
                   Text(
-                    offer.title,
+                    data.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -173,40 +218,28 @@ class CarSearchCard extends StatelessWidget {
                         ),
                   ),
                   // Or similar
-                  if (hasOrSimilar) ...[
-                    const SizedBox(height: AppSpacing.xxs),
+                  if (hasOrSimilar)
                     Text(
                       'or similar',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: scheme.onSurfaceVariant,
                           ),
                     ),
-                  ],
                   const SizedBox(height: AppSpacing.xs),
                   // Vehicle class
                   CardBadge(
-                    label: offer.carType,
+                    label: data.carType,
                     variant: CardBadgeVariant.tinted,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   // Features (transmission, seats, luggage)
-                  if (features.isNotEmpty) ...[
+                  if (features.isNotEmpty)
                     CardFeatureList(
                       features: features,
                       direction: Axis.horizontal,
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                  ],
-                  // Mileage policy
-                  if (mileagePolicy != null) ...[
-                    CardBadge(
-                      label: mileagePolicy,
-                      icon: Icons.directions_car_filled,
-                      variant: CardBadgeVariant.tinted,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                  ],
-                  // Rental duration
+                  const Spacer(),
+                  // Rental duration + mileage
                   Row(
                     children: [
                       Icon(
@@ -215,31 +248,39 @@ class CarSearchCard extends StatelessWidget {
                         color: scheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: AppSpacing.xxs),
-                      Text(
-                        '$rentalDays day${rentalDays > 1 ? 's' : ''}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+                      Flexible(
+                        child: Text(
+                          '$rentalDays day${rentalDays > 1 ? 's' : ''}'
+                          '${mileagePolicy != null ? ' · $mileagePolicy' : ''}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.sm),
                   // Free cancellation
                   if (hasFreeCancellation) ...[
+                    const SizedBox(height: AppSpacing.xs),
                     CardCancellation(
                       label: _cancellationLabel ?? 'Free cancellation',
                       freeCancellation: true,
                     ),
-                    const SizedBox(height: AppSpacing.sm),
                   ],
-                  // Price
-                  CardPriceBlock(
-                    currentPrice: offer.price,
-                    currency: offer.currency,
-                    showCurrency: true,
-                    unit: 'day',
-                    perDay: offer.price,
-                    total: rentalDays > 1 ? offer.price * rentalDays : null,
+                  const SizedBox(height: AppSpacing.sm),
+                  // Price anchored consistently at the bottom-end
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: CardPriceBlock(
+                      currentPrice: data.price,
+                      currency: data.currency,
+                      showCurrency: true,
+                      unit: 'day',
+                      perDay: data.price,
+                      total: rentalDays > 1 ? data.price * rentalDays : null,
+                    ),
                   ),
                 ],
               ),
@@ -252,5 +293,63 @@ class CarSearchCard extends StatelessWidget {
 
   String _formatTime(DateTime dateTime) {
     return DateFormat.Hm().format(dateTime);
+  }
+}
+/// Skeleton for [CarSearchCard] — mirrors the real card's geometry
+/// (image column + content column with anchored bottom price) with no fake data.
+class _LoadingSkeleton extends StatelessWidget {
+  const _LoadingSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Image section — same ~55% flex as the real card
+        Expanded(
+          flex: 55,
+          child: AspectRatio(aspectRatio: 4 / 3, child: CardSkeleton.image()),
+        ),
+        // Content section — same ~45% flex
+        Expanded(
+          flex: 45,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Badge row
+                CardSkeleton.chip(width: 72),
+                CardSkeleton.gap(height: AppSpacing.xs),
+                // Vehicle model
+                CardSkeleton.title(height: 16),
+                CardSkeleton.gap(height: AppSpacing.xs),
+                // Category badge
+                CardSkeleton.chip(width: 64),
+                CardSkeleton.gap(height: AppSpacing.sm),
+                // Features
+                Row(
+                  children: [
+                    CardSkeleton.chip(width: 64),
+                    CardSkeleton.hGap(width: AppSpacing.xs),
+                    CardSkeleton.chip(width: 56),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // Rental duration
+                CardSkeleton.text(width: 88),
+                CardSkeleton.gap(height: AppSpacing.sm),
+                // Price anchored bottom-end (matches real card)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: CardSkeleton.price(width: 96),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

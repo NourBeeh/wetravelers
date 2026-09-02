@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 
+import 'package:wetravellers/core/theme/app_elevation.dart';
 import 'package:wetravellers/core/theme/app_radius.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
 
 /// The shared layout container for every card in the system.
 ///
-/// Provides the unified surface language: white/surface background,
-/// [AppRadius.lg] corners, a subtle shadow, and pressed / disabled / loading
-/// states. Content is passed through [child]; compose the other card
+/// Provides the unified surface language: surface background,
+/// [AppRadius.lg] corners, a subtle shadow, and pressed / disabled states.
+/// Content is passed through [child]; compose the other card
 /// components inside it.
+///
+/// Loading: cards render their own skeleton content (built from
+/// [CardSkeleton] blocks) as [child] while `loading` is true — the container
+/// simply disables interaction. This keeps the skeleton geometry identical to
+/// the real card.
 ///
 /// Responsive: horizontal padding tightens slightly on very narrow screens.
 class BaseCard extends StatefulWidget {
@@ -33,6 +39,9 @@ class BaseCard extends StatefulWidget {
 
   /// False renders the card at reduced opacity and swallows taps.
   final bool enabled;
+
+  /// While true the card is non-interactive; callers render a skeleton
+  /// [child] (see [CardSkeleton]) so loading geometry matches the real card.
   final bool loading;
   final BorderRadius? borderRadius;
   final EdgeInsetsGeometry? padding;
@@ -61,7 +70,6 @@ class _BaseCardState extends State<BaseCard> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       label: widget.semanticsLabel,
       button: _interactive,
@@ -94,44 +102,22 @@ class _BaseCardState extends State<BaseCard> {
                     decoration: BoxDecoration(
                       color: widget.backgroundColor ?? scheme.surface,
                       borderRadius:
-                          widget.borderRadius ?? BorderRadius.circular(AppRadius.lg),
+                          widget.borderRadius ?? AppRadius.lgBorder,
                       border: Border.all(
                         color: widget.borderColor ??
                             scheme.outlineVariant.withValues(alpha: 0.4),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          // Brightness-aware so cards stay legible in dark mode.
-                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      boxShadow: AppElevation.shadow(
+                        background: scheme.surface,
+                        level: AppElevation.md,
+                      ),
                     ),
                     child: ClipRRect(
                       borderRadius:
-                          widget.borderRadius ?? BorderRadius.circular(AppRadius.lg),
-                      child: Stack(
-                        children: [
-                          Padding(
-                            padding: effectivePadding,
-                            child: widget.child,
-                          ),
-                          if (widget.loading)
-                            Positioned.fill(
-                              child: ColoredBox(
-                                color: scheme.surface.withValues(alpha: 0.6),
-                                child: const Center(
-                                  child: SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2.5),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+                          widget.borderRadius ?? AppRadius.lgBorder,
+                      child: Padding(
+                        padding: effectivePadding,
+                        child: widget.child,
                       ),
                     ),
                   ),

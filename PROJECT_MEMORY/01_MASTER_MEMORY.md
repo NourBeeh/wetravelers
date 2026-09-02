@@ -2,7 +2,7 @@
 
 > **Purpose:** The authoritative handoff document for any analytical/architectural AI that must understand the project without access to previous chats.
 >
-> **Last known project state:** AI Phases 1–10, 11A, 11B1, 11B2, 11C, 12, 13, 14A, 14B, 15A, 15B, and 15C are complete. Live AI works via an OpenAI-compatible provider (tested with OpenRouter). Phase 15C resolved all build errors, fixed the bottom sheet cancellation bug, and brought test suite to 203 passing Flutter tests / 84 passing backend tests (`flutter analyze` has 0 errors, 16 non-blocking issues). Next pending phase: **Phase 16** (refer to sequenced roadmap in Section 12).
+> **Last known project state (updated 2026-09-02):** AI Phases 1–17 complete (see `04_PHASE_HISTORY.md`). On top of that, three major 2026-09 workstreams are COMPLETE (see "Waves" below): (1) the **"Pure White Premium" full-app UI rebuild** — light-only design language, bottom navigation (Home/Search/AI-centre/Groups/Explore), seamless merged headers, unified fade-through motion, Manrope/Cairo typography, full en/ar l10n; (2) **real travel providers per the v2.0 provider/market/payment spec** — Nuitee hotel adapter LIVE-verified against the sandbox, Duffel revalidation, MarketContext/FX/EGP pricing engine, cars rich mock; (3) the **booking funnel + payment abstraction** — /offers/revalidate endpoint, Flutter revalidation service wired into booking review, mock Egypt gateway with idempotency/webhooks/ledger. Validation baseline: **432 Flutter tests + 129 backend tests green, 0 analyze errors, debug APK builds.** Next pending work: see `08_NEXT_STEPS.md`.
 >
 > **Important:** This document is compiled from the project history available to the current assistant. It is not a live filesystem scan. Any item marked "verify" should be checked against the repository before making changes.
 
@@ -432,24 +432,180 @@ Pending after 11B2. Ensure flight, hotel, and car search failures never expose r
 ## 12. Approved Product, UX, and Release Roadmap
 
 > **Sequencing decision (2026-08-18):** Work remains small and phase-scoped. Phase 11B1 is first. Do not begin a later item without an explicit instruction.
+>
+> **Status update (2026-09-02):** Phases 11B1–17 are all complete. Phases 18–21 remain pending and are tracked in `04_PHASE_HISTORY.md` / `08_NEXT_STEPS.md`. In addition, three "Wave" workstreams (approved 2026-09-02) were executed on top and are complete — see section 12.5.
 
 ### Ordered implementation phases
 
 1. **11B1 — Home schema mismatch** ✓ complete
-2. **11B2 — Remaining TypeScript errors** ← next; requires explicit instruction
-3. **11C — Search error sanitization**
-4. **12 — Home Marketplace UI**
-5. **13 — Floating Navigation**
-6. **14 — AI Bottom Sheet + Sessions**
-7. **15 — AI context + Card Engine integration**
-8. **16 — Real identity, profile, and persisted authenticated sessions**
-9. **17 — End-to-end booking/payment foundation and Bag synchronization**
-10. **18 — Unified Trip Bag, external additions/imports, readiness, Wallet, and Price Watch**
-11. **19 — Live Travel Companion: Today, Map, Travel Mode, and event-based notifications**
-12. **20 — Production readiness and launch**
-13. **21 — Trusted Group Trips: discovery, membership, shared plans, safety, and reviews**
+2. **11B2 — Remaining TypeScript errors** ✓ complete
+3. **11C — Search error sanitization** ✓ complete
+4. **12 — Home Marketplace UI** ✓ complete
+5. **13 — Floating Navigation** ✓ complete (later superseded by the Wave-0 bottom navigation — see 12.5)
+6. **14 — AI Bottom Sheet + Sessions** ✓ complete
+7. **15 — AI context + Card Engine integration** ✓ complete
+8. **16 — Real identity, profile, and persisted authenticated sessions** ✓ complete
+9. **17 — End-to-end booking/payment foundation and Bag synchronization** ✓ complete (funnel UI + provider revalidation + mock EG gateway; real PSP still future)
+10. **18 — Unified Trip Bag, imports, readiness, Wallet, and Price Watch** ← pending
+11. **19 — Live Travel Companion: Today, Map, Travel Mode, and event-based notifications** — pending
+12. **20 — Production readiness and launch** — pending
+13. **21 — Trusted Group Trips: discovery, membership, shared plans, safety, and reviews** — pending
 
 The detailed phase outcomes, external dependencies, consent rules, dynamic product flow, and unified UI specification are authoritative in `08_NEXT_STEPS.md`.
+
+## 12.5. Wave Workstreams (2026-09-02) — COMPLETE
+
+Executed after Phase 17, driven by the v2.0 provider/market/payment implementation
+spec (`WeTravellers_Travel_Providers_Market_Payment_Implementation_Spec_v2.0.docx`
+— kept at repo root; extracted text also referenced during implementation).
+The spec's hard rules remain binding: no provider secrets in Flutter, no direct
+client→supplier calls, market context ≠ provider selector, display currency ≠
+settlement currency, revalidation before payment, cars vendor deferred.
+
+### Wave 0 — Design language + navigation (COMPLETE)
+- **"Pure White Premium" light-only theme**: white canvas, royal indigo
+  `#2B4EFF`, gold accent `#C99A3C`, AI violet `#7C5CFF`, semantic tokens.
+  Dark theme DELETED by explicit user decision (was never design-approved);
+  `AppTheme.light()` is the only theme. `themeModeProvider` removed.
+- Typography: **Manrope (Latin) + Cairo (Arabic)** variable fonts bundled;
+  `AppTypography.isArabicLocale` swaps automatically. Arabic/RTL supported
+  app-wide from day one.
+- Navigation: **attached bottom bar** (Home / Search / **AI centre button**
+  / Groups / Explore) with `StatefulShellRoute.indexedStack` (4 branches:
+  Home=0, Search=1, Groups=2, Explore=3 — AI is a pushed route, NOT a branch;
+  a tab-index mismatch bug was found and fixed, covered by
+  `bottom_nav_branch_mapping_test.dart`). Fixed shell header REMOVED — every
+  page owns a seamless merged header. Old `AiMorphControl`,
+  `FloatingNavigation`, `CommandBar`, legacy `app_router.dart` nav path deleted.
+- Motion: unified **fade-through** page transitions (`app_transitions.dart`)
+  on every route; solid-minimal buttons (`AppButton` kit); shared widgets:
+  `SectionHeader`, `StickyCtaBar`, `StepProgress`/`StatusChip`.
+- **l10n**: `flutter_localizations` + gen-l10n; `app_en.arb`/`app_ar.arb`;
+  `localeProvider` (+`currencyProvider`) — all new pages are localized.
+- Pages added: Search Hub (hosts the hero card moved from Home), Explore
+  (destinations/deals/collections), Groups (v1 mock per roadmap Phase 21),
+  Notifications, Wishlist, Settings (language+currency only — theme toggle
+  intentionally absent), Onboarding (3 slides, Hive `wetravellers_settings`
+  box `onboarding_seen` flag).
+
+### Wave 1 — Real providers on the backend (COMPLETE)
+- **Nuitee hotel adapter** `backend/src/modules/nuitee/nuitee.service.ts`:
+  `POST api.liteapi.travel/v3.0/hotels/rates` (ONE base URL — sandbox/live
+  chosen by key `sand_***`; there is NO sandbox subdomain), prebook
+  `/rates/prebook`, book `/rates/book` (ACC_CREDIT_CARD), content
+  `/data/hotels`. **LIVE-VERIFIED**: real Cairo hotels returned through the
+  adapter (e.g. Al Masa Hotel Nasr City, USD price, rating halved from the
+  Nuitee 10-scale to the 5-star display scale). Response mapping:
+  rates at `data[].roomTypes[].rates[]`, hotel metadata snake_case
+  (`main_photo`, `city_name`, `review_count`). Deterministic fixtures in
+  `NUITEE_FIXTURES`; contract tests in `test/nuitee.contract.spec.ts`;
+  opt-in live smoke `test/nuitee.live-smoke.spec.ts` (runs only with
+  `NUITEE_LIVE_SMOKE=1`).
+- **Duffel**: `revalidateOffer(offerId)` added (offers.get) + price
+  provenance metadata (`retrievedAt`/`expiresAt`) on every mapped offer.
+- **MarketContext + FX + Pricing** `backend/src/common/market/`:
+  `market-context.ts` (EG/EGP/ar-EG default; SA/AE prepared, DISABLED),
+  `fx.service.ts` (cached rates, open.er-api.com with static fallback,
+  snapshot with source/rateId/capturedAt), `pricing.service.ts`
+  (deterministic PriceQuote: BASE/MARKUP/PAYMENT_FEE/TAX lines,
+  EGP whole-unit rounding, pricingVersion, expiresAt). SearchService
+  enriches every offer with `customerPrice` while provider amounts stay
+  untouched (spec point 5).
+- **Cars**: rich deterministic mock catalogue behind the real
+  `CarProvider` contract (6 vehicles, computed totals, policies,
+  provenance) — vendor intentionally deferred per spec point 30.
+- **`POST /offers/revalidate`**: unified revalidation endpoint
+  (OK / PRICE_CHANGED / UNAVAILABLE / ERROR) routing to Duffel or Nuitee
+  prebook by providerId.
+- Flutter models: `CustomerPrice`/`PriceLine`
+  (`lib/core/domain/models/offers/customer_price.dart`) + `BaseOffer.customerPrice`
+  wired through the offer mapper (all four offer types).
+- `.env` additions (backend): `NUITEE_API_KEY` (user-supplied sandbox key,
+  live in .env), `NUITEE_MODE=sandbox`; documented in `.env.example`.
+
+### Wave 2 — Flutter UI rebuild on real data (COMPLETE)
+- **SearchScaffold** (`search_scaffold.dart`): scroll-linked collapsible
+  header (Booking/Airbnb pattern) for all 4 verticals + `SearchFieldInput`
+  (theme tokens) + `SearchSubmitButton`.
+- **4 search pages rebuilt**: flight (trip-type chips, return date,
+  passengers stepper, airport picker sheet), hotel (city picker, guests +
+  rooms steppers, list/map toggle), car (location pickers, transmission
+  chips), packages (trip length). Unified rich states via
+  `SearchStatesView` (idle/loading/empty/error + Retry actually wired —
+  fixed the old no-op retry bug). `SortChipsRow` horizontal chips + filters.
+  **Autocomplete**: `destination_picker_sheet.dart`
+  (`showPickerSheet`, `PickerEntry`, `kAirports`, `kCities`).
+- **Runtime bug fixes** (user-reported "search/home errors"): search pages
+  read `GoRouterState.of(context)` in `initState` → moved to
+  `didChangeDependencies` with one-shot guard (flight/hotel/car);
+  `SearchViewToggle` used `Expanded` inside app-bar actions → unbounded
+  RenderFlex crash → intrinsic sizing. Covered by
+  `test/features/search/search_pages_interaction_test.dart` +
+  `test/app/full_app_smoke_test.dart` (boots the real app and walks all tabs).
+- **Home**: welcome line replaces the hero (hero moved to Search tab);
+  `DiscoveryProductCard` (hotel/car/package real-data card with rating,
+  highlights, price + `.loading()` skeleton mirror) — dev-preview empty
+  items still render the old skeleton surface; **"Continue planning"**
+  strip surfaces current Bag trips above the feed.
+  Home feed sections: backend-driven (`GET /home/sections`, seed:
+  Recommended for you / Trending destinations / Tour packages /
+  Experiences & stories) with a dev-preview fallback (Flight
+  Recommendations / Hotels / Car Rentals / Tour Packages / Hot Deals /
+  Destinations) when the backend returns empty.
+- **Card system unified**: favorite callbacks renamed to
+  `onFavorite`/`isFavorite` everywhere; dead code deleted
+  (price_display_strategy, recommendation_reason, badge_group,
+  card_badge_helpers, hotel_search_form stub, filter_engine,
+  search_results_state; deal_presentation kept — test exists);
+  skeleton colour tokenized.
+
+### Wave 3 — Booking funnel + payment (COMPLETE)
+- Booking funnel pages (earlier in the wave set): Booking Review (premium
+  redesign, phase timeline, seed into checkout providers), Passenger
+  details, Add-ons, Checkout, Confirmation (stroke-drawn checkmark, Bag
+  sync). Routes nested under `/booking/review/*`.
+- **Flutter `OfferRevalidationService`**
+  (`lib/features/booking/application/services/offer_revalidation_service.dart`):
+  Continue button on booking review calls `/offers/revalidate` before the
+  funnel; PRICE_CHANGED blocks checkout until acceptance; unavailable shows
+  a snackbar; backend-unreachable falls back to the last machine price.
+- **Payments module** `backend/src/modules/payments/`:
+  `PaymentGateway` interface, `MockEgyptGateway` (deterministic EG mock
+  with real idempotency, signed webhooks, 3DS→PENDING async settle),
+  `PaymentRouter` (by paymentRegion; EG only — SA/AE disabled until
+  onboarding), `LedgerService` (immutable append-only entries +
+  bookingBalance), `PaymentService` orchestrator + `/payments/*`
+  endpoints (intent/confirm/refund/webhook/ledger timeline).
+- **Flutter `CheckoutPaymentService`**: checkout calls the real backend
+  payment flow (CARD_SUCCESS/CARD_3DS/declined/WALLET method mapping;
+  pending3ds proceeds to confirmation, failed/unavailable snackbars).
+
+### Wave validation baseline (2026-09-02)
+- Backend: `npx jest` **129/129** (1 skipped live-smoke without env flag);
+  `tsc --noEmit` clean.
+- Flutter: `flutter test` **432/432**; `dart analyze lib test` **0 errors**
+  (remaining infos are pre-existing lints); visual audit 14/14; debug APK
+  builds.
+- Live Nuitee sandbox smoke: PASS with the user's key in `.env`.
+
+## 12.6. Superseded / supersessions (anti-contradiction ledger)
+
+- **Dark theme**: early Wave-0 work added a premium dark theme and enabled
+  `ThemeMode.system`; the user then decided **light-only** — dark code was
+  fully removed. Do not reintroduce dark mode without a new explicit request.
+- **Floating Navigation / CommandBar** (Phase 13 artifact): retired by the
+  user's bottom-navigation decision (Wave 0). Files deleted; the shell no
+  longer references them. `08_NEXT_STEPS.md`'s vision text about a
+  "persistent bottom command bar" is HISTORICAL — the bottom bar with the
+  AI centre button is the implemented reality.
+- **Home hero search card**: moved from Home to the Search tab by explicit
+  user decision; Home leads with a welcome line + feed. The Search Hub owns
+  "Where to next?".
+- **Theme mode in Settings**: intentionally absent (light-only). Settings
+  holds language + currency only.
+- **`/ai` route vs `/ai-chat`**: real assistant page is `/ai-chat`
+  (full-screen, outside shell). `/ai` placeholder remains for the future
+  AI-mode surface.
 
 ### Release-readiness gates retained from the technical review
 

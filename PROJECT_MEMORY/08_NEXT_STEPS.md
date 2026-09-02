@@ -2,7 +2,7 @@
 
 ## Integrated delivery roadmap
 
-> **Current position: Phases 12–17 complete (17 = real auth end-to-end + Home demo/cache fallback + dev seed), plus a post-17 AI chat overhaul and the Card System Stage 1 (redesign + audit) & Stage 2 (shared design system, committed). Next pending phase: Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation; before it, the approved card sub-phases 24A–24E.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
+> **Current position (2026-09-02): Phases 11B–17 complete AND the three Wave workstreams (W0 design/nav rebuild, W1 real providers incl. live-verified Nuitee + FX/EGP pricing, W2 search/home UI rebuild, W3 booking funnel + mock payment abstraction) complete. Baseline: 432 Flutter tests / 129 backend tests green, 0 analyze errors.** Historical note: card sub-phases 24A–24E were absorbed/superseded by Wave 2's card unification (see `04_PHASE_HISTORY.md` addendum 2026-09-02). Next pending phase: **Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
 
 | Phase | Outcome | External need at this phase |
 |---|---|---|
@@ -10,19 +10,20 @@
 | 11B2 | Re-run TypeScript build; fix only verified remaining errors, or close cleanly | Complete — none |
 | 11C | Safe, consistent search errors for flights/hotels/cars | Complete — none |
 | 12 | Home Marketplace: header, discovery hierarchy, reusable cards | Complete — none |
-| 13 | Floating/Orbital Navigation plus persistent command-bar shell and manual search access | Complete — none |
-| 14 | AI Bottom Sheet (14A UI prototype) + CommandBar wiring/timeouts (14B) | Complete — live AI tested via OpenRouter; persistent cross-device sessions wait for Phase 17 Auth |
+| 13 | Floating/Orbital Navigation plus persistent command-bar shell and manual search access | Complete — SUPERSEDED by Wave-0 attached bottom nav (Home/Search/AI-centre/Groups/Explore); FloatingNavigation/CommandBar deleted |
+| 14 | AI Bottom Sheet (14A UI prototype) + CommandBar wiring/timeouts (14B) | Complete — live AI tested via OpenRouter; CommandBar since deleted (Wave 0) |
 | 15 | Context-aware AI and Card Engine integration: current page, results, compare/explain/add-to-trip actions | Complete — none |
 | 16 | Offline support foundation: Hive-backed cache for search results + AI responses (write-through on success, cached fallback on failure) | Complete — none |
 | 17 | Auth: real identity — login/register/me (bcryptjs + JWT guard), profile/settings entry, persisted secure sessions | Complete — none |
-| 24A–24E | **Card system sub-phases (approved 2026-08-26, unnumbered iteration — audit in `docs/card-system-audit.md`):** **Stage 2 (shared design system) is DONE & committed** (`CardGlass`, shared `formatCardPrice`, theme-aware + `onImage` variants, expanded tests; analyze 0 errors, 293 tests pass). Remaining, in order — **24A** consolidation (hotel search `_HotelCard` adopts shared `HotelResultCard`; extract RatingPill/scrim primitives; remove 3×/4× triplicates), **24B** tap/action contract through `HomeCard` → detail stubs + wire "View All", **24C** favorites service + heart toggle (Hotel/Package), **24D** intl pricing/skeletons/responsive/RTL, **24E** golden tests + a11y re-audit | None for 24A–24B; favorites persistence storage choice for 24C; intl package already present |
+| W0–W3 | Full-app UI rebuild (light-only design language, bottom nav, unified motion, l10n) + real providers (Nuitee LIVE, Duffel revalidation, MarketContext/FX/EGP) + search/home rebuild + booking funnel + mock EG payment gateway with ledger | Complete — see `01_MASTER_MEMORY.md` §12.5 for full detail |
+| 24A–24E | Card system sub-phases | Absorbed/superseded by Wave 2 (unified `onFavorite`, dead primitives removed, `DiscoveryProductCard`, skeletons tokenized). STILL OPEN from 24C: **favorites persistence** (heart toggles are presentational only) |
 | 18 | **NEXT:** PROJECT_MEMORY cloud sync (auto-backup of memory files) + analytics foundation (AI query tracking) | External storage/backup target choice; analytics storage decision when approved |
-| 19 | Real booking/payment foundation: matching backend booking API, confirmation, idempotency, Bag synchronization | Provider/aggregator contracts and payment-service choice only when money collection is enabled |
-| 20 | Unified Trip Bag: Trip/TripItem, internal+external additions, readiness checklist, Wallet, Price Watch | Database/API persistence; external import options are staged—manual entry first, then approved share/PDF/QR/calendar/email integrations; price watches require a valid offer-price source and scheduled server jobs |
+| 19 | Real booking/payment foundation: matching backend booking API, confirmation, idempotency, Bag synchronization | Mostly covered by W1+W3 (revalidate endpoint, state machine, mock gateway, ledger). REMAINING: real Egyptian PSP onboarding (spec §K open questions), provider book wiring end-to-end (Duffel createOrder + Nuitee book from the funnel), booking persistence (DB tables per spec §49) |
+| 20 | Unified Trip Bag: Trip/TripItem, internal+external additions, readiness checklist, Wallet, Price Watch | Database/API persistence; external import options are staged—manual entry first, then approved share/PDF/QR/calendar/email integrations; price watches require a valid offer-price source and scheduled server jobs. (Bag page + TripDetails v1 + Continue-planning shipped in W0) |
 | 21 | Accessibility improvements (screen reader support, text scaling compliance) | Platform accessibility tooling audit; no new vendor required for the first pass |
 | 22 | Live Travel Companion: Today, itinerary map, external navigation handoff, event-based notifications, Travel Mode | Map/directions/geocoding provider, user location permission, push-notification service, background-job capability; later flight-status/weather/local-service data sources as each feature is approved |
-| 23 | Production readiness and launch | Separate dev/staging/prod environments, secret manager, restricted CORS, migrations/backups, observability, CI/CD, privacy policy/consent records, and security review |
-| 24 | Trusted Group Trips: discovery, membership, shared plans, ratings, safety | Requires Phase 17 identity/roles and Phase 20 Trip model; push notifications, strict authorization/audit logging, and an approved identity-verification provider only when verification is activated |
+| 23 | Production readiness and launch | Separate dev/staging/prod environments, secret manager, restricted CORS, migrations/backups, observability, CI/CD, privacy policy/consent records, and security review. Per spec v2.0 §52: one market (EG) + one product canary first |
+| 24 | Trusted Group Trips: discovery, membership, shared plans, ratings, safety | Requires identity/roles and the Phase-20 Trip model; push notifications, strict authorization/audit logging, and an approved identity-verification provider only when verification is activated. (v1 mock Groups tab shipped in W0) |
 
 ### Dynamic product flow after the roadmap
 

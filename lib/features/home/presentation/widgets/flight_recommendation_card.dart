@@ -1,38 +1,126 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
-import 'package:wetravellers/core/theme/app_radius.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
-import 'package:wetravellers/core/widgets/cards/card_badge.dart';
-import 'package:wetravellers/core/widgets/cards/card_favorite.dart';
-import 'package:wetravellers/core/widgets/cards/card_image.dart';
-import 'package:wetravellers/core/widgets/cards/card_price.dart';
-import 'package:wetravellers/core/widgets/cards/card_primary_action.dart';
-import 'package:wetravellers/core/widgets/cards/recommendation_reason.dart';
+import 'package:wetravellers/core/widgets/cards/card.dart';
+import 'package:wetravellers/core/widgets/cards/badge_config.dart';
 import 'package:wetravellers/features/home/presentation/home_card_dimensions.dart';
+import 'package:wetravellers/features/search/presentation/widgets/flight_route_line.dart';
 
-/// Flight recommendation card for Home horizontal carousels.
+/// Flight recommendation card — Home discovery product card.
 ///
-/// Full-bleed image with gradient scrim carrying route, times, airline, and price.
-/// Overlays: recommendation badge (top-left), airline logo (top-right), wishlist (top-right below logo).
-/// Uses shared Card Design System primitives — no custom glass/price logic.
+/// This is NOT a search-result card: it is a compact, image-light
+/// recommendation tile (~280×240 via [HomeCardDimensions]) surfacing one
+/// recommended flight from [HomeItem] metadata:
+///
+/// - header: airline logo + name + recommendation badge
+/// - route strip: prominent departure/arrival times over airport codes
+/// - metadata: cabin/baggage chips
+/// - price anchored bottom-end
+///
+/// Navigation is owned by the parent via [onTap]/[onFavorite].
 class FlightRecommendationCard extends StatelessWidget {
   const FlightRecommendationCard({
     super.key,
     required this.item,
     this.onTap,
-    this.onWishlistChanged,
+    this.onFavorite,
+    this.loading = false,
   });
 
   final HomeItem item;
   final VoidCallback? onTap;
-  final ValueChanged<bool>? onWishlistChanged;
+  final ValueChanged<bool>? onFavorite;
+
+  /// Skeleton state — renders the same tile geometry with no data.
+  final bool loading;
+
+  DateTime? _parseTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    return DateTime.tryParse(value.toString());
+  }
+
+  String _calculateDuration(DateTime? dep, DateTime? arr) {
+    if (dep == null || arr == null) return '';
+    final diff = arr.difference(dep);
+    final hours = diff.inHours;
+    final minutes = diff.inMinutes % 60;
+    if (hours > 0 && minutes > 0) return '${hours}h ${minutes}m';
+    if (hours > 0) return '${hours}h';
+    return '${minutes}m';
+  }
+
+  String _buildStopsText(dynamic stops, String? stopAirport) {
+    final s = stops is int ? stops : int.tryParse(stops?.toString() ?? '0') ?? 0;
+    if (s == 0) return 'Non-stop';
+    if (s == 1) {
+      return stopAirport != null && stopAirport.isNotEmpty
+          ? '1 stop ($stopAirport)'
+          : '1 stop';
+    }
+    return '$s stops';
+  }
+
+  CardBadge? _buildRecommendationBadge(String? recommendation) {
+    final rec = recommendation?.toString().toLowerCase();
+    if (rec == 'cheapest' || rec == 'fastest' || rec == 'best_value' || rec == 'best value') {
+      String label;
+      IconData icon;
+      BadgeType? badgeType;
+
+      switch (rec) {
+        case 'cheapest':
+          label = 'Cheapest';
+          icon = Icons.attach_money;
+          badgeType = BadgeType.cheapest;
+          break;
+        case 'fastest':
+          label = 'Fastest';
+          icon = Icons.speed;
+          badgeType = BadgeType.fastest;
+          break;
+        case 'best_value':
+        case 'best value':
+          label = 'Best Value';
+          icon = Icons.star;
+          badgeType = BadgeType.best;
+          break;
+        default:
+          label = rec ?? '';
+          icon = Icons.star;
+          badgeType = null;
+      }
+
+      return CardBadge(
+        label: label,
+        icon: icon,
+        variant: CardBadgeVariant.tinted,
+        type: badgeType,
+      );
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isWishlisted = item.metadata['isWishlisted'] == true;
-    final recommendation = _getRecommendation();
+    final scheme = Theme.of(context).colorScheme;
+    final targetWidth =
+        HomeCardDimensions.cardWidthForType(HomeCardType.flight);
+    final targetHeight =
+        HomeCardDimensions.cardHeightForType(HomeCardType.flight);
+
+    if (loading) {
+      return BaseCard(
+        onTap: null,
+        enabled: false,
+        loading: true,
+        semanticsLabel: 'Loading recommended flight',
+        padding: EdgeInsets.all(AppSpacing.md),
+        child: cardLoadingSemantics(_LoadingSkeleton(width: targetWidth)),
+      );
+    }
+
     final depTime = _parseTime(item.metadata['departureTime']);
     final arrTime = _parseTime(item.metadata['arrivalTime']);
     final origin = item.metadata['origin']?.toString() ?? '';
@@ -45,349 +133,243 @@ class FlightRecommendationCard extends StatelessWidget {
     final flightNumber = item.metadata['flightNumber']?.toString();
     final duration = _calculateDuration(depTime, arrTime);
     final stopsText = _buildStopsText(stops, stopAirport);
+    final recommendation = item.metadata['recommendation']?.toString();
+    final recommendationBadge = _buildRecommendationBadge(recommendation);
+    final seatsLeft = item.metadata['seatsLeft'];
+    final seats =
+        seatsLeft is int ? seatsLeft : int.tryParse(seatsLeft?.toString() ?? '');
+    final isFavorite = item.metadata['isWishlisted'] == true;
 
     final semanticParts = <String>[
       'Recommended flight',
       if (recommendation != null) recommendation,
       airline,
-      if (flightNumber != null) 'Flight $flightNumber',
+      if (flightNumber != null && flightNumber.isNotEmpty) 'Flight $flightNumber',
       '$origin to $destination',
-      if (depTime != null) 'Departs at ${DateFormat.Hm().format(depTime)}',
-      if (arrTime != null) 'Arrives at ${DateFormat.Hm().format(arrTime)}',
-      'Duration $duration',
+      if (depTime != null) 'Departs at ${depTime.hour.toString().padLeft(2, '0')}:${depTime.minute.toString().padLeft(2, '0')}',
+      if (arrTime != null) 'Arrives at ${arrTime.hour.toString().padLeft(2, '0')}:${arrTime.minute.toString().padLeft(2, '0')}',
+      if (duration.isNotEmpty) 'Duration $duration',
       if (stopsText.isNotEmpty) stopsText,
       if (cabin != null && cabin.isNotEmpty) cabin,
       if (baggage != null && baggage.isNotEmpty) baggage,
       if (item.price != null) 'Price ${item.price!.toStringAsFixed(0)} ${item.currency ?? ''}',
+      if (isFavorite) 'Saved',
     ];
     final semanticLabel = semanticParts.join(', ');
 
-    return Semantics(
-      label: semanticLabel,
-      button: onTap != null,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: SizedBox(
-          width: 280,
-          height: 240,
-          child: Stack(
-            children: [
-              // Full-bleed image
-              Positioned.fill(
-                child: CardImage(
-                  url: item.imageUrl,
-                  fallbackIcon: Icons.flight,
-                  semanticLabel: airline,
-                ),
-              ),
-              // Recommendation badge — top-left (glass variant for on-image)
-              if (recommendation != null)
-                Positioned(
-                  top: AppSpacing.sm,
-                  left: AppSpacing.sm,
-                  child: _buildRecommendationBadge(context, recommendation),
-                ),
-              // Airline logo — top-right
-              Positioned(
-                top: AppSpacing.sm,
-                right: AppSpacing.sm,
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-                  backgroundImage: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                      ? NetworkImage(item.imageUrl!)
-                      : null,
-                  child: item.imageUrl == null || item.imageUrl!.isEmpty
-                      ? Icon(Icons.flight, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant)
-                      : null,
-                ),
-              ),
-              // Wishlist — top-right, below airline logo
-              Positioned(
-                top: AppSpacing.sm + 40,
-                right: AppSpacing.sm,
-                child: CardFavorite(
-                  value: isWishlisted,
-                  onChanged: onWishlistChanged,
-                  onImage: true,
-                  size: 32,
-                ),
-              ),
-              // Stop indicator — top-center (if stops > 0)
-              if (stops != null && stops > 0)
-                Positioned(
-                  top: AppSpacing.sm,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: CardBadge(
-                      label: stopsText,
-                      variant: CardBadgeVariant.glass,
-                      icon: stops == 1 ? Icons.flight_takeoff : Icons.flight,
-                    ),
+    return BaseCard(
+      onTap: onTap,
+      semanticsLabel: semanticLabel,
+      padding: EdgeInsets.all(AppSpacing.md),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: targetWidth, minHeight: targetHeight),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Header: airline + badge + favorite ────────────────────
+            Row(
+              children: [
+                Builder(builder: (context) {
+                  final bg = CardImage.providerFor(item.imageUrl);
+                  return CircleAvatar(
+                    radius: 16,
+                    backgroundColor: scheme.primaryContainer,
+                    backgroundImage: bg,
+                    onBackgroundImageError: bg != null ? (_, __) {} : null,
+                    child: bg == null
+                        ? Icon(Icons.flight, size: 16, color: scheme.onPrimaryContainer)
+                        : null,
+                  );
+                }),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    airline,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 ),
-              // Bottom gradient scrim with content
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.75),
-                      ],
-                    ),
+                if (recommendationBadge != null) ...[
+                  Flexible(child: recommendationBadge),
+                  const SizedBox(width: AppSpacing.xs),
+                ],
+                if (onFavorite != null)
+                  CardFavorite(
+                    value: isFavorite,
+                    onChanged: onFavorite,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Route line
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              origin,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.flight,
-                            size: 18,
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Expanded(
-                            child: Text(
-                              destination,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      // Times + duration + stops
-                      Row(
-                        children: [
-                          if (depTime != null)
-                            Text(
-                              DateFormat.Hm().format(depTime),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          if (depTime != null && arrTime != null) ...[
-                            const SizedBox(width: AppSpacing.xs),
-                            Icon(
-                              Icons.arrow_forward,
-                              size: 12,
-                              color: Colors.white70,
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                          ],
-                          if (arrTime != null)
-                            Text(
-                              DateFormat.Hm().format(arrTime),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xs,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(AppRadius.pill),
-                            ),
-                            child: Text(
-                              duration,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      // Airline + flight number + cabin + baggage (compact)
-                      Row(
-                        children: [
-                          Flexible(
-                            flex: 1,
-                            child: Text(
-                              airline,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.white70,
-                                  ),
-                            ),
-                          ),
-                          if (flightNumber != null && flightNumber.isNotEmpty) ...[
-                            const SizedBox(width: AppSpacing.xs),
-                            Flexible(
-                              child: Text(
-                                flightNumber!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                              ),
-                            ),
-                          ],
-                          if (cabin != null && cabin.isNotEmpty) ...[
-                            const SizedBox(width: AppSpacing.xs),
-                            Flexible(
-                              child: Text(
-                                '· $cabin',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.white70,
-                                    ),
-                              ),
-                            ),
-                          ],
-                          if (baggage != null && baggage.isNotEmpty) ...[
-                            const SizedBox(width: AppSpacing.xs),
-                            Flexible(
-                              child: Text(
-                                '· $baggage',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.white70,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      // Price
-                      CardPrice(
-                        price: item.price,
-                        currency: item.currency,
-                        rawPrice: item.rawPrice,
-                        color: Colors.white,
-                      ),
-                      // Recommendation Reason (if available)
-                      RecommendationReason(reason: item.metadata.recommendationReason),
-                      const SizedBox(height: AppSpacing.sm),
-                      // Primary action
-                      CardPrimaryAction(
-                        label: 'View Details',
-                        onPressed: onTap,
-                        expanded: true,
-                        icon: Icons.arrow_forward,
-                      ),
-                    ],
+              ],
+            ),
+            // ── Route strip — the visual anchor ───────────────────────
+            const SizedBox(height: AppSpacing.md),
+            Center(
+              child: FlightRouteLine(
+                departureTime:
+                    depTime ?? DateTime.fromMillisecondsSinceEpoch(0),
+                arrivalTime:
+                    arrTime ?? DateTime.fromMillisecondsSinceEpoch(0),
+                origin: origin.isNotEmpty ? origin : '—',
+                destination: destination.isNotEmpty ? destination : '—',
+                stops: stops is int ? stops : 0,
+                stopAirport: stopAirport,
+                duration: duration,
+                compact: true,
+              ),
+            ),
+            // ── Metadata row: stops + cabin/baggage chips ──────────────
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Icon(
+                  Icons.schedule,
+                  size: 14,
+                  color: scheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Flexible(
+                  child: Text(
+                    stopsText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ),
+              ],
+            ),
+            if ((cabin != null && cabin.isNotEmpty) ||
+                (baggage != null && baggage.isNotEmpty)) ...[
+              const SizedBox(height: AppSpacing.xs),
+              CardFeatureList(
+                features: [
+                  if (cabin != null && cabin.isNotEmpty) cabin,
+                  if (baggage != null && baggage.isNotEmpty) baggage,
+                ],
+                direction: Axis.horizontal,
               ),
             ],
-          ),
+            // ── Footer: seats-left badge + PRICE ──────────────────────
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (seats != null && seats > 0 && seats <= 9) ...[
+                  Flexible(
+                    child: CardBadge(
+                      label: '$seats seat${seats > 1 ? 's' : ''} left',
+                      icon: Icons.event_seat,
+                      variant: CardBadgeVariant.tinted,
+                      type: BadgeType.limitedRooms,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+                const Spacer(),
+                Flexible(
+                  child: CardPrice(
+                    price: item.price,
+                    currency: item.currency,
+                    rawPrice: item.rawPrice,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  DateTime? _parseTime(dynamic value) {
-    if (value == null) return null;
-    if (value is DateTime) return value;
-    try {
-      return DateTime.parse(value.toString());
-    } catch (_) {
-      return null;
-    }
-  }
+/// Skeleton for [FlightRecommendationCard] — same tile geometry
+/// (header, route strip, metadata, price) with no fake data.
+class _LoadingSkeleton extends StatelessWidget {
+  const _LoadingSkeleton({required this.width});
 
-  String _calculateDuration(DateTime? dep, DateTime? arr) {
-    if (dep == null || arr == null) return '';
-    final diff = arr.difference(dep);
-    final hours = diff.inHours;
-    final minutes = diff.inMinutes % 60;
-    if (hours > 0 && minutes > 0) {
-      return '${hours}h ${minutes}m';
-    } else if (hours > 0) {
-      return '${hours}h';
-    } else {
-      return '${minutes}m';
-    }
-  }
+  final double width;
 
-  String _buildStopsText(int? stops, String? stopAirport) {
-    final s = stops ?? 0;
-    if (s == 0) return 'Non-stop';
-    if (s == 1) {
-      return stopAirport != null && stopAirport.isNotEmpty
-          ? '1 stop ($stopAirport)'
-          : '1 stop';
-    }
-    return '$s stops';
-  }
-
-  String? _getRecommendation() {
-    final rec = item.metadata['recommendation']?.toString()?.toLowerCase();
-    if (rec == 'cheapest' || rec == 'fastest' || rec == 'best_value' || rec == 'best value') {
-      return rec;
-    }
-    return null;
-  }
-
-  Widget _buildRecommendationBadge(BuildContext context, String recommendation) {
-    String label;
-    IconData icon;
-
-    switch (recommendation) {
-      case 'cheapest':
-        label = 'Cheapest';
-        icon = Icons.attach_money;
-        break;
-      case 'fastest':
-        label = 'Fastest';
-        icon = Icons.speed;
-        break;
-      case 'best_value':
-      case 'best value':
-        label = 'Best Value';
-        icon = Icons.star;
-        break;
-      default:
-        label = recommendation;
-        icon = Icons.star;
-    }
-
-    return CardBadge(
-      label: label,
-      icon: icon,
-      variant: CardBadgeVariant.glass,
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: avatar + airline + badge
+          Row(
+            children: [
+              CardSkeleton.avatar(size: 32),
+              CardSkeleton.hGap(width: AppSpacing.sm),
+              Expanded(child: CardSkeleton.title(width: 120, height: 16)),
+              CardSkeleton.chip(width: 72),
+            ],
+          ),
+          CardSkeleton.gap(height: AppSpacing.md),
+          // Route strip
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CardSkeleton.title(width: 56, height: 18),
+                    CardSkeleton.gap(height: AppSpacing.xxs),
+                    CardSkeleton.text(width: 40),
+                  ],
+                ),
+              ),
+              CardSkeleton.hGap(width: AppSpacing.sm),
+              Expanded(
+                flex: 2,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CardSkeleton.text(height: 2),
+                    const SizedBox(height: AppSpacing.xxs),
+                    CardSkeleton.chip(width: 52, height: 16),
+                  ],
+                ),
+              ),
+              CardSkeleton.hGap(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CardSkeleton.title(width: 56, height: 18),
+                    CardSkeleton.gap(height: AppSpacing.xxs),
+                    CardSkeleton.text(width: 40),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          CardSkeleton.gap(height: AppSpacing.md),
+          // Metadata row
+          Row(
+            children: [
+              CardSkeleton.text(width: 76),
+              CardSkeleton.hGap(width: AppSpacing.xs),
+              CardSkeleton.chip(width: 60),
+            ],
+          ),
+          CardSkeleton.gap(height: AppSpacing.sm),
+          // Footer price
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              CardSkeleton.price(width: 80),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

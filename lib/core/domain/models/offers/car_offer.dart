@@ -18,6 +18,7 @@ class CarOffer extends BaseOffer {
     super.metadata,
     super.rating,
     super.reviewCount,
+    super.customerPrice,
     required this.pickupLocation,
     required this.dropoffLocation,
     required this.pickupTime,

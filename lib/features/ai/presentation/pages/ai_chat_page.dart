@@ -134,7 +134,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0057B3), AppColors.brand],
+                colors: [AppColors.ai, AppColors.aiLight],
               ),
             ),
             child: const Center(child: AiBubbleIcon(size: 18)),
@@ -181,7 +181,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             child: Column(
               children: [
                 AiBubbleIcon(
-                    size: 40, color: AppColors.brand.withValues(alpha: 0.5)),
+                    size: 40, color: AppColors.ai.withValues(alpha: 0.5)),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   'Hi! Ask me about flights, hotels, and more…',
@@ -287,11 +287,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF0057B3), AppColors.brand],
+                  colors: [AppColors.ai, AppColors.aiLight],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.brand.withValues(alpha: 0.3),
+                    color: AppColors.ai.withValues(alpha: 0.3),
                     blurRadius: 10,
                     spreadRadius: 1,
                   ),
@@ -398,7 +398,7 @@ class ChatBubble extends StatelessWidget {
                 ? const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF0057B3), AppColors.brand],
+                    colors: [AppColors.ai, AppColors.aiLight],
                   )
                 : null,
             color: isUser ? null : scheme.surfaceContainerHighest,

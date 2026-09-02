@@ -61,7 +61,7 @@ class _AiErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typography = AppTypography.forBrightness(Theme.of(context).brightness);
+    final typography = AppTypography.forLight();
 
     return Center(
       child: Padding(
@@ -114,7 +114,7 @@ class _AiResponseBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final typography = AppTypography.forBrightness(Theme.of(context).brightness);
+    final typography = AppTypography.forLight();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -134,7 +134,7 @@ class _AiResponseBubble extends StatelessWidget {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: <Color>[AppColors.brand, AppColors.info],
+                colors: <Color>[AppColors.ai, AppColors.aiLight],
               ),
             ),
             child: Icon(Icons.auto_awesome, size: 14, color: scheme.onPrimary),

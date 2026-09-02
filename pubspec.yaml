@@ -31,6 +31,11 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Material/Widgets localizations (en/ar + RTL mirroring)
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -40,16 +45,15 @@ dependencies:
 
   go_router: ^14.8.0
 
-  # Internationalization and date formatting
-  intl: ^0.19.0
-
   # Platform secure storage for iOS Keychain / Android Keystore / Linux libsecret
   flutter_secure_storage: ^9.2.2
   hive: ^2.2.3
   crypto: ^3.0.3
+  equatable: ^2.0.5
 
 dependency_overrides:
   flutter_secure_storage_linux: 1.1.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -67,11 +71,25 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # App image assets (placeholders + future real imagery)
+  assets:
+    - assets/images/
+
+  # Premium type system: Manrope (Latin) + Cairo (Arabic), variable fonts.
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Variable.ttf
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Variable.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

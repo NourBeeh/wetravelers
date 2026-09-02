@@ -8,31 +8,27 @@ import 'app_radius.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
 
-/// Aggregates every design token set in a single, brightness-aware bundle.
+/// Aggregates every design token set in a single bundle.
 ///
-/// A single [AppTokens] instance is produced per [Brightness] by [AppTokens.forBrightness]
-/// and consumed by [AppTheme] when building [ThemeData].
+/// The design language is light-only ("Pure White Premium"); a single
+/// [AppTokens] instance is produced by [AppTokens.standard] and consumed by
+/// [AppTheme] when building [ThemeData].
 @immutable
 class AppTokens {
   const AppTokens._({
-    required this.brightness,
     required this.colors,
     required this.typography,
   });
 
-  factory AppTokens.forBrightness(Brightness brightness) {
-    return AppTokens._(
-      brightness: brightness,
-      colors: brightness == Brightness.dark ? const _DarkPalette() : const _LightPalette(),
-      typography: AppTypography.forBrightness(brightness),
-    );
-  }
+  factory AppTokens.standard() => const AppTokens._(
+        colors: AppColorPalette(),
+        typography: AppTypography.forLight(),
+      );
 
-  final Brightness brightness;
   final AppColorPalette colors;
   final AppTypography typography;
 
-  // Non-color token sets are brightness-independent.
+  // Non-color token sets.
   static const AppSpacingToken spacing = AppSpacingToken();
   static const AppRadiusToken radius = AppRadiusToken();
   static const AppElevationToken elevation = AppElevationToken();
@@ -40,20 +36,20 @@ class AppTokens {
   static const AppBreakpointsToken breakpoints = AppBreakpointsToken();
 }
 
-/// Value-object wrappers so tokens can be accessed uniformly from [AppTokens].
+/// Value-object wrapper so colour tokens can be accessed uniformly.
 @immutable
 class AppColorPalette {
   const AppColorPalette({
-    required this.background,
-    required this.surface,
-    required this.surfaceSecondary,
-    required this.outline,
-    required this.divider,
-    required this.overlay,
-    required this.textPrimary,
-    required this.textSecondary,
-    required this.textTertiary,
-    required this.textOnSurface,
+    this.background = AppColors.background,
+    this.surface = AppColors.surface,
+    this.surfaceSecondary = AppColors.surfaceSecondary,
+    this.outline = AppColors.outline,
+    this.divider = AppColors.divider,
+    this.overlay = AppColors.overlay,
+    this.textPrimary = AppColors.textPrimary,
+    this.textSecondary = AppColors.textSecondary,
+    this.textTertiary = AppColors.textTertiary,
+    this.textOnSurface = AppColors.textOnSurface,
   });
 
   final Color background;
@@ -66,41 +62,6 @@ class AppColorPalette {
   final Color textSecondary;
   final Color textTertiary;
   final Color textOnSurface;
-}
-
-/// Immutable palette repositories.
-@immutable
-class _LightPalette extends AppColorPalette {
-  const _LightPalette()
-      : super(
-          background: AppColors.backgroundLight,
-          surface: AppColors.surfaceLight,
-          surfaceSecondary: AppColors.surfaceSecondaryLight,
-          outline: AppColors.outlineLight,
-          divider: AppColors.dividerLight,
-          overlay: AppColors.overlayLight,
-          textPrimary: AppColors.textPrimaryLight,
-          textSecondary: AppColors.textSecondaryLight,
-          textTertiary: AppColors.textTertiaryLight,
-          textOnSurface: AppColors.textOnSurfaceLight,
-        );
-}
-
-@immutable
-class _DarkPalette extends AppColorPalette {
-  const _DarkPalette()
-      : super(
-          background: AppColors.backgroundDark,
-          surface: AppColors.surfaceDark,
-          surfaceSecondary: AppColors.surfaceSecondaryDark,
-          outline: AppColors.outlineDark,
-          divider: AppColors.dividerDark,
-          overlay: AppColors.overlayDark,
-          textPrimary: AppColors.textPrimaryDark,
-          textSecondary: AppColors.textSecondaryDark,
-          textTertiary: AppColors.textTertiaryDark,
-          textOnSurface: AppColors.textOnSurfaceDark,
-        );
 }
 
 /// Non-color token sets (concrete, const).

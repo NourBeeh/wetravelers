@@ -34,3 +34,20 @@
 
 ## Rule
 Do not fix unrelated historical issues during a scoped phase unless the requested phase explicitly requires them.
+## Wave workstreams (2026-09-02) — current state and open items
+
+### Verified working
+- Nuitee sandbox LIVE smoke passes with the user's key in `backend/.env` (`NUITEE_LIVE_SMOKE=1 npx jest --testPathPattern=nuitee.live-smoke`).
+- Full app boots and walks all tabs without exceptions (`test/app/full_app_smoke_test.dart`); all 4 search pages interaction-tested; 432 Flutter + 129 backend tests green; debug APK builds.
+
+### Open items (none blocking, all deliberate)
+- **Nuitee key is in `.env` only** (git-ignored — verified). Never copy it into committed files.
+- **Duffel flights**: `revalidateOffer` + provenance shipped; the funnel does NOT yet call Duffel `createOrder` end-to-end (book wiring is Phase 19 remaining).
+- **Nuitee book** (`/rates/book`) adapter method exists and is contract-tested, but the Flutter funnel does not yet pass prebookId/transactionId into a real hotel booking (Phase 19 remaining).
+- **Payments**: MockEgyptGateway only. Real Egyptian PSP selection/onboarding pending (spec §K). `PAYMENT_GATEWAY_EG_REF` documented in `.env.example` but unset.
+- **Booking persistence**: payments ledger + gateway state are in-memory service state; the spec §49 DB tables (bookings, payments, ledger_entries, fx_rates, webhook_events…) are NOT migrated yet.
+- **Favorites**: heart toggles are presentational; no persistence service yet (leftover from card sub-phase 24C).
+- **Home feed**: backend-driven via `GET /home/sections` + seed; when backend is down/empty the dev-preview fallback renders skeleton items (by design — no fake data).
+- **Cars**: mock catalogue only (spec point 30 defers vendor selection).
+- **`/ai` route**: still a placeholder; the real assistant is `/ai-chat`. The AI-mode visual shell page exists unrouted.
+- **Known historical security gate (pre-production)**: `POST /api/duffel/create-booking` still has no auth guard/DTO validation — must be gated before production (unchanged from the 2026-08-21 note above).

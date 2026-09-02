@@ -218,14 +218,22 @@ class _SecondaryPriceLine extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          style: style,
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: style,
+          ),
         ),
         const SizedBox(width: AppSpacing.xxs),
-        Text(
-          formatCardPrice(price: value, currency: currency),
-          style: style,
+        Flexible(
+          child: Text(
+            formatCardPrice(price: value, currency: currency),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: style,
+          ),
         ),
       ],
     );
@@ -240,7 +248,6 @@ class _SavingsChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
       decoration: BoxDecoration(
@@ -334,7 +341,7 @@ class _PriceSkeletonState extends State<_PriceSkeleton>
           height: 24,
           width: 80,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.3 * _animation.value),
+            color: AppColors.surfaceTertiary.withValues(alpha: 0.3 * _animation.value),
             borderRadius: BorderRadius.circular(4),
           ),
         );

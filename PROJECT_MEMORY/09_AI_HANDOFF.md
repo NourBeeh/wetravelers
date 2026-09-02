@@ -25,7 +25,15 @@ Produce:
 ## Important
 Do not give an execution agent a giant historical dump when a focused task prompt is enough.
 
-## Verified handoff — 2026-08-21
+## Verified handoff — 2026-09-02 (AUTHORITATIVE)
+
+- **Verified state:** Phases 1–17 complete PLUS Wave workstreams W0–W3 complete: light-only "Pure White Premium" UI + bottom nav (Home/Search/AI-centre/Groups/Explore) + unified fade-through; Nuitee hotels LIVE-verified on the backend (sandbox key in `.env`) with Duffel revalidation, MarketContext EG/EGP + FX + deterministic PricingEngine (`customerPrice` on every offer), cars rich mock; search/home UI rebuilt (SearchScaffold, picker sheets, rich states, DiscoveryProductCard, Continue planning); booking funnel + revalidation gate + mock EG payment gateway with ledger/idempotency/webhooks. **Baseline: 432 Flutter tests / 129 backend tests green; analyze 0 errors; debug APK builds.** Full record: `01_MASTER_MEMORY.md` §12.5–12.6.
+- **Exact next phase:** **18 — PROJECT_MEMORY cloud sync + analytics foundation**. Do not start it or any later phase unless explicitly requested.
+- Point new agents to `03_CURRENT_STATE.md` + `08_NEXT_STEPS.md` for the verified checkpoint and roadmap.
+- Live AI runs through the OpenAI-compatible provider; `.env` is local-only and must never be committed.
+- Invariants: LIGHT-ONLY theme; provider secrets backend-only; revalidation before payment; branch order Home=0/Search=1/Groups=2/Explore=3 (AI = pushed route).
+
+## Historical handoff — 2026-08-21 (superseded by the one above)
 
 - **Verified state:** Phase 17 (Auth) complete. Phases 1–17 are done: backend register/login/me (bcryptjs + JwtStrategy/Guard), Flutter secure-storage session with restore, `/auth` page + profile split; Home empty-state fixed via demo+cache fallback; `npm run seed:home` dev seed added. Backend 98 jest tests + tsc clean; Flutter 242 tests pass, analyze 0 errors.
 - **Exact next phase:** **18 — PROJECT_MEMORY cloud sync + analytics foundation**. Do not start it or any later phase unless explicitly requested.
@@ -941,4 +949,23 @@ f9274512 test(auth): add backend auth spec file missed in phase 17 commit
 17f27f02 chore(memory): sync checkpoints after phase 17
 59276fea feat(home): seed home_sections and home_cards for local dev
 f9233a96 fix(ui): command bar layout constraints
+```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+66a80f94 (HEAD -> main, origin/main, origin/HEAD) feat(project): add automatic git sync and update state documentation
+b7f3f985 feat(cards): shared card design system (Stage 2) + redesign, audit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+59276fea feat(home): seed home_sections and home_cards for local dev
 ```

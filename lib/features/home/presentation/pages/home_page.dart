@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
+import 'package:wetravellers/core/theme/app_radius.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
+import 'package:wetravellers/core/theme/app_typography.dart';
+import 'package:wetravellers/core/widgets/shimmer.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/features/home/presentation/home_controller.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_section.dart';
 import 'package:wetravellers/features/home/providers/home_providers.dart';
 import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
+import 'package:wetravellers/features/bag/application/bag_controller.dart';
+import 'package:wetravellers/features/bag/domain/trip.dart';
+import 'package:wetravellers/l10n/app_localizations.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -15,44 +21,61 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(homeControllerProvider);
+    final bag = ref.watch(bagControllerProvider);
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () => ref.read(homeControllerProvider.notifier).refresh(),
-        child: _buildBody(state, ref),
+        child: SafeArea(
+          top: true,
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              // Seamless merged header — present across every feed state.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.sm,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const _HomeTopActions(),
+                    const SizedBox(height: AppSpacing.md),
+                    const _HomeWelcome(),
+                  ],
+                ),
+              ),
+              Expanded(child: _buildBody(state, ref, bag)),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildBody(HomeState state, WidgetRef ref) {
+  Widget _buildBody(HomeState state, WidgetRef ref, BagState bag) {
     switch (state.status) {
       case HomeStatus.loading:
-        return SafeArea(
-          top: true,
-          bottom: false,
-          child: ListView.builder(
-            padding: EdgeInsets.all(AppSpacing.lg),
-            itemCount: 5,
-            itemBuilder: (_, _) => const Padding(
-              padding: EdgeInsets.only(bottom: AppSpacing.md),
-              child: _SkeletonCard(height: 180),
-            ),
+        return ListView.builder(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          itemCount: 5,
+          itemBuilder: (_, _) => const Padding(
+            padding: EdgeInsets.only(bottom: AppSpacing.md),
+            child: _SkeletonCard(height: 180),
           ),
         );
       case HomeStatus.success:
       case HomeStatus.partial:
       case HomeStatus.developmentPreview:
-        return SafeArea(
-          top: true,
-          bottom: false,
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
-                  child: const _HomeHero(),
-                ),
-              ),
-              SliverList(
+        return CustomScrollView(
+          slivers: [
+            // Continue planning — current trips from the unified Bag.
+            if (bag.currentTrips.isNotEmpty)
+              SliverToBoxAdapter(child: _ContinuePlanningRow(trips: bag.currentTrips)),
+            SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => HomeSectionWidget(
                     section: state.sections[index],
@@ -73,7 +96,7 @@ class HomePage extends ConsumerWidget {
                     onViewAllFlights: () {
                       context.push('/flights');
                     },
-                    onWishlistChanged: (flightId, value) {
+                    onFavorite: (flightId, value) {
                       // Handle wishlist change
                     },
                   ),
@@ -81,212 +104,270 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
         );
       case HomeStatus.empty:
-        return const SafeArea(
-          top: true,
-          bottom: false,
-          child: Center(child: Text('No content available')),
-        );
+        return const Center(child: Text('No content available'));
       case HomeStatus.error:
-        return SafeArea(
-          top: true,
-          bottom: false,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(state.errorMessage ?? 'Something went wrong. Please try again.'),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () => ref.read(homeControllerProvider.notifier).load(),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(state.errorMessage ?? 'Something went wrong. Please try again.'),
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: () => ref.read(homeControllerProvider.notifier).load(),
+                child: const Text('Retry'),
+              ),
+            ],
           ),
         );
     }
   }
 }
 
-class _HomeHero extends StatelessWidget {
-  const _HomeHero();
+/// "Continue planning" — horizontal strip of current trips from the unified
+/// Bag, shown above the feed so users resume where they left off.
+class _ContinuePlanningRow extends StatelessWidget {
+  const _ContinuePlanningRow({required this.trips});
+
+  final List<TripSummary> trips;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFF0057B3), AppColors.brand, const Color(0xFF5EA4FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Where to next?',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
+    final typography = AppTypography.forLight();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.sm,
+            AppSpacing.lg,
+            AppSpacing.md,
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            'Plan a city break, beach escape or weekend getaway.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.9),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          // Search entry point → flights search
-          GestureDetector(
-            onTap: () => context.push('/flights'),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, size: 20, color: AppColors.brand),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      'Search flights, hotels & more',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
-                    ),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  'Continue planning',
+                  style: typography.title.copyWith(
+                    color: AppColors.textPrimary,
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.brandContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.arrow_forward, size: 16, color: AppColors.brand),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // Service quick links
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              _ServiceLink(icon: Icons.flight, label: 'Flights', route: '/flights'),
-              _ServiceLink(icon: Icons.hotel, label: 'Hotels', route: '/hotels'),
-              _ServiceLink(icon: Icons.directions_car, label: 'Cars', route: '/cars'),
-              _ServiceLink(icon: Icons.tour, label: 'Packages', route: '/packages'),
+              InkWell(
+                onTap: () => context.push('/bag'),
+                child: Text(
+                  AppLocalizations.of(context)!.viewAll,
+                  style: typography.captionSemibold.copyWith(
+                    color: AppColors.brand,
+                  ),
+                ),
+              ),
             ],
           ),
-        ],
+        ),
+        SizedBox(
+          height: 96,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+            itemCount: trips.length,
+            itemBuilder: (context, index) {
+              final trip = trips[index];
+              return _ContinueTripTile(trip: trip);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ContinueTripTile extends StatelessWidget {
+  const _ContinueTripTile({required this.trip});
+
+  final TripSummary trip;
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = AppTypography.forLight();
+    final dateFormat = (DateTime d) =>
+        '${d.day}/${d.month}';
+    return Material(
+      color: AppColors.brandContainer,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/bag'),
+        child: SizedBox(
+          width: 240,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    color: AppColors.brand,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.luggage_rounded,
+                    size: 22,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        trip.destination,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: typography.bodyLargeMedium.copyWith(
+                          color: AppColors.onBrandContainer,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        '${dateFormat(trip.startDate)} → ${dateFormat(trip.endDate)} · ${trip.status}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: typography.caption.copyWith(
+                          color: AppColors.onBrandContainer.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _ServiceLink extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String route;
-  const _ServiceLink({required this.icon, required this.label, required this.route});
+/// Seamless merged header actions — the page flows directly under the status
+/// bar with no fixed shell header. Bag (my trips), notifications and profile.
+class _HomeTopActions extends StatelessWidget {
+  const _HomeTopActions();
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push(route),
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, size: 22, color: Colors.white),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        Text(
+          'Travellers',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: AppTypography.weightExtraBold,
+                color: AppColors.brand,
+              ),
+        ),
+        const Spacer(),
+        _TopAction(
+          icon: Icons.luggage_outlined,
+          tooltip: 'My trips',
+          onTap: () => context.push('/bag'),
+        ),
+        _TopAction(
+          icon: Icons.notifications_none_rounded,
+          tooltip: 'Notifications',
+          onTap: () => context.push('/notifications'),
+        ),
+        _TopAction(
+          icon: Icons.person_outline_rounded,
+          tooltip: 'Profile',
+          onTap: () => context.push('/profile'),
+        ),
+      ],
+    );
+  }
+}
+
+class _TopAction extends StatelessWidget {
+  const _TopAction({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 22, color: AppColors.textPrimary),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      onPressed: onTap,
+    );
+  }
+}
+
+/// Compact welcome line — the hero search card now lives on the Search tab;
+/// Home leads directly with the discovery feed.
+class _HomeWelcome extends StatelessWidget {
+  const _HomeWelcome();
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = AppTypography.forLight();
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          l10n.homeWelcome,
+          style: typography.headline.copyWith(color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          l10n.homeWelcomeSub,
+          style: typography.body.copyWith(color: AppColors.textTertiary),
+        ),
+      ],
     );
   }
 }
 
 // ─── Skeleton ──────────────────────────────────────────────────────────────────
 
-class _SkeletonCard extends StatefulWidget {
+/// Page-level loading placeholder while the Home feed loads. Uses the shared
+/// [ShimmerBox] primitive — no hardcoded greys, theme-aware in both modes.
+class _SkeletonCard extends StatelessWidget {
   final double height;
   const _SkeletonCard({required this.height});
 
   @override
-  State<_SkeletonCard> createState() => _SkeletonCardState();
-}
-
-class _SkeletonCardState extends State<_SkeletonCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _anim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
-    _anim = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-  }
-
-  @override
-  void dispose() { _controller.dispose(); super.dispose(); }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _anim,
-      builder: (_, _) {
-        final opacity = 0.4 + _anim.value * 0.3;
-        return Container(
-          height: widget.height,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Flexible image placeholder — absorbs height changes so the
-                // fixed text rows below can never overflow the card.
-                Expanded(
-                  child: Container(width: double.infinity, decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: opacity),
-                    borderRadius: BorderRadius.circular(AppSpacing.md),
-                  )),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Container(height: 14, width: 180, color: Colors.grey.withValues(alpha: opacity)),
-                const SizedBox(height: AppSpacing.xs),
-                Container(height: 12, width: 120, color: Colors.grey.withValues(alpha: opacity * 0.7)),
-              ],
-            ),
-          ),
-        );
-      },
+    return ShimmerBox(
+      height: height,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Flexible image placeholder — absorbs height changes so the
+          // fixed text rows below can never overflow the card.
+          const Expanded(child: ShimmerBox(width: double.infinity)),
+          const SizedBox(height: AppSpacing.sm),
+          const ShimmerBox(height: 14, width: 180),
+          const SizedBox(height: AppSpacing.xs),
+          const ShimmerBox(height: 12, width: 120),
+        ],
+      ),
     );
   }
 }

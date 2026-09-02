@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/core/domain/models/home/home_types.dart';
 import 'package:wetravellers/core/widgets/cards/card.dart';
+import 'package:wetravellers/core/widgets/shimmer.dart';
 import 'package:wetravellers/features/home/presentation/widgets/destination_discovery_card.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: Center(child: SizedBox(width: 300, height: 250, child: child))));
@@ -137,6 +138,38 @@ void main() {
       ));
 
       expect(find.byType(DestinationDiscoveryCard), findsOneWidget);
+    });
+
+    testWidgets('loading: skeleton, no fake data, tap blocked', (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(_wrap(DestinationDiscoveryCard(
+        item: _makeItem(),
+        loading: true,
+        onTap: () => taps++,
+      )));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(ShimmerBox), findsWidgets);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      // No destination text may render in loading state
+      expect(find.text('Paris'), findsNothing);
+      expect(find.text('France'), findsNothing);
+      await tester.tap(find.byType(BaseCard));
+      expect(taps, 0);
+    });
+
+    testWidgets('large text scale renders without overflow', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+          child: child!,
+        ),
+        home: Scaffold(body: DestinationDiscoveryCard(item: _makeItem(
+          title: 'Very Long Destination Name',
+          metadata: {'country': 'France'},
+        ))),
+      ));
+      expect(tester.takeException(), isNull);
     });
   });
 }

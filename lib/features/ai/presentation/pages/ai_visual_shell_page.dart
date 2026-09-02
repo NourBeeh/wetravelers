@@ -54,7 +54,7 @@ class _AiHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typography = AppTypography.forBrightness(Theme.of(context).brightness);
+    final typography = AppTypography.forLight();
     final scheme = Theme.of(context).colorScheme;
 
     return Padding(

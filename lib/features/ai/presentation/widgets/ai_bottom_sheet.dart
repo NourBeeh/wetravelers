@@ -268,7 +268,7 @@ Future<void> showAiBottomSheet(BuildContext context, String prompt, {AiQueryCont
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.auto_awesome_outlined,
-                          size: 40, color: AppColors.brand.withValues(alpha: 0.5)),
+                          size: 40, color: AppColors.ai.withValues(alpha: 0.5)),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         'Ask about flights, hotels & more…',

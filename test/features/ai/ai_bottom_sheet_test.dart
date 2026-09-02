@@ -17,6 +17,8 @@ import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/ai/domain/ai_section.dart';
 import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 import 'package:wetravellers/features/ai/presentation/widgets/ai_bottom_sheet.dart';
+import 'package:wetravellers/features/home/presentation/widgets/home_card.dart';
+import 'package:wetravellers/features/home/presentation/widgets/discovery_product_card.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
 import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 
@@ -113,7 +115,9 @@ void main() {
 
     await tester.pump();
     expect(find.text('Recommended stays'), findsOneWidget);
-    expect(find.text('Seaside Hotel'), findsOneWidget);
+    // Real hotel items now render the unified discovery product card
+    // (Wave 2); empty dev-preview items keep the skeleton surface.
+    expect(find.byType(DiscoveryProductCard), findsOneWidget);
   });
 
   testWidgets('AI bottom sheet shows a sanitized error state', (tester) async {

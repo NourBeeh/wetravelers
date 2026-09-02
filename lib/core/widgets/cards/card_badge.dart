@@ -4,6 +4,7 @@ import 'package:wetravellers/core/theme/app_radius.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/core/widgets/cards/badge_config.dart';
 import 'package:wetravellers/core/widgets/cards/card_glass.dart';
+import 'package:wetravellers/core/widgets/cards/card_scrim_overlay.dart';
 
 /// Badge variants: a tinted solid chip (default) or a frosted [glass] pill for
 /// placing directly over a photo.
@@ -57,8 +58,8 @@ class CardBadge extends StatelessWidget {
     Color background;
 
     if (onDark) {
-      foreground = Colors.white;
-      background = spec?.getBackgroundColor(context) ?? Colors.white.withValues(alpha: 0.14);
+      foreground = CardScrimColors.onScrim;
+      background = spec?.getBackgroundColor(context) ?? const Color(0x24FFFFFF);
     } else if (spec != null) {
       foreground = spec.getColor(context);
       background = spec.getBackgroundColor(context);
@@ -75,12 +76,16 @@ class CardBadge extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
         ],
         if (effectiveLabel != null && effectiveLabel.isNotEmpty)
-          Text(
-            effectiveLabel,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: foreground,
-                  fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
-                ),
+          Flexible(
+            child: Text(
+              effectiveLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: foreground,
+                    fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
+                  ),
+            ),
           ),
       ],
     );
@@ -93,9 +98,9 @@ class CardBadge extends StatelessWidget {
     if (onDark) {
       return CardGlass(
         padding: padding,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
+        borderRadius: AppRadius.pillBorder,
         tint: background,
-        borderColor: Colors.white.withValues(alpha: 0.25),
+        borderColor: CardScrimColors.onScrimBorder,
         child: content,
       );
     }
@@ -104,7 +109,7 @@ class CardBadge extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderRadius: AppRadius.smBorder,
       ),
       child: content,
     );

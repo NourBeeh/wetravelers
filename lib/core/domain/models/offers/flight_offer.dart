@@ -18,6 +18,7 @@ class FlightOffer extends BaseOffer {
     super.metadata,
     super.rating,
     super.reviewCount,
+    super.customerPrice,
     required this.origin,
     required this.destination,
     required this.departureTime,
