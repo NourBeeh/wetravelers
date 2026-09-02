@@ -8,7 +8,8 @@
     "start": "node dist/main",
     "start:dev": "nest start --watch",
     "test": "jest",
-    "seed:home": "node scripts/seed-home.js"
+    "seed:home": "node scripts/seed-home.js",
+    "seed:admin": "node scripts/seed-admin.js"
   },
   "dependencies": {
     "@duffel/api": "^4.28.0",

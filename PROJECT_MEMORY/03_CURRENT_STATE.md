@@ -1,5 +1,8 @@
 # WeTravellers — CURRENT STATE
 
+## Last known checkpoint
+**Admin workstream complete (2026-09-02, unnumbered — see 04_PHASE_HISTORY addendum).** Backend: `/admin/home/*` content CRUD + audit, `/admin/providers/*` runtime provider switching (DB-driven registry, priority order, health checks, legacy fallback), admin role guard (`role='admin'` + RolesGuard), publishAt/status scheduling on home_sections/home_cards, `npm run seed:admin` dev seed. Flutter: `/admin` panel (Home content tab with live HomeCard preview; API providers tab with toggle/priority/health-check), full en/ar l10n, `HttpAdminHomeService` implements the legacy AdminHomeService contract. Baseline now: backend jest 152 passed (tsc clean); flutter test 438 passed / 6 skipped; analyze 0 errors. Next pending roadmap phase: **Phase 18** (requires explicit approval).
+
 ## Last known checkpoint (2026-09-02) — AUTHORITATIVE
 **Wave workstreams W0–W3 complete.** See `01_MASTER_MEMORY.md` §12.5 for the full record; summary:
 
@@ -28577,4 +28580,68 @@ M  test/features/search/presentation/widgets/package_search_card_test.dart
 A  test/features/search/search_pages_interaction_test.dart
 A  test/features/ui/new_surfaces_test.dart
 A  test/visual_audit/card_visual_audit_test.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+bf3335d1 (HEAD -> main) feat(app): full UI rebuild, real travel providers, and booking/payment foundation (Waves 0-3)
+66a80f94 (origin/main, origin/HEAD) feat(project): add automatic git sync and update state documentation
+b7f3f985 feat(cards): shared card design system (Stage 2) + redesign, audit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+141164e2 fix(seed): align db config resolution with nest defaults and document db env keys
+f9274512 test(auth): add backend auth spec file missed in phase 17 commit
+17f27f02 chore(memory): sync checkpoints after phase 17
+```
+
+### Pending status
+```
+M  PROJECT_MEMORY/03_CURRENT_STATE.md
+M  PROJECT_MEMORY/04_PHASE_HISTORY.md
+M  backend/package.json
+A  backend/scripts/seed-admin.js
+A  backend/src/common/decorators/roles.decorator.ts
+A  backend/src/common/dto/admin.dto.ts
+A  backend/src/common/guards/roles.guard.ts
+M  backend/src/common/providers/provider.registry.impl.ts
+M  backend/src/database/entities/home_card.entity.ts
+M  backend/src/database/entities/home_section.entity.ts
+M  backend/src/database/entities/provider.entity.ts
+A  backend/src/modules/admin/admin-providers.controller.ts
+A  backend/src/modules/admin/admin.controller.ts
+M  backend/src/modules/admin/admin.module.ts
+A  backend/src/modules/admin/admin.service.ts
+M  backend/src/modules/home/home.service.ts
+A  backend/src/modules/providers/provider.instances.ts
+M  backend/src/modules/providers/providers.module.ts
+A  backend/src/modules/providers/registry.sync.service.ts
+A  backend/test/admin.home.spec.ts
+A  backend/test/admin.providers.spec.ts
+M  backend/test/home.schema.spec.ts
+M  lib/app/router/go_router_config.dart
+A  lib/core/admin/admin_home_content_service.dart
+A  lib/core/admin/admin_provider_models.dart
+A  lib/core/admin/http_admin_home_service.dart
+A  lib/core/admin/http_admin_provider_service.dart
+A  lib/core/admin/http_admin_service_base.dart
+M  lib/core/auth/user_model.dart
+A  lib/features/admin/presentation/admin_services.dart
+A  lib/features/admin/presentation/pages/admin_content_tab.dart
+A  lib/features/admin/presentation/pages/admin_page.dart
+A  lib/features/admin/presentation/pages/admin_providers_tab.dart
+A  lib/features/admin/presentation/widgets/admin_card_editor_sheet.dart
+M  lib/features/profile/presentation/pages/settings_page.dart
+M  lib/l10n/app_ar.arb
+M  lib/l10n/app_en.arb
+M  lib/l10n/app_localizations.dart
+M  lib/l10n/app_localizations_ar.dart
+M  lib/l10n/app_localizations_en.dart
+A  test/core/admin/http_admin_service_test.dart
 ```

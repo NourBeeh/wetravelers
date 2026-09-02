@@ -385,6 +385,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get continueAction;
+
+  /// No description provided for @adminPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin panel'**
+  String get adminPanel;
+
+  /// No description provided for @adminContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Home content'**
+  String get adminContent;
+
+  /// No description provided for @adminProviders.
+  ///
+  /// In en, this message translates to:
+  /// **'API providers'**
+  String get adminProviders;
+
+  /// No description provided for @adminAddSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Add section'**
+  String get adminAddSection;
+
+  /// No description provided for @adminAddCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Add card'**
+  String get adminAddCard;
+
+  /// No description provided for @adminEditCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit card'**
+  String get adminEditCard;
+
+  /// No description provided for @adminType.
+  ///
+  /// In en, this message translates to:
+  /// **'Card type'**
+  String get adminType;
+
+  /// No description provided for @adminTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get adminTitle;
+
+  /// No description provided for @adminSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle'**
+  String get adminSubtitle;
+
+  /// No description provided for @adminImageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL'**
+  String get adminImageUrl;
+
+  /// No description provided for @adminPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get adminPrice;
+
+  /// No description provided for @adminCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get adminCurrency;
+
+  /// No description provided for @adminRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get adminRating;
+
+  /// No description provided for @adminBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Badge'**
+  String get adminBadge;
+
+  /// No description provided for @adminActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Action label'**
+  String get adminActionLabel;
+
+  /// No description provided for @adminStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get adminStatus;
+
+  /// No description provided for @adminDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get adminDraft;
+
+  /// No description provided for @adminPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get adminPublished;
+
+  /// No description provided for @adminVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible'**
+  String get adminVisible;
+
+  /// No description provided for @adminDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get adminDelete;
+
+  /// No description provided for @adminMoveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get adminMoveUp;
+
+  /// No description provided for @adminMoveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get adminMoveDown;
+
+  /// No description provided for @adminSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get adminSave;
+
+  /// No description provided for @adminCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get adminCancel;
+
+  /// No description provided for @adminPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Live preview'**
+  String get adminPreview;
+
+  /// No description provided for @adminHealthCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Health check'**
+  String get adminHealthCheck;
+
+  /// No description provided for @adminLatency.
+  ///
+  /// In en, this message translates to:
+  /// **'Latency'**
+  String get adminLatency;
+
+  /// No description provided for @adminActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get adminActive;
+
+  /// No description provided for @adminPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get adminPriority;
+
+  /// No description provided for @adminRefreshRegistry.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply changes'**
+  String get adminRefreshRegistry;
+
+  /// No description provided for @adminEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No content yet. Add your first section.'**
+  String get adminEmpty;
+
+  /// No description provided for @adminError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please retry.'**
+  String get adminError;
+
+  /// No description provided for @adminRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get adminRetry;
+
+  /// No description provided for @adminLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get adminLoading;
+
+  /// No description provided for @adminSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get adminSaved;
+
+  /// No description provided for @adminFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight'**
+  String get adminFlight;
+
+  /// No description provided for @adminHotel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel'**
+  String get adminHotel;
+
+  /// No description provided for @adminCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get adminCar;
+
+  /// No description provided for @adminPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Package'**
+  String get adminPackage;
+
+  /// No description provided for @adminDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get adminDestination;
+
+  /// No description provided for @adminDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal'**
+  String get adminDeal;
 }
 
 class _AppLocalizationsDelegate

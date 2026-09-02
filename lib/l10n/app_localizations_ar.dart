@@ -152,4 +152,127 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get continueAction => 'متابعة';
+
+  @override
+  String get adminPanel => 'لوحة الأدمن';
+
+  @override
+  String get adminContent => 'محتوى الصفحة الرئيسية';
+
+  @override
+  String get adminProviders => 'مزوّدو الخدمات (API)';
+
+  @override
+  String get adminAddSection => 'إضافة قسم';
+
+  @override
+  String get adminAddCard => 'إضافة كارت';
+
+  @override
+  String get adminEditCard => 'تعديل الكارت';
+
+  @override
+  String get adminType => 'نوع الكارت';
+
+  @override
+  String get adminTitle => 'العنوان';
+
+  @override
+  String get adminSubtitle => 'العنوان الفرعي';
+
+  @override
+  String get adminImageUrl => 'رابط الصورة';
+
+  @override
+  String get adminPrice => 'السعر';
+
+  @override
+  String get adminCurrency => 'العملة';
+
+  @override
+  String get adminRating => 'التقييم';
+
+  @override
+  String get adminBadge => 'الشارة';
+
+  @override
+  String get adminActionLabel => 'نص الزر';
+
+  @override
+  String get adminStatus => 'الحالة';
+
+  @override
+  String get adminDraft => 'مسودة';
+
+  @override
+  String get adminPublished => 'منشور';
+
+  @override
+  String get adminVisible => 'ظاهر';
+
+  @override
+  String get adminDelete => 'حذف';
+
+  @override
+  String get adminMoveUp => 'تحريك لأعلى';
+
+  @override
+  String get adminMoveDown => 'تحريك لأسفل';
+
+  @override
+  String get adminSave => 'حفظ';
+
+  @override
+  String get adminCancel => 'إلغاء';
+
+  @override
+  String get adminPreview => 'معاينة حية';
+
+  @override
+  String get adminHealthCheck => 'فحص الحالة';
+
+  @override
+  String get adminLatency => 'زمن الاستجابة';
+
+  @override
+  String get adminActive => 'نشط';
+
+  @override
+  String get adminPriority => 'الأولوية';
+
+  @override
+  String get adminRefreshRegistry => 'تطبيق التغييرات';
+
+  @override
+  String get adminEmpty => 'لا يوجد محتوى بعد. أضف أول قسم.';
+
+  @override
+  String get adminError => 'حدث خطأ ما. حاول مرة أخرى.';
+
+  @override
+  String get adminRetry => 'إعادة المحاولة';
+
+  @override
+  String get adminLoading => 'جارٍ التحميل…';
+
+  @override
+  String get adminSaved => 'تم الحفظ';
+
+  @override
+  String get adminFlight => 'طيران';
+
+  @override
+  String get adminHotel => 'فنادق';
+
+  @override
+  String get adminCar => 'عربيات';
+
+  @override
+  String get adminPackage => 'برامج';
+
+  @override
+  String get adminDestination => 'وجهات';
+
+  @override
+  String get adminDeal => 'عروض';
 }

@@ -23,6 +23,14 @@ export class HomeSection {
   @Column({ nullable: true })
   expiresAt?: Date;
 
+  /** Publication time: the public feed hides the section until then. */
+  @Column({ type: 'timestamptz', nullable: true })
+  publishAt?: Date;
+
+  /** Content lifecycle: drafts never reach the public home feed. */
+  @Column({ default: 'published' })
+  status!: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 

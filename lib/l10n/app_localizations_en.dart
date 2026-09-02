@@ -152,4 +152,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get continueAction => 'Continue';
+
+  @override
+  String get adminPanel => 'Admin panel';
+
+  @override
+  String get adminContent => 'Home content';
+
+  @override
+  String get adminProviders => 'API providers';
+
+  @override
+  String get adminAddSection => 'Add section';
+
+  @override
+  String get adminAddCard => 'Add card';
+
+  @override
+  String get adminEditCard => 'Edit card';
+
+  @override
+  String get adminType => 'Card type';
+
+  @override
+  String get adminTitle => 'Title';
+
+  @override
+  String get adminSubtitle => 'Subtitle';
+
+  @override
+  String get adminImageUrl => 'Image URL';
+
+  @override
+  String get adminPrice => 'Price';
+
+  @override
+  String get adminCurrency => 'Currency';
+
+  @override
+  String get adminRating => 'Rating';
+
+  @override
+  String get adminBadge => 'Badge';
+
+  @override
+  String get adminActionLabel => 'Action label';
+
+  @override
+  String get adminStatus => 'Status';
+
+  @override
+  String get adminDraft => 'Draft';
+
+  @override
+  String get adminPublished => 'Published';
+
+  @override
+  String get adminVisible => 'Visible';
+
+  @override
+  String get adminDelete => 'Delete';
+
+  @override
+  String get adminMoveUp => 'Move up';
+
+  @override
+  String get adminMoveDown => 'Move down';
+
+  @override
+  String get adminSave => 'Save';
+
+  @override
+  String get adminCancel => 'Cancel';
+
+  @override
+  String get adminPreview => 'Live preview';
+
+  @override
+  String get adminHealthCheck => 'Health check';
+
+  @override
+  String get adminLatency => 'Latency';
+
+  @override
+  String get adminActive => 'Active';
+
+  @override
+  String get adminPriority => 'Priority';
+
+  @override
+  String get adminRefreshRegistry => 'Apply changes';
+
+  @override
+  String get adminEmpty => 'No content yet. Add your first section.';
+
+  @override
+  String get adminError => 'Something went wrong. Please retry.';
+
+  @override
+  String get adminRetry => 'Retry';
+
+  @override
+  String get adminLoading => 'Loading…';
+
+  @override
+  String get adminSaved => 'Saved';
+
+  @override
+  String get adminFlight => 'Flight';
+
+  @override
+  String get adminHotel => 'Hotel';
+
+  @override
+  String get adminCar => 'Car';
+
+  @override
+  String get adminPackage => 'Package';
+
+  @override
+  String get adminDestination => 'Destination';
+
+  @override
+  String get adminDeal => 'Deal';
 }

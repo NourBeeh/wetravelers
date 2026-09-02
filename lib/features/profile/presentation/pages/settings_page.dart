@@ -71,6 +71,17 @@ class SettingsPage extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.admin_panel_settings_outlined),
+                    title: Text(
+                      l10n.adminPanel,
+                      style: typography.bodyLargeMedium.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    onTap: () => context.push('/admin'),
+                  ),
+                  const Divider(),
                   Text(
                     l10n.language,
                     style: typography.bodyLargeMedium.copyWith(

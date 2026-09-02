@@ -36,7 +36,12 @@ export class HomeService {
       where: { isVisible: true },
       order: { order: 'ASC' },
     });
-    if (sections.length === 0) {
+    // Admin workstream (ADM-B1): drafts, not-yet-published and expired
+    // content never reach the public feed. Undefined fields (legacy rows,
+    // tests) are treated as published.
+    const now = new Date();
+    const liveSections = sections.filter((section) => isLive(section, now));
+    if (liveSections.length === 0) {
       return [];
     }
 
@@ -45,7 +50,7 @@ export class HomeService {
     // no row order guarantee, and both entities carry an `order` column.
     const cards = await this.cardRepo.find({
       where: {
-        sectionId: In(sections.map((section) => section.id)),
+        sectionId: In(liveSections.map((section) => section.id)),
         isVisible: true,
       },
       order: { order: 'ASC' },
@@ -53,6 +58,7 @@ export class HomeService {
 
     const cardsBySection = new Map<string, HomeCard[]>();
     for (const card of cards) {
+      if (!isLive(card, now)) continue;
       const bucket = cardsBySection.get(card.sectionId);
       if (bucket === undefined) {
         cardsBySection.set(card.sectionId, [card]);
@@ -61,7 +67,7 @@ export class HomeService {
       }
     }
 
-    return sections.map((section) => ({
+    return liveSections.map((section) => ({
       id: section.id,
       title: section.title,
       subtitle: section.subtitle,
@@ -87,6 +93,21 @@ export class HomeService {
  * simply become `undefined` and drop out of the JSON response — which is what
  * the client already treats as "field not provided".
  */
+/**
+ * Publication window check shared by sections and cards: `status` must not be
+ * a draft, `publishAt` (when set) must have passed, and `expiresAt` (when set)
+ * must still be in the future.
+ */
+function isLive(
+  row: { publishAt?: Date | null; expiresAt?: Date | null; status?: string | null },
+  now: Date,
+): boolean {
+  if (row.status === 'draft') return false;
+  if (row.publishAt && row.publishAt.getTime() > now.getTime()) return false;
+  if (row.expiresAt && row.expiresAt.getTime() <= now.getTime()) return false;
+  return true;
+}
+
 function flattenCard(card: HomeCard): HomeCardDto {
   const content: Record<string, unknown> = card.content ?? {};
   const action = content.actionLabel ?? content.action;

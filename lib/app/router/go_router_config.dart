@@ -12,6 +12,7 @@ import '../../core/navigation/app_transitions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/bag/presentation/pages/bag_page.dart';
 import '../../features/bag/presentation/pages/trip_details_page.dart';
+import '../../features/admin/presentation/pages/admin_page.dart';
 import '../../features/ai/presentation/pages/ai_chat_page.dart';
 import '../../features/booking/presentation/pages/add_ons_page.dart';
 import '../../features/booking/presentation/pages/booking_confirmation_page.dart';
@@ -321,6 +322,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // Full-screen AI chat — deliberately OUTSIDE the shell so the bottom
       // bar does not render on top of it. Fade-through keeps the unified
       // motion language; iOS edge-swipe-back still pops the route.
+      // Admin panel — root route outside the shell (ADM-A2).
+      GoRoute(
+        path: '/admin',
+        name: 'admin',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) => fadeThroughPage(
+          name: 'admin',
+          child: const AdminPage(),
+        ),
+      ),
       GoRoute(
         path: '/ai-chat',
         name: 'ai_chat',

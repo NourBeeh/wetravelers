@@ -12,6 +12,7 @@ class AuthUser {
     this.displayName,
     this.avatarUrl,
     this.phoneNumber,
+    this.role = 'user',
   });
 
   final String id;
@@ -19,6 +20,11 @@ class AuthUser {
   final String? displayName;
   final String? avatarUrl;
   final String? phoneNumber;
+
+  /// Backend role (Phase-17 users table). 'admin' unlocks the admin panel.
+  final String role;
+
+  bool get isAdmin => role == 'admin';
 
   bool get isAnonymous => id.isEmpty;
 
@@ -31,6 +37,7 @@ class AuthUser {
     bool clearAvatarUrl = false,
     String? phoneNumber,
     bool clearPhoneNumber = false,
+    String? role,
   }) {
     return AuthUser(
       id: id ?? this.id,
@@ -38,6 +45,7 @@ class AuthUser {
       displayName: clearDisplayName ? null : displayName ?? this.displayName,
       avatarUrl: clearAvatarUrl ? null : avatarUrl ?? this.avatarUrl,
       phoneNumber: clearPhoneNumber ? null : phoneNumber ?? this.phoneNumber,
+      role: role ?? this.role,
     );
   }
 
@@ -48,6 +56,7 @@ class AuthUser {
       displayName: json['displayName'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
       phoneNumber: json['phoneNumber'] as String?,
+      role: json['role'] as String? ?? 'user',
     );
   }
 
@@ -57,6 +66,7 @@ class AuthUser {
         'displayName': displayName,
         'avatarUrl': avatarUrl,
         'phoneNumber': phoneNumber,
+        'role': role,
       };
 
   @override
