@@ -37,13 +37,16 @@ async function main() {
   await client.connect();
   try {
     await client.query(
-      `INSERT INTO users (email, display_name, password_hash, is_active, role)
+      // Column names are camelCase: the project does not configure a
+      // snake_case naming strategy, so TypeORM persists `displayName`,
+      // `passwordHash` and `isActive` verbatim.
+      `INSERT INTO users (email, "displayName", "passwordHash", "isActive", role)
        VALUES ($1, $2, $3, true, 'admin')
        ON CONFLICT (email) DO UPDATE
          SET role = 'admin',
-             is_active = true,
-             password_hash = EXCLUDED.password_hash,
-             display_name = EXCLUDED.display_name`,
+             "isActive" = true,
+             "passwordHash" = EXCLUDED."passwordHash",
+             "displayName" = EXCLUDED."displayName"`,
       [ADMIN_EMAIL, ADMIN_NAME, passwordHash],
     );
     console.log(`Admin user ready: ${ADMIN_EMAIL} (role=admin)`);

@@ -221,6 +221,7 @@ describe('AuthService.me', () => {
       id: 'user-1',
       email: 'user@example.com',
       displayName: 'Nour',
+      role: 'user',
     });
   });
 

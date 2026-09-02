@@ -123,10 +123,13 @@ export class AuthService {
   }
 
   private toPublicUser(user: User) {
+    // `role` was added in the admin workstream so clients can gate admin UI
+    // (Flutter AuthUser.isAdmin). Defaulted so legacy rows/guests resolve.
     return {
       id: user.id,
       email: user.email,
       displayName: user.displayName ?? null,
+      role: user.role ?? 'user',
     };
   }
 }
