@@ -39,6 +39,7 @@ import { PricingService } from '../../common/market/pricing.service';
     SearchService,
     DuffelService,
     DuffelHotelService,
+    NuiteeService,
     FxService,
     PricingService,
   ],
