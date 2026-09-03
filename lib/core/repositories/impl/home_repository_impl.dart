@@ -134,6 +134,53 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
+  Future<ApiResult<List<HomeItem>>> getRecommendedHotels({int limit = 6}) async {
+    final result = await apiClient.get<Map<String, dynamic>>(
+      '/home/recommended',
+      queryParameters: {'limit': limit.toString()},
+    );
+    return result.when(
+      success: (data) {
+        final hotels = (data['hotels'] as List<dynamic>?) ?? <dynamic>[];
+        final items = _parseRecommendedHotels(hotels);
+        return ApiResult.success(items);
+      },
+      failure: (error) => ApiResult.failure(error),
+    );
+  }
+
+  List<HomeItem> _parseRecommendedHotels(List<dynamic> data) {
+    final items = <HomeItem>[];
+    for (final raw in data) {
+      if (raw is! Map) continue;
+      final h = Map<String, dynamic>.from(
+        raw.map((k, v) => MapEntry(k.toString(), v)),
+      );
+      items.add(HomeItem(
+        id: h['id']?.toString() ?? '',
+        type: HomeCardType.hotel,
+        title: h['title']?.toString() ?? h['name']?.toString() ?? '',
+        subtitle: h['subtitle']?.toString() ?? h['address']?.toString(),
+        description: h['description']?.toString(),
+        imageUrl: h['imageUrl']?.toString() ?? h['image']?.toString() ?? h['main_photo']?.toString(),
+        price: h['price'] is num ? (h['price'] as num).toDouble() : null,
+        currency: h['currency']?.toString(),
+        rating: h['rating'] is num ? (h['rating'] as num).toDouble() : null,
+        reviewCount: h['reviewCount'] is int
+            ? h['reviewCount'] as int
+            : (h['review_count'] is num ? (h['review_count'] as num).toInt() : null),
+        badge: h['badge']?.toString(),
+        highlights: (h['highlights'] as List?)?.map((e) => e.toString()).toList() ?? [],
+        tags: (h['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
+        actionLabel: h['actionLabel']?.toString() ?? h['action']?.toString() ?? 'View deal',
+        rawPrice: h['rawPrice'] is num ? (h['rawPrice'] as num).toDouble() : null,
+        metadata: h['metadata'] is Map ? Map<String, dynamic>.from(h['metadata']) : {},
+      ));
+    }
+    return items;
+  }
+
+  @override
   Future<ApiResult<void>> refresh() async {
     final result = await apiClient.post('/home/refresh');
     return result.when(

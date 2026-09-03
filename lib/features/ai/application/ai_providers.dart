@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/ai_home_mapper.dart';
-import '../data/mock_ai_response_provider.dart';
+import '../data/ai_api_service.dart';
+import '../../home/providers/home_providers.dart';
+
 import 'ai_controller.dart';
 import 'ai_state.dart';
 import 'package:wetravellers/core/storage/offline_cache_providers.dart';
@@ -10,6 +12,12 @@ import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 final aiHomeMapperProvider = Provider<AiHomeMapper>((ref) {
   return const AiHomeMapper();
 });
+/// AI service provider - real HTTP implementation connected to the backend.
+final aiAssistantServiceProvider = Provider<AiApiService>((ref) {
+  final client = ref.watch(apiClientProvider);
+  return AiApiService(client);
+});
+
 // Memory sync test
 /// Exposes the reactive [AiState] produced by [AiController].
 ///

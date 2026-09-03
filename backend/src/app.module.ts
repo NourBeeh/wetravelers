@@ -12,6 +12,10 @@ import { AdminModule } from './modules/admin/admin.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { DuffelModule } from './modules/duffel/duffel.module';
+import { GeoModule } from './modules/geo/geo.module';
+import { ProfileModule } from './modules/profile/profile.module';
+import { EventsModule } from './modules/events/events.module';
+import { RecommendModule } from './modules/recommend/recommend.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
@@ -19,6 +23,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig],
+      envFilePath: ['.env', '../.env'],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -44,6 +49,10 @@ import { PaymentsModule } from './modules/payments/payments.module';
     AiModule,
     AuditModule,
     DuffelModule,
+    GeoModule,
+    ProfileModule,
+    EventsModule,
+    RecommendModule,
     PaymentsModule,
   ],
 })

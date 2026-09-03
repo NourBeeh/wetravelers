@@ -1,7 +1,17 @@
 # WeTravellers — CURRENT STATE
 
 ## Last known checkpoint
-**Admin workstream complete (2026-09-02, unnumbered — see 04_PHASE_HISTORY addendum).** Backend: `/admin/home/*` content CRUD + audit, `/admin/providers/*` runtime provider switching (DB-driven registry, priority order, health checks, legacy fallback), admin role guard (`role='admin'` + RolesGuard), publishAt/status scheduling on home_sections/home_cards, `npm run seed:admin` dev seed. Flutter: `/admin` panel (Home content tab with live HomeCard preview; API providers tab with toggle/priority/health-check), full en/ar l10n, `HttpAdminHomeService` implements the legacy AdminHomeService contract. Baseline now: backend jest 152 passed (tsc clean); flutter test 438 passed / 6 skipped; analyze 0 errors. Next pending roadmap phase: **Phase 18** (requires explicit approval).
+**Phase 0 — Stabilize & Document (2026-09-03, UNCOMMITTED working-tree state).** Discovery audit + test stabilization executed on top of the uncommitted R-4 personalization workstream. Facts established by direct code/test inspection (not older reports):
+
+- **R-4 personalization workstream (backend, UNCOMMITTED):** 4 new modules wired into `app.module.ts` — **Geo** (`GET /geo/country`, ip-api.com, IP+GPS cross-check, 24h cache, high/medium/low confidence), **Profile** (`user_profiles` entity: preferences/derived jsonb + countryCode + personalizationEnabled; `GET/PATCH /profile/me`), **Events** (`POST /events`, 5 types: hotel_search/hotel_view/hotel_favorite/trip_planned/booking_confirmed; folds into derived profile), **Recommend** (`GET /home/recommended` — Nuitee candidate scan per COUNTRY_CITIES → deterministic rating×log(reviews) score → optional AI re-rank, "never invents hotels"). Flutter: `getRecommendedHotels` in HomeRepository + Home "Recommended for You" Nuitee carousel; `geolocator` dep + Android/iOS location permissions.
+- **AI mock/fallback DELETED (deliberate R-4 decision):** `mock.ai.provider.ts`, `ai.fallback.spec.ts`, `nuitee.contract.spec.ts` (with `NUITEE_FIXTURES` — coverage regression, see 07), 4 Flutter mock files + `ai_bottom_sheet_test.dart` (stale). `ai.module.ts` binds `OpenAiAiProvider` unconditionally (OpenRouter via AI_API_KEY/AI_BASE_URL/AI_MODEL). `ai.service.ts` single-provider logging (provider/outcome/latencyMs/category/upstreamStatus — no fallbackUsed). Flutter `AiSheetController` simplified to single service. `backend/.env` still contains a dead `AI_FALLBACK_PROVIDER=mock` line (ignored by code; .env untouched to protect the live key).
+- **Phase-0 stabilization fixes:** `ai.observability.spec.ts` rewritten for the single-provider contract (16/16); `home_controller_test.dart` implements `getRecommendedHotels` + 2 new loadRecommendedHotels tests; `ai_bottom_sheet.dart` duplicate primary/fallback removed; `backend/.env.example` fallback section replaced with a removal note.
+- **Validation baseline (verified 2026-09-03):** `dart analyze lib test` **0 errors** (107 pre-existing infos + 31 warnings in unrelated files); `flutter test` **437 passed / 6 skipped / 0 failed**; backend `tsc --noEmit` clean; `jest` **134 passed / 1 skipped (live-smoke) / 0 failed** — 18 suites + 1 skipped.
+- **Git:** 4 local commits ahead of origin (admin workstream) + all R-4/Phase-0 changes UNCOMMITTED in the working tree (nothing staged). No commit/push performed in Phase 0 by design.
+- **Documented blockers (see 07_KNOWN_ISSUES):** Flutter `BookingRepositoryImpl` calls `/bookings/prepare|revalidate|/bookings` which DO NOT exist in the backend; `offer.entity.ts` orphaned; `/events` not called by Flutter; geo→profile `setCountry*` has no caller; nuitee fixture coverage lost.
+
+## Last known checkpoint (2026-09-02) — superseded by Phase 0 above, kept for reference
+**Admin workstream complete (2026-09-02, unnumbered — see 04_PHASE_HISTORY addendum).** Backend: `/admin/home/*` content CRUD + audit, `/admin/providers/*` runtime provider switching (DB-driven registry, priority order, health checks, legacy fallback), admin role guard (`role='admin'` + RolesGuard), publishAt/status scheduling on home_sections/home_cards, `npm run seed:admin` dev seed. Flutter: `/admin` panel (Home content tab with live HomeCard preview; API providers tab with toggle/priority/health-check), full en/ar l10n, `HttpAdminHomeService` implements the legacy AdminHomeService contract. Next pending roadmap phase: **Phase 18** (requires explicit approval).
 
 ## Last known checkpoint (2026-09-02) — AUTHORITATIVE
 **Wave workstreams W0–W3 complete.** See `01_MASTER_MEMORY.md` §12.5 for the full record; summary:
@@ -28694,4 +28704,80 @@ d5adfb18 new change
 M  backend/scripts/seed-admin.js
 M  backend/src/modules/auth/auth.service.ts
 M  backend/test/auth.spec.ts
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+f95cecf2 (HEAD -> main) fix(admin): seed-admin camelCase columns + role in /auth/me
+b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
+7344acd2 feat(admin): admin panel - home content management + runtime provider switching
+bf3335d1 feat(app): full UI rebuild, real travel providers, and booking/payment foundation (Waves 0-3)
+66a80f94 (origin/main, origin/HEAD) feat(project): add automatic git sync and update state documentation
+b7f3f985 feat(cards): shared card design system (Stage 2) + redesign, audit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+9ed486aa chore(backend): seed and mock provider adjustments
+d5adfb18 new change
+```
+
+### Pending status
+```
+ M PROJECT_MEMORY/01_MASTER_MEMORY.md
+ M PROJECT_MEMORY/02_AGENT_MEMORY.md
+ M PROJECT_MEMORY/03_CURRENT_STATE.md
+ M PROJECT_MEMORY/04_PHASE_HISTORY.md
+ M PROJECT_MEMORY/07_KNOWN_ISSUES.md
+ M PROJECT_MEMORY/08_NEXT_STEPS.md
+M  android/app/src/main/AndroidManifest.xml
+ M backend/.env.example
+M  backend/src/app.module.ts
+A  backend/src/common/dto/event.dto.ts
+A  backend/src/common/dto/profile.dto.ts
+A  backend/src/common/dto/recommend.dto.ts
+A  backend/src/database/entities/user_event.entity.ts
+A  backend/src/database/entities/user_profile.entity.ts
+M  backend/src/modules/ai/ai.module.ts
+M  backend/src/modules/ai/ai.service.ts
+D  backend/src/modules/ai/mock.ai.provider.ts
+A  backend/src/modules/events/events.controller.ts
+A  backend/src/modules/events/events.module.ts
+A  backend/src/modules/events/events.service.ts
+A  backend/src/modules/geo/geo.controller.ts
+A  backend/src/modules/geo/geo.module.ts
+A  backend/src/modules/geo/geo.service.ts
+M  backend/src/modules/nuitee/nuitee.service.ts
+A  backend/src/modules/profile/profile.controller.ts
+A  backend/src/modules/profile/profile.module.ts
+A  backend/src/modules/profile/profile.service.ts
+A  backend/src/modules/recommend/recommend.module.ts
+A  backend/src/modules/recommend/recommended-hotel.service.ts
+A  backend/src/modules/recommend/recommended-hotels.controller.ts
+D  backend/test/ai.fallback.spec.ts
+ M backend/test/ai.observability.spec.ts
+A  backend/test/events.spec.ts
+A  backend/test/geo.spec.ts
+D  backend/test/nuitee.contract.spec.ts
+A  backend/test/profile.spec.ts
+A  backend/test/recommend.spec.ts
+M  ios/Runner/Info.plist
+M  lib/core/repositories/contracts/home_repository.dart
+M  lib/core/repositories/impl/home_repository_impl.dart
+D  lib/features/ai/application/ai_mock_providers.dart
+M  lib/features/ai/application/ai_providers.dart
+D  lib/features/ai/data/mock_ai_assistant_service.dart
+D  lib/features/ai/data/mock_ai_response_data.dart
+D  lib/features/ai/data/mock_ai_response_provider.dart
+ M lib/features/ai/presentation/widgets/ai_bottom_sheet.dart
+M  lib/features/home/presentation/home_controller.dart
+M  lib/features/home/presentation/pages/home_page.dart
+M  pubspec.lock
+M  pubspec.yaml
+ D test/features/ai/ai_bottom_sheet_test.dart
+ M test/features/home/home_controller_test.dart
+?? backend/test-nuitee.ts
 ```

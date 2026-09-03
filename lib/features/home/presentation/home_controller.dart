@@ -11,12 +11,14 @@ enum HomeStatus { loading, success, empty, error, partial, developmentPreview }
 class HomeState {
   final HomeStatus status;
   final List<HomeSection> sections;
+  final List<HomeItem> recommendedHotels;
   final String? errorMessage;
   final bool isRefreshing;
 
   const HomeState({
     this.status = HomeStatus.loading,
     this.sections = const [],
+    this.recommendedHotels = const [],
     this.errorMessage,
     this.isRefreshing = false,
   });
@@ -24,12 +26,14 @@ class HomeState {
   HomeState copyWith({
     HomeStatus? status,
     List<HomeSection>? sections,
+    List<HomeItem>? recommendedHotels,
     String? errorMessage,
     bool? isRefreshing,
   }) {
     return HomeState(
       status: status ?? this.status,
       sections: sections ?? this.sections,
+      recommendedHotels: recommendedHotels ?? this.recommendedHotels,
       errorMessage: errorMessage ?? this.errorMessage,
       isRefreshing: isRefreshing ?? this.isRefreshing,
     );
@@ -50,7 +54,7 @@ class HomeController extends StateNotifier<HomeState> {
     }
     final result = await repository.getHomeSections();
     result.when(
-      success: (sections) {
+      success: (sections) async {
         if (sections.isEmpty) {
           // Show development preview when no real data
           state = state.copyWith(
@@ -62,13 +66,29 @@ class HomeController extends StateNotifier<HomeState> {
           state = state.copyWith(status: HomeStatus.success, sections: sections, isRefreshing: false);
         }
       },
-      failure: (error) {
+      failure: (error) async {
         final message = userFacingMessage(error, subject: 'home feed');
         if (state.sections.isEmpty) {
           state = state.copyWith(status: HomeStatus.error, errorMessage: message, isRefreshing: false);
         } else {
           state = state.copyWith(status: HomeStatus.partial, errorMessage: message, isRefreshing: false);
         }
+      },
+    );
+    // Fetch recommended hotels in parallel — non-blocking
+    loadRecommendedHotels();
+  }
+
+  Future<void> loadRecommendedHotels() async {
+    final result = await repository.getRecommendedHotels();
+    result.when(
+      success: (hotels) {
+        if (hotels.isNotEmpty) {
+          state = state.copyWith(recommendedHotels: hotels);
+        }
+      },
+      failure: (_) {
+        // Silently ignore — recommended hotels are supplementary
       },
     );
   }

@@ -51,3 +51,30 @@ Do not fix unrelated historical issues during a scoped phase unless the requeste
 - **Cars**: mock catalogue only (spec point 30 defers vendor selection).
 - **`/ai` route**: still a placeholder; the real assistant is `/ai-chat`. The AI-mode visual shell page exists unrouted.
 - **Known historical security gate (pre-production)**: `POST /api/duffel/create-booking` still has no auth guard/DTO validation — must be gated before production (unchanged from the 2026-08-21 note above).
+
+## Phase 0 discovery audit (2026-09-03) — verified against actual code
+
+### BLOCKER — Booking endpoints do not exist server-side
+Flutter `lib/core/repositories/booking_repository_impl.dart` calls `POST /bookings/prepare`, `POST /bookings/revalidate`, and `POST /bookings` — **none of these routes exist anywhere in the backend** (no bookings module/controller/entity; full route inventory verified). Additional adjacent facts: `BookingRepositoryImpl.getBooking/cancelBooking/getBookingStatus` throw `UnimplementedError`; the checkout flow uses a synthetic `bookingId` (`booking-${timestamp}`); `BookingConfirmationPage` fabricates the Bag `TripSummary` (random `WT-xxxxxx` reference, placeholder destination/dates); backend Duffel `createOrder` and Nuitee `book` exist but are not called from the funnel. **Follow-up required before any real booking work: decide the backend bookings API shape (or remove/disable the client calls) — do NOT create endpoints ad-hoc in unrelated phases.**
+
+### R-4 wiring gaps (backend capability exists, no consumer)
+- Flutter never calls `POST /events` (no event tracking client; no `deviceId` generation in lib/), `GET/PATCH /profile/me`, or `GET /geo/country`.
+- `ProfileService.setCountry`/`setCountryIfMoreConfident` have no production caller (tests only) — geo detection never lands in the profile.
+- `POST /events` carries `@UseGuards(JwtAuthGuard)`; the guest/deviceId path is coded defensively but is not actually reachable (standard guard rejects unauthenticated calls). If guest events are wanted, the guard needs an optional-JWT variant.
+
+### AI
+- `backend/.env` still contains `AI_FALLBACK_PROVIDER=mock` — dead line, unread by code (the binding was removed). Left untouched to avoid modifying a file holding the live API key. `.env.example` now documents the removal.
+- `AI_FALLBACK_PROVIDER` DI token symbol still exported from `ai.provider.ts` but is not bound anywhere.
+- AI Arabic flight fast-path (`extractTravelSearchData`) returns raw provider prices — bypasses MarketContext/PricingEngine (no EGP customerPrice enrichment on that path).
+
+### Orphaned / dead code (verify before reuse)
+- `backend/src/database/entities/offer.entity.ts` — `offers` table registered by no module; never read/written.
+- `session.entity.ts` — `sessions` table defined; `auth.service.ts` logout notes server-side revocation "deferred until the Sessions table is activated".
+- `lib/features/bag/domain/price_watch.dart` (`WatchItem`) — domain model, zero references anywhere.
+- `moveToPast()` in `bag_controller.dart` and `ItineraryStage` — implemented, no callers.
+- `lib/features/ai/application/search_intent_parser.dart` — dead code (EN/AR parser, unused).
+
+### Test coverage regressions from the R-4 deletions (accepted, documented)
+- `nuitee.contract.spec.ts` deleted with `NUITEE_FIXTURES`: the deterministic offline Rates→Prebook→Book mapping coverage is gone (live-smoke remains, gated by `NUITEE_LIVE_SMOKE=1`).
+- `ai_bottom_sheet_test.dart` deleted (user-approved): `AiSheetController`/`AiBottomSheetContent` currently have NO widget test coverage after the single-service simplification.
+- `EventsService.recent/recentByDevice` are only exercised by tests — no controller exposes them.

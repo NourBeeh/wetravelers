@@ -75,6 +75,11 @@ class HomePage extends ConsumerWidget {
             // Continue planning — current trips from the unified Bag.
             if (bag.currentTrips.isNotEmpty)
               SliverToBoxAdapter(child: _ContinuePlanningRow(trips: bag.currentTrips)),
+            // Recommended hotels from Nuitee (real data)
+            if (state.recommendedHotels.isNotEmpty)
+              SliverToBoxAdapter(
+                child: _RecommendedHotelsCarousel(hotels: state.recommendedHotels),
+              ),
             SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => HomeSectionWidget(
@@ -338,6 +343,158 @@ class _HomeWelcome extends StatelessWidget {
           style: typography.body.copyWith(color: AppColors.textTertiary),
         ),
       ],
+    );
+  }
+}
+
+/// Horizontal carousel of recommended hotels sourced from Nuitee.
+class _RecommendedHotelsCarousel extends StatelessWidget {
+  const _RecommendedHotelsCarousel({required this.hotels});
+
+  final List<HomeItem> hotels;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.sm,
+          ),
+          child: Text(
+            'Recommended for You',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: AppTypography.weightBold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 220,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            itemCount: hotels.length,
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+            itemBuilder: (context, index) {
+              final hotel = hotels[index];
+              return _HotelCard(hotel: hotel);
+            },
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+      ],
+    );
+  }
+}
+
+class _HotelCard extends StatelessWidget {
+  const _HotelCard({required this.hotel});
+
+  final HomeItem hotel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: 260,
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (hotel.imageUrl != null && hotel.imageUrl!.isNotEmpty)
+              Image.network(
+                hotel.imageUrl!,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 120,
+                  color: AppColors.surfaceTertiary,
+                  child: const Icon(Icons.image_not_supported_outlined, size: 32),
+                ),
+              )
+            else
+              Container(
+                height: 120,
+                color: AppColors.surfaceTertiary,
+                child: const Icon(Icons.hotel_outlined, size: 32),
+              ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      hotel.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: AppTypography.weightSemibold,
+                      ),
+                    ),
+                    if (hotel.subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        hotel.subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    Row(
+                      children: [
+                        if (hotel.rating != null) ...[
+                          Icon(Icons.star_rounded, size: 16, color: Colors.amber[700]),
+                          const SizedBox(width: 2),
+                          Text(
+                            hotel.rating!.toStringAsFixed(1),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: AppTypography.weightSemibold,
+                            ),
+                          ),
+                          if (hotel.reviewCount != null) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              '(${hotel.reviewCount})',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ],
+                        const Spacer(),
+                        if (hotel.price != null)
+                          Text(
+                            '${hotel.currency ?? '\$'}${hotel.price!.toStringAsFixed(0)}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: AppTypography.weightBold,
+                              color: AppColors.brand,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

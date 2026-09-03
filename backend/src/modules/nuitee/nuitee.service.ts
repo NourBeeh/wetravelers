@@ -69,69 +69,6 @@ const CITY_COUNTRIES: Record<string, string> = {
 
 const NUITEE_BASE_URL = 'https://api.liteapi.travel/v3.0';
 
-// Deterministic contract fixtures (spec point 47) — offline test coverage
-// without network access. Mirrors the LIVE rates-search response shape
-// exactly: data[].roomTypes[].rates[] + snake_case hotel metadata.
-export const NUITEE_FIXTURES = {
-  ratesSearchResponse: {
-    status: 200,
-    data: {
-      sandbox: true,
-      data: [
-        {
-          hotelId: 'fixture-hotel-1',
-          roomTypes: [
-            {
-              offerId: 'fixture-offer-1',
-              roomTypeName: 'Deluxe King',
-              rates: [
-                {
-                  rateId: 'fixture-rate-1',
-                  name: 'Deluxe King Room',
-                  boardType: 'BB',
-                  retailRate: { total: [{ amount: 180, currency: 'USD' }] },
-                  cancellationPolicies: { refundableTag: 'RFN' },
-                },
-                {
-                  rateId: 'fixture-rate-2',
-                  name: 'Deluxe King, Half Board',
-                  boardType: 'HB',
-                  retailRate: { total: [{ amount: 220, currency: 'USD' }] },
-                  cancellationPolicies: { refundableTag: 'NRFN' },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      hotels: [
-        {
-          id: 'fixture-hotel-1',
-          name: 'Fixture Grand Hotel',
-          main_photo: 'https://example.com/hotel1.jpg',
-          thumbnail: 'https://example.com/hotel1-thumb.jpg',
-          address: 'Fixture Street 1',
-          country_code: 'eg',
-          city_name: 'Cairo',
-          rating: 9.6,
-          stars: 5,
-          review_count: 312,
-        },
-      ],
-    },
-  },
-  prebookResponse: {
-    status: 200,
-    data: {
-      prebookId: 'fixture-prebook-1',
-      transactionId: 'fixture-transaction-1',
-      net: 180,
-      currency: 'USD',
-      expiresAt: '2026-09-10T12:00:00Z',
-      priceChanged: false,
-    },
-  },
-};
 
 @Injectable()
 export class NuiteeService implements HotelProvider {

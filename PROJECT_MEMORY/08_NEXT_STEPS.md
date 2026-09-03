@@ -2,7 +2,15 @@
 
 ## Integrated delivery roadmap
 
-> **Current position (2026-09-02): Phases 11B–17 complete AND the three Wave workstreams (W0 design/nav rebuild, W1 real providers incl. live-verified Nuitee + FX/EGP pricing, W2 search/home UI rebuild, W3 booking funnel + mock payment abstraction) complete. Baseline: 432 Flutter tests / 129 backend tests green, 0 analyze errors.** Historical note: card sub-phases 24A–24E were absorbed/superseded by Wave 2's card unification (see `04_PHASE_HISTORY.md` addendum 2026-09-02). Next pending phase: **Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
+> **Current position (2026-09-03, post Phase-0 stabilization): Phases 11B–17 + Waves W0–W3 + Admin workstream + R-4 personalization complete IN CODE. Verified baseline: 437 Flutter tests / 6 skipped / 0 failed; 134 backend tests / 1 skipped; analyze 0 errors; tsc clean. R-4 + Phase-0 changes are UNCOMMITTED; 4 admin commits unpushed — a commit decision is the first pending action.** Historical note: card sub-phases 24A–24E were absorbed/superseded by Wave 2's card unification (see `04_PHASE_HISTORY.md` addendum 2026-09-02; R-4/Phase-0 recorded in the 2026-09-03 addendum). Next pending roadmap phase: **Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
+
+### FOLLOW-UP register (Phase-0 audit, 2026-09-03) — not part of any numbered phase yet
+
+- **BLOCKER — Booking API mismatch (must be resolved before Phase 19 proceeds):** Flutter `BookingRepositoryImpl` calls `POST /bookings/prepare|revalidate|/bookings` which do not exist server-side; checkout uses a synthetic bookingId; confirmation fabricates the Bag entry. Decide the backend bookings API shape first (spec §49 tables + Duffel createOrder/Nuitee book wiring), then wire or remove the client calls. Details: `07_KNOWN_ISSUES.md`.
+- **R-5 candidate (memory spine activation):** Flutter event tracker (`POST /events` + deviceId), Flutter profile client (`/profile/me`), geo→profile write (`GET /geo/country` → `setCountryIfMoreConfident`), optional-JWT guard variant for guest events. All backend pieces exist; only wiring is missing.
+- **Coverage debt:** new widget tests for the simplified `AiSheetController`/`AiBottomSheetContent` (old suite deleted with the mocks); consider re-adding a deterministic Nuitee mapping test (fixture-based coverage was deleted with `NUITEE_FIXTURES`; live-smoke remains).
+- **Housekeeping:** dead `AI_FALLBACK_PROVIDER` line in `backend/.env`; orphaned `offer.entity.ts`; unused `sessions` table; `WatchItem`/`moveToPast`/`ItineraryStage`/`SearchIntentParser` dead code — none blocking; tidy only inside an approved phase.
+- **SUGGESTED (not started):** **Phase 1 — Instant Home + Persistent Hive Cache + Live Validation**: make the Home feed render instantly from a persisted Hive snapshot on cold start, refresh from `GET /home/sections` + `GET /home/recommended` in the background, and validate liveness of cached cards (expiry/publish windows) before display. Builds directly on the existing `HiveOfflineCache` + fallback chain + admin publication windows. Awaiting explicit approval.
 
 | Phase | Outcome | External need at this phase |
 |---|---|---|
