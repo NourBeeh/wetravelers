@@ -21,12 +21,16 @@ import { AiService, formatAiAttempt } from '../src/modules/ai/ai.service';
 import { AiProvider, AiProviderFailure } from '../src/modules/ai/ai.provider';
 
 /**
- * Phase 10D — AI observability.
+ * AI observability.
  *
  * Every assertion reads the lines actually emitted through the framework
  * `Logger`, captured by spying on its prototype. The point of the suite is as
  * much what is *absent* from those lines as what is present: no prompt, no
  * response body, no header, no credential.
+ *
+ * The service binds a SINGLE provider (the mock/fallback layer was removed
+ * with the R-4 workstream); each query therefore records exactly one attempt
+ * line with no fallback vocabulary.
  */
 
 /** A prompt and a payload seeded with material that must never be logged. */
@@ -101,7 +105,7 @@ function fields(line: string): Record<string, string> {
   return result;
 }
 
-describe('Phase 10D: AI observability', () => {
+describe('AI observability', () => {
   let capture: LogCapture;
 
   beforeEach(() => {
@@ -114,7 +118,7 @@ describe('Phase 10D: AI observability', () => {
   });
 
   describe('scenario 1 — success', () => {
-    it('records provider, outcome, fallbackUsed and latency', async () => {
+    it('records provider, outcome and latency', async () => {
       const primary = new StubProvider('openai-compatible', succeeds(OK_DTO));
 
       await new AiService(primary, null).query('find hotels');
@@ -128,7 +132,6 @@ describe('Phase 10D: AI observability', () => {
       const f = fields(line);
       expect(f.provider).toBe('openai-compatible');
       expect(f.outcome).toBe('success');
-      expect(f.fallbackUsed).toBe('false');
       expect(f.latencyMs).toMatch(/^\d+$/);
       // No failure vocabulary on a success.
       expect(f.category).toBeUndefined();
@@ -160,7 +163,6 @@ describe('Phase 10D: AI observability', () => {
       const f = fields(capture.warn[0]);
       expect(f.provider).toBe('openai-compatible');
       expect(f.outcome).toBe('failure');
-      expect(f.fallbackUsed).toBe('false');
       expect(f.category).toBe('upstream_5xx');
       expect(f.upstreamStatus).toBe('503');
       expect(f.latencyMs).toMatch(/^\d+$/);
@@ -211,60 +213,6 @@ describe('Phase 10D: AI observability', () => {
     });
   });
 
-  describe('scenario 3 — fallback used', () => {
-    it('records one line per attempt, flagging only the fallback', async () => {
-      const primary = new StubProvider('openai-compatible', failsWith(serverFailure()));
-      const fallback = new StubProvider('mock-ai', succeeds(OK_DTO));
-
-      await new AiService(primary, fallback).query('find hotels');
-
-      expect(capture.warn).toHaveLength(1);
-      expect(capture.log).toHaveLength(1);
-
-      const primaryLine = fields(capture.warn[0]);
-      expect(primaryLine.provider).toBe('openai-compatible');
-      expect(primaryLine.outcome).toBe('failure');
-      expect(primaryLine.fallbackUsed).toBe('false');
-      expect(primaryLine.category).toBe('upstream_5xx');
-
-      const fallbackLine = fields(capture.log[0]);
-      expect(fallbackLine.provider).toBe('mock-ai');
-      expect(fallbackLine.outcome).toBe('success');
-      expect(fallbackLine.fallbackUsed).toBe('true');
-    });
-
-    it('records both attempts when the fallback also fails', async () => {
-      const primary = new StubProvider('openai-compatible', failsWith(serverFailure()));
-      const fallback = new StubProvider('mock-ai', failsWith(new Error('boom at 10.0.0.9')));
-
-      await expect(new AiService(primary, fallback).query('p')).rejects.toBeDefined();
-
-      expect(capture.warn).toHaveLength(2);
-      expect(fields(capture.warn[0]).fallbackUsed).toBe('false');
-      expect(fields(capture.warn[1]).fallbackUsed).toBe('true');
-      expect(fields(capture.warn[1]).provider).toBe('mock-ai');
-      expect(fields(capture.warn[1]).category).toBe('unexpected');
-      expect(capture.joined).not.toContain('10.0.0.9');
-      expect(capture.joined).not.toContain('boom');
-    });
-
-    it('does not flag a fallback when the policy declined to use one', async () => {
-      const primary = new StubProvider(
-        'openai-compatible',
-        failsWith(
-          new AiProviderFailure('x', { category: 'upstream_4xx', upstreamStatus: 400 }),
-        ),
-      );
-      const fallback = new StubProvider('mock-ai', succeeds(OK_DTO));
-
-      await expect(new AiService(primary, fallback).query('p')).rejects.toBeDefined();
-
-      expect(capture.all).toHaveLength(1);
-      expect(capture.joined).not.toContain('fallbackUsed=true');
-      expect(capture.joined).not.toContain('mock-ai');
-    });
-  });
-
   describe('scenario 4 — latency recorded', () => {
     it('reports a latency at least as large as the provider delay', async () => {
       const primary = new StubProvider('openai-compatible', succeeds(OK_DTO), 60);
@@ -275,20 +223,6 @@ describe('Phase 10D: AI observability', () => {
       expect(Number.isInteger(latency)).toBe(true);
       expect(latency).toBeGreaterThanOrEqual(55);
       expect(latency).toBeLessThan(5_000);
-    });
-
-    it('times each provider separately rather than cumulatively', async () => {
-      const primary = new StubProvider('openai-compatible', failsWith(serverFailure()), 60);
-      const fallback = new StubProvider('mock-ai', succeeds(OK_DTO), 0);
-
-      await new AiService(primary, fallback).query('find hotels');
-
-      const primaryLatency = Number(fields(capture.warn[0]).latencyMs);
-      const fallbackLatency = Number(fields(capture.log[0]).latencyMs);
-
-      expect(primaryLatency).toBeGreaterThanOrEqual(55);
-      // The fallback timer starts fresh, so it excludes the primary's 60ms.
-      expect(fallbackLatency).toBeLessThan(50);
     });
 
     it('records a latency even on failure', async () => {
@@ -347,13 +281,14 @@ describe('Phase 10D: AI observability', () => {
 
     it('emits only the whitelisted keys and nothing else', async () => {
       const primary = new StubProvider('openai-compatible', failsWith(serverFailure()));
-      const fallback = new StubProvider('mock-ai', succeeds(OK_DTO));
 
-      await new AiService(primary, fallback).query(SECRET_PROMPT);
+      // Single provider: the failure propagates to the caller.
+      await expect(new AiService(primary, null).query(SECRET_PROMPT)).rejects.toBeInstanceOf(
+        AiProviderFailure,
+      );
 
       const allowed = new Set([
         'provider',
-        'fallbackUsed',
         'outcome',
         'latencyMs',
         'category',
@@ -373,7 +308,6 @@ describe('Phase 10D: AI observability', () => {
     it('formatAiAttempt is a pure whitelist renderer', () => {
       const line = formatAiAttempt({
         provider: 'openai-compatible',
-        fallbackUsed: true,
         outcome: 'failure',
         latencyMs: 42,
         category: 'upstream_5xx',
@@ -381,14 +315,14 @@ describe('Phase 10D: AI observability', () => {
       });
 
       expect(line).toBe(
-        'ai.query provider=openai-compatible fallbackUsed=true outcome=failure ' +
+        'ai.query provider=openai-compatible outcome=failure ' +
           'latencyMs=42 category=upstream_5xx upstreamStatus=503',
       );
     });
   });
 });
 
-describe('Phase 10D: observability over real HTTP', () => {
+describe('observability over real HTTP', () => {
   let mockServer: Server;
   let mockPort: number;
   let app: INestApplication;
@@ -417,7 +351,6 @@ describe('Phase 10D: observability over real HTTP', () => {
               AI_API_KEY: 'test-key-not-a-secret',
               AI_BASE_URL: `http://127.0.0.1:${mockPort}/v1`,
               AI_MODEL: 'mock-model',
-              AI_FALLBACK_PROVIDER: 'mock',
             }),
           ],
         }),
@@ -487,7 +420,6 @@ describe('Phase 10D: observability over real HTTP', () => {
     const f = fields(capture.log[0]);
     expect(f.provider).toBe('openai-compatible');
     expect(f.outcome).toBe('success');
-    expect(f.fallbackUsed).toBe('false');
     expect(Number(f.latencyMs)).toBeGreaterThanOrEqual(0);
 
     expect(capture.joined).not.toContain('sk-or-v1-super-secret');
@@ -496,26 +428,22 @@ describe('Phase 10D: observability over real HTTP', () => {
     expect(capture.joined).not.toContain('127.0.0.1');
   });
 
-  it('logs a real 5xx as upstream_5xx and then the fallback success', async () => {
+  it('logs a real 5xx as upstream_5xx with a single failure line (no fallback)', async () => {
     responder = (_req, res) => {
       res.writeHead(502, { 'Content-Type': 'application/json' });
       res.end('{"error":"upstream down"}');
     };
 
-    expect(await query(SECRET_PROMPT)).toBe(201);
+    // Single provider: the upstream failure surfaces to the caller as 503.
+    expect(await query(SECRET_PROMPT)).toBe(503);
 
     expect(capture.warn).toHaveLength(1);
-    expect(capture.log).toHaveLength(1);
+    expect(capture.log).toHaveLength(0);
 
-    const primaryLine = fields(capture.warn[0]);
-    expect(primaryLine.category).toBe('upstream_5xx');
-    expect(primaryLine.upstreamStatus).toBe('502');
-    expect(primaryLine.fallbackUsed).toBe('false');
-
-    const fallbackLine = fields(capture.log[0]);
-    expect(fallbackLine.provider).toBe('mock-ai');
-    expect(fallbackLine.fallbackUsed).toBe('true');
-    expect(fallbackLine.outcome).toBe('success');
+    const line = fields(capture.warn[0]);
+    expect(line.category).toBe('upstream_5xx');
+    expect(line.upstreamStatus).toBe('502');
+    expect(line.outcome).toBe('failure');
 
     expect(capture.joined).not.toContain('upstream down');
     expect(capture.joined).not.toContain('sk-or-v1-super-secret');
@@ -533,7 +461,6 @@ describe('Phase 10D: observability over real HTTP', () => {
     const f = fields(capture.warn[0]);
     expect(f.category).toBe('upstream_4xx');
     expect(f.upstreamStatus).toBe('401');
-    expect(capture.joined).not.toContain('fallbackUsed=true');
     expect(capture.joined).not.toContain('invalid key');
   });
 

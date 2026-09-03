@@ -6,13 +6,10 @@ import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/network/api_client.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
-import 'package:wetravellers/features/ai/application/ai_mock_providers.dart';
 import 'package:wetravellers/features/ai/application/ai_providers.dart';
 import 'package:wetravellers/features/ai/application/ai_state.dart';
-import 'package:wetravellers/features/ai/data/mock_ai_response_provider.dart';
 import 'package:wetravellers/features/ai/domain/ai_home_mapper.dart';
 import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
-import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_section.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
 import 'package:wetravellers/core/storage/offline_cache_serializers.dart';
@@ -20,15 +17,14 @@ import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 
 class AiSheetController extends StateNotifier<AiState> {
   AiSheetController({
-    required this.primary,
-    required this.fallback,
+    required AiAssistantService service,
     required this.mapper,
     required OfflineCache cache,
-  })  : _cache = cache,
+  })  : _service = service,
+        _cache = cache,
         super(const AiState());
 
-  final AiAssistantService primary;
-  final AiAssistantService fallback;
+  final AiAssistantService _service;
   final AiHomeMapper mapper;
   final OfflineCache _cache;
 
@@ -79,7 +75,8 @@ class AiSheetController extends StateNotifier<AiState> {
 
     try {
       final token = RequestToken();
-      final response = await _queryWithFallback(trimmed, token: token, context: context)
+      final response = await _service
+          .query(trimmed, token: token, context: context)
           .timeout(const Duration(seconds: 90));
       if (_disposed || requestVersion != _requestVersion) {
         return;
@@ -132,18 +129,6 @@ class AiSheetController extends StateNotifier<AiState> {
     state = const AiState();
   }
 
-  Future<AiResponse> _queryWithFallback(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
-    try {
-      return await primary.query(prompt, token: token, timeout: timeout, context: context);
-    } catch (_) {
-      try {
-        return await fallback.query(prompt, token: token, timeout: timeout, context: context);
-      } catch (error) {
-        rethrow;
-      }
-    }
-  }
-
   @override
   void dispose() {
     _disposed = true;
@@ -156,8 +141,7 @@ final aiSheetControllerProvider =
     StateNotifierProvider.autoDispose.family<AiSheetController, AiState, ({String prompt, AiQueryContext? context})>(
   (ref, args) {
     final controller = AiSheetController(
-      primary: ref.watch(aiAssistantServiceProvider),
-      fallback: ref.watch(aiMockAssistantServiceProvider),
+      service: ref.watch(aiAssistantServiceProvider),
       mapper: ref.watch(aiHomeMapperProvider),
       cache: ref.watch(offlineCacheProvider),
     );
