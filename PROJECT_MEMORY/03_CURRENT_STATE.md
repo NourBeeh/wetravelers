@@ -28810,3 +28810,226 @@ D  test/features/ai/ai_bottom_sheet_test.dart
 M  test/features/home/home_controller_test.dart
 ?? backend/test-nuitee.ts
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+b4317d8d (HEAD -> main) chore(phase0): stabilize single-provider tests and document r4
+dd0b11e5 feat(personalization): geo profile events recommend modules and ai single-provider
+f95cecf2 fix(admin): seed-admin camelCase columns + role in /auth/me
+b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
+7344acd2 feat(admin): admin panel - home content management + runtime provider switching
+bf3335d1 feat(app): full UI rebuild, real travel providers, and booking/payment foundation (Waves 0-3)
+66a80f94 (origin/main, origin/HEAD) feat(project): add automatic git sync and update state documentation
+b7f3f985 feat(cards): shared card design system (Stage 2) + redesign, audit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+```
+
+### Pending status
+```
+ M backend/src/app.module.ts
+ M backend/src/common/dto/ai.dto.ts
+ M backend/src/modules/ai/ai.controller.ts
+ M backend/src/modules/ai/ai.module.ts
+ M backend/src/modules/ai/ai.provider.ts
+ M backend/src/modules/ai/ai.service.ts
+ M backend/src/modules/ai/openai.ai.provider.ts
+ M backend/src/modules/events/events.module.ts
+ M backend/src/modules/events/events.service.ts
+ M backend/src/modules/profile/profile.controller.ts
+ M backend/src/modules/profile/profile.module.ts
+A  docs/smart-search-floating-nav-report.md
+A  docs/universal-search-ux-contract.md
+ M lib/app/config/app_config.dart
+M  lib/app/router/go_router_config.dart
+M  lib/app/shell.dart
+M  lib/app/widgets/app_bottom_nav.dart
+M  lib/core/navigation/app_route.dart
+M  lib/core/navigation/app_transitions.dart
+ M lib/core/repositories/contracts/home_repository.dart
+ M lib/core/repositories/impl/home_repository_impl.dart
+ M lib/core/storage/hive_offline_cache.dart
+ M lib/core/storage/offline_cache.dart
+ M lib/features/ai/application/ai_providers.dart
+ M lib/features/ai/data/ai_api_service.dart
+ M lib/features/ai/presentation/pages/ai_chat_page.dart
+ M lib/features/ai/presentation/pages/ai_visual_shell_page.dart
+ M lib/features/bag/presentation/pages/trip_details_page.dart
+ M lib/features/booking/presentation/pages/booking_confirmation_page.dart
+ M lib/features/home/presentation/home_controller.dart
+M  lib/features/home/presentation/pages/home_page.dart
+A  lib/features/home/presentation/widgets/home_ai_search_field.dart
+ M lib/features/home/providers/home_providers.dart
+ M lib/features/search/application/controllers/hotel_search_controller.dart
+ M lib/features/search/application/providers/hotel_car_providers.dart
+ M lib/features/search/presentation/pages/hotel_search_page.dart
+ M lib/features/search/presentation/pages/offer_details_page.dart
+A  lib/features/universal_search/application/universal_search_controller.dart
+A  lib/features/universal_search/application/universal_search_state.dart
+A  lib/features/universal_search/data/offer_to_home_item_adapters.dart
+A  lib/features/universal_search/domain/structured_travel_intent.dart
+A  lib/features/universal_search/presentation/pages/universal_search_page.dart
+A  lib/features/universal_search/presentation/widgets/universal_search_widgets.dart
+M  lib/l10n/app_ar.arb
+M  lib/l10n/app_en.arb
+M  lib/l10n/app_localizations.dart
+M  lib/l10n/app_localizations_ar.dart
+M  lib/l10n/app_localizations_en.dart
+ M lib/shared/widgets/placeholder_page.dart
+M  test/app/widgets/bottom_nav_branch_mapping_test.dart
+M  test/core/navigation/app_route_test.dart
+M  test/core/ui/accessibility_test.dart
+ M test/features/ai/presentation/pages/ai_chat_page_test.dart
+ M test/features/home/home_controller_test.dart
+A  test/features/universal_search/offer_to_home_item_adapters_test.dart
+A  test/features/universal_search/universal_search_controller_test.dart
+A  test/features/universal_search/universal_search_page_test.dart
+A  test/features/universal_search/universal_search_state_machine_test.dart
+?? AGENTS.md
+?? backend/src/common/dto/ai.rerank.dto.ts
+?? backend/src/common/dto/memory.dto.ts
+?? backend/src/database/entities/user_memory.entity.ts
+?? backend/src/modules/ai/ai.conversation.controller.ts
+?? backend/src/modules/ai/ai.conversation.module.ts
+?? backend/src/modules/ai/ai.rerank.controller.ts
+?? backend/src/modules/memory/
+?? backend/test-nuitee.ts
+?? backend/test/ai.chat.memory-context.spec.ts
+?? backend/test/ai.rerank.spec.ts
+?? backend/test/ai.suggest.spec.ts
+?? backend/test/behavioral_memory.spec.ts
+?? backend/test/conversation_memory.spec.ts
+?? backend/test/memory.spec.ts
+?? lib/core/ai/ai_rerank_client.dart
+?? lib/core/events/
+?? lib/core/geo/
+?? lib/core/memory/
+?? lib/core/profile/
+?? lib/features/home/application/
+?? lib/features/home/domain/home_composer.dart
+?? lib/features/home/domain/home_greeting.dart
+?? lib/features/home/domain/personalization_context.dart
+?? test/core/memory/
+?? test/features/home/derived_preferences_test.dart
+?? test/features/home/home_composer_test.dart
+?? test/features/home/live_validation_test.dart
+?? test/features/home/personalization_spine_test.dart
+```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+b4317d8d (HEAD -> main) chore(phase0): stabilize single-provider tests and document r4
+dd0b11e5 feat(personalization): geo profile events recommend modules and ai single-provider
+f95cecf2 fix(admin): seed-admin camelCase columns + role in /auth/me
+b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
+7344acd2 feat(admin): admin panel - home content management + runtime provider switching
+bf3335d1 feat(app): full UI rebuild, real travel providers, and booking/payment foundation (Waves 0-3)
+66a80f94 (origin/main, origin/HEAD) feat(project): add automatic git sync and update state documentation
+b7f3f985 feat(cards): shared card design system (Stage 2) + redesign, audit, and memory sync
+bf6cc0ea feat(ai): full-screen AI chat page with conversation history and auto-expiry
+2fa08d68 feat(home): marketplace polish, packages page and theme updates
+```
+
+### Pending status
+```
+ M PROJECT_MEMORY/03_CURRENT_STATE.md
+ M PROJECT_MEMORY/09_AI_HANDOFF.md
+ M WeTravellers_PROJECT_MEMORY_SYSTEM.zip
+ M backend/src/app.module.ts
+ M backend/src/common/dto/ai.dto.ts
+ M backend/src/modules/ai/ai.controller.ts
+ M backend/src/modules/ai/ai.module.ts
+ M backend/src/modules/ai/ai.provider.ts
+ M backend/src/modules/ai/ai.service.ts
+ M backend/src/modules/ai/openai.ai.provider.ts
+ M backend/src/modules/events/events.module.ts
+ M backend/src/modules/events/events.service.ts
+ M backend/src/modules/profile/profile.controller.ts
+ M backend/src/modules/profile/profile.module.ts
+A  docs/smart-search-floating-nav-report.md
+A  docs/universal-search-ux-contract.md
+ M lib/app/config/app_config.dart
+M  lib/app/router/go_router_config.dart
+M  lib/app/shell.dart
+M  lib/app/widgets/app_bottom_nav.dart
+M  lib/core/navigation/app_route.dart
+M  lib/core/navigation/app_transitions.dart
+ M lib/core/repositories/contracts/home_repository.dart
+ M lib/core/repositories/impl/home_repository_impl.dart
+ M lib/core/storage/hive_offline_cache.dart
+ M lib/core/storage/offline_cache.dart
+ M lib/features/ai/application/ai_providers.dart
+ M lib/features/ai/data/ai_api_service.dart
+ M lib/features/ai/presentation/pages/ai_chat_page.dart
+ M lib/features/ai/presentation/pages/ai_visual_shell_page.dart
+ M lib/features/bag/presentation/pages/trip_details_page.dart
+ M lib/features/booking/presentation/pages/booking_confirmation_page.dart
+ M lib/features/home/presentation/home_controller.dart
+M  lib/features/home/presentation/pages/home_page.dart
+A  lib/features/home/presentation/widgets/home_ai_search_field.dart
+ M lib/features/home/providers/home_providers.dart
+ M lib/features/search/application/controllers/hotel_search_controller.dart
+ M lib/features/search/application/providers/hotel_car_providers.dart
+ M lib/features/search/presentation/pages/hotel_search_page.dart
+ M lib/features/search/presentation/pages/offer_details_page.dart
+A  lib/features/universal_search/application/universal_search_controller.dart
+A  lib/features/universal_search/application/universal_search_state.dart
+A  lib/features/universal_search/data/offer_to_home_item_adapters.dart
+A  lib/features/universal_search/domain/structured_travel_intent.dart
+A  lib/features/universal_search/presentation/pages/universal_search_page.dart
+A  lib/features/universal_search/presentation/widgets/universal_search_widgets.dart
+M  lib/l10n/app_ar.arb
+M  lib/l10n/app_en.arb
+M  lib/l10n/app_localizations.dart
+M  lib/l10n/app_localizations_ar.dart
+M  lib/l10n/app_localizations_en.dart
+ M lib/shared/widgets/placeholder_page.dart
+M  test/app/widgets/bottom_nav_branch_mapping_test.dart
+M  test/core/navigation/app_route_test.dart
+M  test/core/ui/accessibility_test.dart
+ M test/features/ai/presentation/pages/ai_chat_page_test.dart
+ M test/features/home/home_controller_test.dart
+A  test/features/universal_search/offer_to_home_item_adapters_test.dart
+A  test/features/universal_search/universal_search_controller_test.dart
+A  test/features/universal_search/universal_search_page_test.dart
+A  test/features/universal_search/universal_search_state_machine_test.dart
+?? AGENTS.md
+?? backend/src/common/dto/ai.rerank.dto.ts
+?? backend/src/common/dto/memory.dto.ts
+?? backend/src/database/entities/user_memory.entity.ts
+?? backend/src/modules/ai/ai.conversation.controller.ts
+?? backend/src/modules/ai/ai.conversation.module.ts
+?? backend/src/modules/ai/ai.rerank.controller.ts
+?? backend/src/modules/memory/
+?? backend/test-nuitee.ts
+?? backend/test/ai.chat.memory-context.spec.ts
+?? backend/test/ai.rerank.spec.ts
+?? backend/test/ai.suggest.spec.ts
+?? backend/test/behavioral_memory.spec.ts
+?? backend/test/conversation_memory.spec.ts
+?? backend/test/memory.spec.ts
+?? lib/core/ai/ai_rerank_client.dart
+?? lib/core/events/
+?? lib/core/geo/
+?? lib/core/memory/
+?? lib/core/profile/
+?? lib/features/home/application/
+?? lib/features/home/domain/home_composer.dart
+?? lib/features/home/domain/home_greeting.dart
+?? lib/features/home/domain/personalization_context.dart
+?? test/core/memory/
+?? test/features/home/derived_preferences_test.dart
+?? test/features/home/home_composer_test.dart
+?? test/features/home/live_validation_test.dart
+?? test/features/home/personalization_spine_test.dart
+```

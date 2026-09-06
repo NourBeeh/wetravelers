@@ -1,6 +1,6 @@
 {
   "@@locale": "ar",
-  "appTitle": "ويتراولرز",
+  "appTitle": "هوبر",
   "navHome": "الرئيسية",
   "navSearch": "بحث",
   "navGroups": "الجروبات",
@@ -11,6 +11,20 @@
   "profile": "الملف الشخصي",
   "back": "رجوع",
   "searchHint": "رايح فين؟",
+  "aiSearchHint": "اسأل هوبر الذكي…",
+  "aiSearchSheetHint": "عايز تسافر فين؟",
+  "aiSearchNoSuggestions": "مفيش اقتراحات دلوقتي. جرب صيغة تانية.",
+  "aiSearchError": "حدث خطأ ما. حاول مرة أخرى.",
+  "aiSearchSuggestions": "اقتراحات",
+  "recentSearches": "آخر عمليات البحث",
+  "clearAll": "مسح الكل",
+  "aiSearchEditQuery": "تعديل",
+  "aiSearchResultsFor": "نتائج عن «{query}»",
+  "@aiSearchResultsFor": {
+    "placeholders": {
+      "query": {}
+    }
+  },
   "searchPromptTitle": "رايح فين بعد؟",
   "searchPromptSubtitle": "خطط لرحلة مدينة، هروب للشاطئ أو ويك إند سريع.",
   "searchAllServices": "كل الخدمات",

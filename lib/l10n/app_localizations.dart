@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'WeTravellers'**
+  /// **'Hopper'**
   String get appTitle;
 
   /// No description provided for @navHome.
@@ -163,6 +163,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Where to?'**
   String get searchHint;
+
+  /// No description provided for @aiSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Hopper AI…'**
+  String get aiSearchHint;
+
+  /// No description provided for @aiSearchSheetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Where do you want to go?'**
+  String get aiSearchSheetHint;
+
+  /// No description provided for @aiSearchNoSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggestions right now. Try a different prompt.'**
+  String get aiSearchNoSuggestions;
+
+  /// No description provided for @aiSearchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get aiSearchError;
+
+  /// No description provided for @aiSearchSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get aiSearchSuggestions;
+
+  /// No description provided for @recentSearches.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get recentSearches;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAll;
+
+  /// No description provided for @aiSearchEditQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get aiSearchEditQuery;
+
+  /// No description provided for @aiSearchResultsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Results for \"{query}\"'**
+  String aiSearchResultsFor(Object query);
 
   /// No description provided for @searchPromptTitle.
   ///

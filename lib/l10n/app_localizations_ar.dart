@@ -9,7 +9,7 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appTitle => 'ويتراولرز';
+  String get appTitle => 'هوبر';
 
   @override
   String get navHome => 'الرئيسية';
@@ -40,6 +40,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get searchHint => 'رايح فين؟';
+
+  @override
+  String get aiSearchHint => 'اسأل هوبر الذكي…';
+
+  @override
+  String get aiSearchSheetHint => 'عايز تسافر فين؟';
+
+  @override
+  String get aiSearchNoSuggestions => 'مفيش اقتراحات دلوقتي. جرب صيغة تانية.';
+
+  @override
+  String get aiSearchError => 'حدث خطأ ما. حاول مرة أخرى.';
+
+  @override
+  String get aiSearchSuggestions => 'اقتراحات';
+
+  @override
+  String get recentSearches => 'آخر عمليات البحث';
+
+  @override
+  String get clearAll => 'مسح الكل';
+
+  @override
+  String get aiSearchEditQuery => 'تعديل';
+
+  @override
+  String aiSearchResultsFor(Object query) {
+    return 'نتائج عن «$query»';
+  }
 
   @override
   String get searchPromptTitle => 'رايح فين بعد؟';

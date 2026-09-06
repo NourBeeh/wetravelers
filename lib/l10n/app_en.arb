@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "WeTravellers",
+  "appTitle": "Hopper",
   "navHome": "Home",
   "navSearch": "Search",
   "navGroups": "Groups",
@@ -11,6 +11,20 @@
   "profile": "Profile",
   "back": "Back",
   "searchHint": "Where to?",
+  "aiSearchHint": "Ask Hopper AI…",
+  "aiSearchSheetHint": "Where do you want to go?",
+  "aiSearchNoSuggestions": "No suggestions right now. Try a different prompt.",
+  "aiSearchError": "Something went wrong. Please try again.",
+  "aiSearchSuggestions": "Suggestions",
+  "recentSearches": "Recent searches",
+  "clearAll": "Clear all",
+  "aiSearchEditQuery": "Edit",
+  "aiSearchResultsFor": "Results for \"{query}\"",
+  "@aiSearchResultsFor": {
+    "placeholders": {
+      "query": {}
+    }
+  },
   "searchPromptTitle": "Where to next?",
   "searchPromptSubtitle": "Plan a city break, beach escape or weekend getaway.",
   "searchAllServices": "All services",

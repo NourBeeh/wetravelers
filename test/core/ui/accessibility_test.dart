@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wetravellers/core/ui/accessible_button.dart';
 import 'package:wetravellers/app/widgets/app_bottom_nav.dart';
-import 'package:wetravellers/core/navigation/app_route.dart';
 import 'package:wetravellers/core/ui/adaptive_layout.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_card.dart';
 import 'package:wetravellers/core/widgets/cards/card_image.dart';
@@ -33,22 +32,22 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            bottomNavigationBar: AppBottomNav(
+            body: AppBottomNav(
               current: AppBottomNavDestination.home,
               onSelect: (_) {},
-              onAiPressed: () {},
             ),
           ),
         ),
       );
 
-      // Each tab renders with its capitalized visible label and all five
-      // destinations (including the AI centre button) are present.
+      // Each tab renders with its capitalized visible label; the floating
+      // bar hosts exactly the four tab destinations (the AI entry moved to
+      // the Home smart search field).
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Search'), findsOneWidget);
       expect(find.text('Groups'), findsOneWidget);
       expect(find.text('Explore'), findsOneWidget);
-      expect(find.byIcon(Icons.auto_awesome_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.auto_awesome_rounded), findsNothing);
     });
 
     testWidgets('custom cards expose meaningful semantic labels', (tester) async {

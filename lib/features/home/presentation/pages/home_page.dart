@@ -8,6 +8,7 @@ import 'package:wetravellers/core/theme/app_typography.dart';
 import 'package:wetravellers/core/widgets/shimmer.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/features/home/presentation/home_controller.dart';
+import 'package:wetravellers/features/home/presentation/widgets/home_ai_search_field.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_section.dart';
 import 'package:wetravellers/features/home/providers/home_providers.dart';
 import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
@@ -45,6 +46,9 @@ class HomePage extends ConsumerWidget {
                     const _HomeTopActions(),
                     const SizedBox(height: AppSpacing.md),
                     const _HomeWelcome(),
+                    const SizedBox(height: AppSpacing.md),
+                    // Smart AI search pill — opens the suggestion sheet.
+                    const HomeAiSearchField(),
                   ],
                 ),
               ),
@@ -75,8 +79,13 @@ class HomePage extends ConsumerWidget {
             // Continue planning — current trips from the unified Bag.
             if (bag.currentTrips.isNotEmpty)
               SliverToBoxAdapter(child: _ContinuePlanningRow(trips: bag.currentTrips)),
-            // Recommended hotels from Nuitee (real data)
-            if (state.recommendedHotels.isNotEmpty)
+            // Recommended hotels from Nuitee (real data).
+            // Phase 1B: the composer already renders these as "Picked for
+            // You" for authenticated users — show the standalone carousel
+            // ONLY when no composed section carries that semantic id, so the
+            // rail is never duplicated.
+            if (state.recommendedHotels.isNotEmpty &&
+                !_hasPickedForYou(state))
               SliverToBoxAdapter(
                 child: _RecommendedHotelsCarousel(hotels: state.recommendedHotels),
               ),
@@ -127,6 +136,16 @@ class HomePage extends ConsumerWidget {
           ),
         );
     }
+  }
+
+  /// True when a composed section already presents the recommended hotels
+  /// (Phase 1B authenticated "Picked for You").
+  bool _hasPickedForYou(HomeState state) {
+    return state.sections.any(
+      (s) =>
+          s.metadata['semanticId'] == 'picked-for-you' &&
+          s.items.isNotEmpty,
+    );
   }
 }
 
@@ -272,7 +291,7 @@ class _HomeTopActions extends StatelessWidget {
     return Row(
       children: [
         Text(
-          'Travellers',
+          'Hopper',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: AppTypography.weightExtraBold,
                 color: AppColors.brand,
@@ -323,23 +342,30 @@ class _TopAction extends StatelessWidget {
 
 /// Compact welcome line — the hero search card now lives on the Search tab;
 /// Home leads directly with the discovery feed.
-class _HomeWelcome extends StatelessWidget {
+class _HomeWelcome extends ConsumerWidget {
   const _HomeWelcome();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final typography = AppTypography.forLight();
-    final l10n = AppLocalizations.of(context)!;
+    // Phase 1B: the greeting comes from the composer's deterministic
+    // contract (authenticated users see their display name). Falls back to
+    // the l10n lines for the anonymous default, unchanged from Wave 0.
+    final greeting = ref.watch(
+      homeControllerProvider.select((state) => state.greeting),
+    );
+    final title = greeting?.title;
+    final subtitle = greeting?.subtitle;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          l10n.homeWelcome,
+          title ?? AppLocalizations.of(context)!.homeWelcome,
           style: typography.headline.copyWith(color: AppColors.textPrimary),
         ),
         const SizedBox(height: AppSpacing.xxs),
         Text(
-          l10n.homeWelcomeSub,
+          subtitle ?? AppLocalizations.of(context)!.homeWelcomeSub,
           style: typography.body.copyWith(color: AppColors.textTertiary),
         ),
       ],

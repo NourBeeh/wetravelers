@@ -14,6 +14,7 @@ import '../../features/bag/presentation/pages/bag_page.dart';
 import '../../features/bag/presentation/pages/trip_details_page.dart';
 import '../../features/admin/presentation/pages/admin_page.dart';
 import '../../features/ai/presentation/pages/ai_chat_page.dart';
+import '../../features/universal_search/presentation/pages/universal_search_page.dart';
 import '../../features/booking/presentation/pages/add_ons_page.dart';
 import '../../features/booking/presentation/pages/booking_confirmation_page.dart';
 import '../../features/booking/presentation/pages/checkout_page.dart';
@@ -89,7 +90,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     routes: <RouteBase>[
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          return WeTravellersShell(navigationShell: navigationShell);
+          return WeTravellersShell(
+            navigationShell: navigationShell,
+            location: state.uri,
+          );
         },
         branches: <StatefulShellBranch>[
           // ---- Home tab ----
@@ -339,6 +343,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => fadeThroughPage(
           name: 'ai_chat',
           child: const AiChatPage(),
+        ),
+      ),
+      // Universal Search + AI (US-1) — root route outside the shell so the
+      // floating pill never renders over the search experience. Container
+      // transform: the Home pill hero-morphs into the page header while
+      // this transition supplies the scrim + content reveal.
+      GoRoute(
+        path: '/smart-search',
+        name: 'smart_search',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) => containerTransformPage(
+          name: 'smart_search',
+          child: const UniversalSearchPage(),
         ),
       ),
     ],

@@ -9,7 +9,7 @@ void main() {
   });
 
   test('primaryDestinations contains the floating-nav entries', () {
-    expect(AppRoute.primaryDestinations, containsAll([AppRoute.home, AppRoute.ai, AppRoute.settings]));
+    expect(AppRoute.primaryDestinations, containsAll([AppRoute.home, AppRoute.settings]));
   });
 
   test('icons differ from outlined vs filled', () {

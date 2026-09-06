@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'WeTravellers';
+  String get appTitle => 'Hopper';
 
   @override
   String get navHome => 'Home';
@@ -40,6 +40,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchHint => 'Where to?';
+
+  @override
+  String get aiSearchHint => 'Ask Hopper AI…';
+
+  @override
+  String get aiSearchSheetHint => 'Where do you want to go?';
+
+  @override
+  String get aiSearchNoSuggestions =>
+      'No suggestions right now. Try a different prompt.';
+
+  @override
+  String get aiSearchError => 'Something went wrong. Please try again.';
+
+  @override
+  String get aiSearchSuggestions => 'Suggestions';
+
+  @override
+  String get recentSearches => 'Recent searches';
+
+  @override
+  String get clearAll => 'Clear all';
+
+  @override
+  String get aiSearchEditQuery => 'Edit';
+
+  @override
+  String aiSearchResultsFor(Object query) {
+    return 'Results for \"$query\"';
+  }
 
   @override
   String get searchPromptTitle => 'Where to next?';
