@@ -105,9 +105,14 @@ Backend done: Memory Spine 2A (`/memory/me`), 2B DerivedPreferenceProfile + rank
 
 ## Track C — Memory & AI (from محرك التوصيات)
 
-### 2C-C1 — Flutter wiring `POST /ai/chat` — PENDING
-- NEW FILES ONLY (ai_chat_repository + provider + DTOs). Zero edits to WIP files. `prompt ≤ 4000`, authenticated → `/ai/chat`, guest → `/ai/query` unchanged. Flutter never extracts memories / decides relevance / sends raw transcript.
-- Tests: serialization, parsing, limit, auth, server error, timeout, malformed, repo/controller.
+### 2C-C1 — Flutter wiring for `POST /ai/chat` — ✅ DONE (2026-09-07)
+- NEW files ONLY (zero edits to `ai_api_service.dart`/`ai_providers.dart`/Universal Search):
+  - `lib/features/ai/data/ai_chat_repository.dart` — `AiChatRepository` boundary + `AiChatValidationException` (maxPromptLength 4000 mirrored from backend AiChatDto).
+  - `lib/features/ai/data/ai_chat_repository_impl.dart` — routing contract: token in SecureTokenStorage → `POST /ai/chat` with Bearer header; guest → existing memory-free `POST /ai/query` (unchanged). Prompt trimmed + empty/4001+ fails fast BEFORE any network call. Default 90s chat timeout. Response parsed via the EXISTING `AiResponse.fromMap`. Flutter does NOT extract memories / decide relevance / send raw transcripts — all server-side.
+  - `lib/features/ai/application/ai_chat_providers.dart` — `aiChatRepositoryProvider` (own `aiChatApiClientProvider` — same per-library shape as home/booking; shared `secureTokenStorageProvider`).
+- NEW test `test/features/ai/data/ai_chat_repository_test.dart` — 11 tests: serialization (prompt+context), trim, response parsing, 4000 limit (over fails without network / at-limit passes / empty fails fast), authenticated→/ai/chat+Bearer, guest→/ai/query no header, server error propagates as ApiError, malformed payload → empty-sections contract, default timeout applied.
+- No UI built (per 2C-C1: UI is 2C-C2). `/ai/query` untouched. No Home/Ranking/cache changes.
+- **VALIDATION: flutter test = 658 passed / ~6 skipped / 0 failed (647 → 658: +11). dart analyze = 0 errors.**
 
 ### 2C-C2 — Memory Controls + Chat UI — PENDING
 - "What I Know About You": 3 types (preferred_destination/budget/travel_style) view/Edit/Delete/Clear-all via EXISTING MemoryRepository (2A). No new backend, no raw fields, no vocabulary beyond the 3. Premium Light + RTL/LTR. Personalization disabled → no memory context.

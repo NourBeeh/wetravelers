@@ -321,3 +321,31 @@ M  test/app/full_app_smoke_test.dart
 M  test/app/widgets/bottom_nav_branch_mapping_test.dart
 M  test/features/home/presentation/pages/home_skeleton_rail_test.dart
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+d72a93e5 (HEAD -> main, origin/main, origin/HEAD) feat(nav): Home-centric navigation — bottom bar removed, verticals as Home buttons
+6b08636b docs(plan): all pending decisions P1-P6 approved by owner — order finalized
+9a5793c2 feat(memory+search): memory spine backend, AI chat/rerank endpoints, and Universal Search US-2 work
+0f058e8b feat(home): Nuitee-only Home — instant skeleton rail, price-only refresh, Hive image cache (M0-H3)
+794ebcb9 chore(universal-search): remove legacy v1 search page
+b4317d8d chore(phase0): stabilize single-provider tests and document r4
+dd0b11e5 feat(personalization): geo profile events recommend modules and ai single-provider
+f95cecf2 fix(admin): seed-admin camelCase columns + role in /auth/me
+b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
+7344acd2 feat(admin): admin panel - home content management + runtime provider switching
+```
+
+### Pending status
+```
+M  MASTER_PLAN.md
+A  lib/features/ai/application/ai_chat_providers.dart
+A  lib/features/ai/data/ai_chat_repository.dart
+A  lib/features/ai/data/ai_chat_repository_impl.dart
+A  test/features/ai/data/ai_chat_repository_test.dart
+```
