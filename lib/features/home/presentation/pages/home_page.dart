@@ -8,6 +8,7 @@ import 'package:wetravellers/core/theme/app_typography.dart';
 import 'package:wetravellers/core/widgets/shimmer.dart';
 import 'package:wetravellers/core/domain/models/home/home_item.dart';
 import 'package:wetravellers/features/home/presentation/home_controller.dart';
+import 'package:wetravellers/features/home/presentation/widgets/cached_hotel_image.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_ai_search_field.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_section.dart';
 import 'package:wetravellers/features/home/providers/home_providers.dart';
@@ -16,45 +17,126 @@ import 'package:wetravellers/features/bag/application/bag_controller.dart';
 import 'package:wetravellers/features/bag/domain/trip.dart';
 import 'package:wetravellers/l10n/app_localizations.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage>
+    with WidgetsBindingObserver {
+  /// Last router location seen by this page — used to detect RETURNS to the
+  /// Home surface (any sub-route popping back onto '/' Home root).
+  String? _lastSeenLocation;
+  bool _routerHooked = false;
+  GoRouter? _hookedRouter;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Cannot look up ancestors in dispose — the router reference was saved at
+    // hook time exactly for this.
+    _hookedRouter?.routerDelegate.removeListener(_onRouteChanged);
+    _hookedRouter = null;
+    _routerHooked = false;
+    super.dispose();
+  }
+
+  /// Hooks the router listener lazily (H2): the widget tree may host
+  /// HomePage in contexts without a GoRouter (tests); `maybeOf` makes the
+  /// hook strictly optional so those hosts stay valid.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_routerHooked) return;
+    final router = GoRouter.maybeOf(context);
+    if (router == null) return;
+    _lastSeenLocation = router.state.matchedLocation;
+    router.routerDelegate.addListener(_onRouteChanged);
+    _hookedRouter = router;
+    _routerHooked = true;
+  }
+
+  void _onRouteChanged() {
+    final router = _hookedRouter;
+    if (router == null) return;
+    final location = router.state.matchedLocation;
+    final previous = _lastSeenLocation;
+    final wasHome = _isHomeLocation(previous);
+    final isHome = _isHomeLocation(location);
+    _lastSeenLocation = location;
+    // A route CHANGE landing on the Home surface (returning from a
+    // sub-route or another tab) triggers the H2 price/availability
+    // revalidation. Controller guards make repeats harmless (one job per
+    // snapshot) and cold start a no-op.
+    if (isHome && (previous != location || !wasHome)) {
+      _refreshPrices();
+    }
+  }
+
+  /// The Home surface is the shell root '/' — sub-routes ('/flights',
+  /// '/hotels', ...) are their own pages; only returning to '/' counts.
+  bool _isHomeLocation(String? location) => location == '/';
+
+  /// H2: revalidate prices/availability in the background — never reloads
+  /// sections, hotels or images (all guards live in the controller).
+  void _refreshPrices() {
+    ref.read(homeControllerProvider.notifier).refreshPrices();
+  }
+
+  // H2: app foreground (user returns to the app) → same price/availability
+  // revalidation, matching the "open the app → refresh prices" contract.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshPrices();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(homeControllerProvider);
     final bag = ref.watch(bagControllerProvider);
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(homeControllerProvider.notifier).refresh(),
-        child: SafeArea(
-          top: true,
-          bottom: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // Seamless merged header — present across every feed state.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.md,
-                  AppSpacing.lg,
-                  AppSpacing.sm,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    const _HomeTopActions(),
-                    const SizedBox(height: AppSpacing.md),
-                    const _HomeWelcome(),
-                    const SizedBox(height: AppSpacing.md),
-                    // Smart AI search pill — opens the suggestion sheet.
-                    const HomeAiSearchField(),
-                  ],
-                ),
+      // H1: pull-to-refresh removed by product decision — Home refreshes
+      // prices/availability via live validation only (H2). The old
+      // RefreshIndicator wrapper is gone; the SafeArea/Column tree is
+      // unchanged.
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            // Seamless merged header — present across every feed state.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.sm,
               ),
-              Expanded(child: _buildBody(state, ref, bag)),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const _HomeTopActions(),
+                  const SizedBox(height: AppSpacing.md),
+                  const _HomeWelcome(),
+                  const SizedBox(height: AppSpacing.md),
+                  // Smart AI search pill — opens the suggestion sheet.
+                  const HomeAiSearchField(),
+                ],
+              ),
+            ),
+            Expanded(child: _buildBody(state, ref, bag)),
+          ],
         ),
       ),
     );
@@ -79,6 +161,14 @@ class HomePage extends ConsumerWidget {
             // Continue planning — current trips from the unified Bag.
             if (bag.currentTrips.isNotEmpty)
               SliverToBoxAdapter(child: _ContinuePlanningRow(trips: bag.currentTrips)),
+            // H1 — Nuitee-only Home loading rail: while real hotels are on
+            // their way (dev-preview after an empty feed), show ONE skeleton
+            // rail with the EXACT geometry of the real carousel (same title,
+            // same 260px cards, same 220px rail height) so the transition to
+            // live data has zero layout jump (Instagram-style placeholder).
+            // Real hotels or composed sections replace it seamlessly below.
+            if (state.recommendedHotels.isEmpty && state.sections.isEmpty)
+              const SliverToBoxAdapter(child: _SkeletonRecommendedRail()),
             // Recommended hotels from Nuitee (real data).
             // Phase 1B: the composer already renders these as "Picked for
             // You" for authenticated users — show the standalone carousel
@@ -373,6 +463,102 @@ class _HomeWelcome extends ConsumerWidget {
   }
 }
 
+/// H1 — Nuitee-only Home loading placeholder: ONE skeleton rail that mirrors
+/// the EXACT geometry of [_RecommendedHotelsCarousel] — same title row, same
+/// 220px rail height, same 260px card width, same image/text block — so the
+/// swap from skeleton to real Nuitee data causes zero layout jump.
+///
+/// No fake travel data: pure shimmer shapes on the shared [ShimmerBox]
+/// primitive (same as `_isSkeletonItem` cards — loading UI only).
+class _SkeletonRecommendedRail extends StatelessWidget {
+  const _SkeletonRecommendedRail();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.sm,
+          ),
+          child: Text(
+            // Same fixed title as the real rail — stable across the swap.
+            'Recommended for You',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: AppTypography.weightBold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 220, // == _RecommendedHotelsCarousel rail height.
+          child: ListView(
+            // Never scrolls — pure placeholder, matches the real rail's
+            // viewport while its cards stream in.
+            physics: const NeverScrollableScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            children: const <Widget>[
+              _SkeletonHotelCard(),
+              SizedBox(width: AppSpacing.md), // == separatorBuilder gap.
+              _SkeletonHotelCard(),
+              SizedBox(width: AppSpacing.md),
+              _SkeletonHotelCard(),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+      ],
+    );
+  }
+}
+
+/// One skeleton hotel card — 260px wide like [_HotelCard], image block 120px
+/// like the real card, then two text shimmer rows.
+class _SkeletonHotelCard extends StatelessWidget {
+  const _SkeletonHotelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 260, // == _HotelCard width.
+      child: Card(
+        elevation: 2, // == _HotelCard elevation.
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const ShimmerBox(height: 120, width: double.infinity),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const <Widget>[
+                    ShimmerBox(height: 14, width: 180), // title row.
+                    SizedBox(height: 6),
+                    ShimmerBox(height: 12, width: 120), // subtitle row.
+                    Spacer(),
+                    ShimmerBox(height: 12, width: 64), // price row.
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Horizontal carousel of recommended hotels sourced from Nuitee.
 class _RecommendedHotelsCarousel extends StatelessWidget {
   const _RecommendedHotelsCarousel({required this.hotels});
@@ -419,14 +605,18 @@ class _RecommendedHotelsCarousel extends StatelessWidget {
   }
 }
 
-class _HotelCard extends StatelessWidget {
+class _HotelCard extends ConsumerWidget {
   const _HotelCard({required this.hotel});
 
   final HomeItem hotel;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    // H3: hotel images load through the Hive-backed cache — a cached photo
+    // renders instantly on cold start without any network call, and P2
+    // decode sizing keeps memory tiny.
+    final imageCache = ref.watch(hotelImageCacheProvider);
     return SizedBox(
       width: 260,
       child: Card(
@@ -439,16 +629,11 @@ class _HotelCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (hotel.imageUrl != null && hotel.imageUrl!.isNotEmpty)
-              Image.network(
-                hotel.imageUrl!,
+              CachedHotelImage(
+                url: hotel.imageUrl!,
                 height: 120,
                 width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 120,
-                  color: AppColors.surfaceTertiary,
-                  child: const Icon(Icons.image_not_supported_outlined, size: 32),
-                ),
+                cache: imageCache,
               )
             else
               Container(

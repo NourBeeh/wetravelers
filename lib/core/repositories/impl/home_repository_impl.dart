@@ -37,6 +37,77 @@ class HomeRepositoryImpl implements HomeRepository {
 
   static const String _cacheKey = 'home|sections';
 
+  // ---------------------------------------------------------------------------
+  // Persistent Home snapshot (Phase 1A — Instant Home).
+  //
+  // A v2 envelope kept under an audience-scoped key so snapshots never leak
+  // between the anonymous surface and an authenticated user's surface:
+  //
+  //   key:     'home|snapshot|anon' | 'home|snapshot|user:<id>'
+  //   value:   { schemaVersion, savedAt, audience, sections: [...] }
+  //
+  // The envelope is deliberately forward-compatible: readers ignore unknown
+  // top-level fields, so later phases (Dynamic Personalized Home composer,
+  // persona version, experiments) can extend the snapshot without a breaking
+  // migration. Only REAL network sections are ever saved — development
+  // preview skeletons and AI-generated content never enter the snapshot.
+  // ---------------------------------------------------------------------------
+
+  static const String _snapshotSchemaVersion = 'home.snapshot.v2';
+
+  static String homeSnapshotCacheKey(String audience) => 'home|snapshot|$audience';
+
+  /// Audience identifier used to scope snapshots: `'anon'` or `'user:<id>'`.
+  static String homeAudienceFor(String? userId) =>
+      (userId == null || userId.isEmpty) ? 'anon' : 'user:$userId';
+
+  @override
+  Future<List<HomeSection>?> readHomeSnapshot({required String audience}) async {
+    final cache = _offlineCache;
+    if (cache == null) return null;
+    try {
+      final map = await cache.read(homeSnapshotCacheKey(audience));
+      if (map == null) return null;
+      final sections = homeSectionsFromMap(map);
+      return sections.isEmpty ? null : sections;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Removes the audience's persisted snapshot (best-effort; never throws).
+  @override
+  Future<void> clearHomeSnapshot({required String audience}) async {
+    final cache = _offlineCache;
+    if (cache == null) return;
+    try {
+      await cache.delete(homeSnapshotCacheKey(audience));
+    } catch (_) {
+      // Best-effort; never crash the UI on storage failure.
+    }
+  }
+
+  /// Persists the given (network-confirmed) sections as the audience's final
+  /// Home snapshot. Best-effort: storage failures never break the UI.
+  @override
+  Future<void> saveHomeSnapshot(
+    List<HomeSection> sections, {
+    required String audience,
+  }) async {
+    final cache = _offlineCache;
+    if (cache == null || sections.isEmpty) return;
+    try {
+      await cache.write(homeSnapshotCacheKey(audience), <String, dynamic>{
+        'schemaVersion': _snapshotSchemaVersion,
+        'savedAt': DateTime.now().toIso8601String(),
+        'audience': audience,
+        'sections': sections.map(homeSectionToMap).toList(),
+      });
+    } catch (_) {
+      // Best-effort; never crash the UI on storage failure.
+    }
+  }
+
   @override
   Future<ApiResult<List<HomeSection>>> getHomeSections() async {
     final result = await apiClient.get<List<dynamic>>('/home/sections');
@@ -49,13 +120,12 @@ class HomeRepositoryImpl implements HomeRepository {
           await _cacheSections(sections);
           return ApiResult.success(sections);
         }
-        // Backend reachable but feed empty (e.g. unseeded database).
-        final cached = await _readCachedSections();
-        if (cached != null && cached.isNotEmpty) {
-          return ApiResult.success(cached);
-        }
-        // No cached data available, return empty state
-        return ApiResult.success([]);
+        // Backend reachable but the feed is legitimately EMPTY: never serve
+        // the legacy `home|sections` cache — it can only hold stale content
+        // that the backend has since withdrawn (e.g. removed fake sections).
+        // The empty feed is authoritative; serving anything else would
+        // resurrect data the backend no longer returns.
+        return ApiResult.success(sections);
       },
       failure: (error) async {
         final cached = await _readCachedSections();
@@ -74,7 +144,7 @@ class HomeRepositoryImpl implements HomeRepository {
     try {
       final map = await cache.read(_cacheKey);
       if (map == null) return null;
-      return _sectionsFromCacheMap(map);
+      return homeSectionsFromMap(map);
     } catch (_) {
       return null;
     }
@@ -85,7 +155,7 @@ class HomeRepositoryImpl implements HomeRepository {
     if (cache == null || sections.isEmpty) return;
     try {
       await cache.write(_cacheKey, <String, dynamic>{
-        'sections': sections.map(_sectionToMap).toList(),
+        'sections': sections.map(homeSectionToMap).toList(),
         'timestamp': DateTime.now().toIso8601String(),
       });
     } catch (_) {
@@ -191,17 +261,20 @@ class HomeRepositoryImpl implements HomeRepository {
 }
 
 /// JSON-safe snapshot of one section for the offline cache.
-Map<String, dynamic> _sectionToMap(HomeSection s) {
+Map<String, dynamic> homeSectionToMap(HomeSection s) {
   return <String, dynamic>{
     'id': s.id,
     'title': s.title,
     'subtitle': s.subtitle,
     'layout': s.layout.name,
-    'items': s.items.map(_itemToMap).toList(),
+    'items': s.items.map(homeItemToMap).toList(),
+    // Phase 1B: composer marks sections with a semantic id + reason so later
+    // phases can localize titles / explain placement. Optional on read.
+    if (s.metadata.isNotEmpty) 'metadata': s.metadata,
   };
 }
 
-Map<String, dynamic> _itemToMap(HomeItem i) {
+Map<String, dynamic> homeItemToMap(HomeItem i) {
   return <String, dynamic>{
     'id': i.id,
     'type': i.type.name,
@@ -217,10 +290,18 @@ Map<String, dynamic> _itemToMap(HomeItem i) {
     'highlights': i.highlights,
     'tags': i.tags,
     'actionLabel': i.actionLabel,
+    // Phase 1B: keep item metadata (composer reason chips, provenance) in the
+    // snapshot round-trip. Optional on read — legacy entries keep working.
+    if (i.metadata.isNotEmpty) 'metadata': i.metadata,
   };
 }
 
-List<HomeSection> _sectionsFromCacheMap(Map<String, dynamic> map) {
+/// Reads `sections` out of a stored map (legacy snapshot shape or v2
+/// envelope) — the envelope reader for [HomeRepositoryImpl.readHomeSnapshot]
+/// and the fallback reader for the legacy `home|sections` entry share this.
+/// Unknown top-level fields are ignored so future envelope versions do not
+/// require a destructive migration.
+List<HomeSection> homeSectionsFromMap(Map<String, dynamic> map) {
   final sections = <HomeSection>[];
   for (final raw in (map['sections'] as List? ?? [])) {
     if (raw is! Map) continue;
@@ -250,6 +331,8 @@ List<HomeSection> _sectionsFromCacheMap(Map<String, dynamic> map) {
             (c['highlights'] as List?)?.map((e) => e.toString()).toList() ?? [],
         tags: (c['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
         actionLabel: c['actionLabel']?.toString(),
+        metadata:
+            c['metadata'] is Map ? Map<String, dynamic>.from(c['metadata']) : {},
       ));
     }
     sections.add(HomeSection(
@@ -258,6 +341,8 @@ List<HomeSection> _sectionsFromCacheMap(Map<String, dynamic> map) {
       subtitle: s['subtitle']?.toString(),
       layout: _parseLayout(s['layout']?.toString()),
       items: cards,
+      metadata:
+          s['metadata'] is Map ? Map<String, dynamic>.from(s['metadata']) : {},
     ));
   }
   return sections;

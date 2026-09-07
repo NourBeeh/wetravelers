@@ -2,15 +2,44 @@
 
 ## Integrated delivery roadmap
 
-> **Current position (2026-09-03, post Phase-0 stabilization): Phases 11B–17 + Waves W0–W3 + Admin workstream + R-4 personalization complete IN CODE. Verified baseline: 437 Flutter tests / 6 skipped / 0 failed; 134 backend tests / 1 skipped; analyze 0 errors; tsc clean. R-4 + Phase-0 changes are UNCOMMITTED; 4 admin commits unpushed — a commit decision is the first pending action.** Historical note: card sub-phases 24A–24E were absorbed/superseded by Wave 2's card unification (see `04_PHASE_HISTORY.md` addendum 2026-09-02; R-4/Phase-0 recorded in the 2026-09-03 addendum). Next pending roadmap phase: **Phase 18 — PROJECT_MEMORY cloud sync + analytics foundation.** Each numbered phase requires explicit approval before implementation; do not bundle phases together.
+> **Current position (2026-09-06): TWO parallel workstreams on one uncommitted tree. (1) Home & Platform: M0 (Nuitee-only validation) + H1 (skeleton rail + no pull-to-refresh) DONE; next H2 (price/availability-only refresh) → H3 (Hive image cache) → NAV (remove bottom nav, blocked until US-2 lands). (2) Universal Search: US-2 in progress by the other agent. Authoritative order + boundaries + pending decisions P1–P6: `MASTER_PLAN.md` (repo root). Verified baseline: Flutter 633 passed / analyze 0 errors / backend tsc clean / jest 232 passed. NOTHING committed — commit decision remains the first pending action whenever the user calls for it (must be scoped per workstream).**
+> Merged execution order: M0 → H1 → H2 → H3 → [US-2 lands] → NAV → 2C-C1 (Flutter /ai/chat wiring) → 2C-C2 (Memory Controls UI) → 2D (AI context hardening) → US-3 (voice) → US-4 (AI assistant in search) → 3A–3D (unified search backend + results + details) → US-5 (search personalization) → US-6 (compare/refinement) → PH-7 (Explicit Memory → Home Ranking, standalone approved phase) → 4A–4E (booking + payment) → 5A–5C (unified Trip) → 6A–6C (notifications + trip AI) → 7A–7B (home intelligence; real Home sections return in 7B) → US-7 (search production hardening) → 8A–8B (admin + provider observability) → 9A–9B (security MASVS audit + performance) → 10A–10C (E2E regression + production readiness + release gate).
 
-### FOLLOW-UP register (Phase-0 audit, 2026-09-03) — not part of any numbered phase yet
+### PENDING DECISIONS (from MASTER_PLAN — user must approve before the phases can consume them)
+- **P1** `speech_to_text` package for US-3 voice search (declined → defer US-3, keep disabled mic).
+- **P2** `ResizeImage`/`cacheWidth` decode inside H3 image cache (official Flutter guidance; no package).
+- **P3** official `integration_test` dev-dependency for 10A E2E journeys.
+- **P4** structure the 9A security audit as an OWASP MASVS checklist.
+- **P5** Android 14 predictive back (`PopScope.canPop`) verification in US-7/9B audits.
+- **P6** confirm the merged execution order above (esp. NAV after US-2; US-5/US-6 after 3A–3D).
 
-- **BLOCKER — Booking API mismatch (must be resolved before Phase 19 proceeds):** Flutter `BookingRepositoryImpl` calls `POST /bookings/prepare|revalidate|/bookings` which do not exist server-side; checkout uses a synthetic bookingId; confirmation fabricates the Bag entry. Decide the backend bookings API shape first (spec §49 tables + Duffel createOrder/Nuitee book wiring), then wire or remove the client calls. Details: `07_KNOWN_ISSUES.md`.
-- **R-5 candidate (memory spine activation):** Flutter event tracker (`POST /events` + deviceId), Flutter profile client (`/profile/me`), geo→profile write (`GET /geo/country` → `setCountryIfMoreConfident`), optional-JWT guard variant for guest events. All backend pieces exist; only wiring is missing.
-- **Coverage debt:** new widget tests for the simplified `AiSheetController`/`AiBottomSheetContent` (old suite deleted with the mocks); consider re-adding a deterministic Nuitee mapping test (fixture-based coverage was deleted with `NUITEE_FIXTURES`; live-smoke remains).
-- **Housekeeping:** dead `AI_FALLBACK_PROVIDER` line in `backend/.env`; orphaned `offer.entity.ts`; unused `sessions` table; `WatchItem`/`moveToPast`/`ItineraryStage`/`SearchIntentParser` dead code — none blocking; tidy only inside an approved phase.
-- **SUGGESTED (not started):** **Phase 1 — Instant Home + Persistent Hive Cache + Live Validation**: make the Home feed render instantly from a persisted Hive snapshot on cold start, refresh from `GET /home/sections` + `GET /home/recommended` in the background, and validate liveness of cached cards (expiry/publish windows) before display. Builds directly on the existing `HiveOfflineCache` + fallback chain + admin publication windows. Awaiting explicit approval.
+### FOLLOW-UP register (still open)
+
+- **BLOCKER — Booking API mismatch (must be resolved in Phase 4A):** Flutter `BookingRepositoryImpl` calls `POST /bookings/prepare|revalidate|/bookings` which do not exist server-side; checkout uses a synthetic bookingId; confirmation fabricates the Bag entry. Phase 4A builds the backend bookings API (idempotency + revalidation mandatory) then rewires/keeps client calls. Details: `07_KNOWN_ISSUES.md`.
+- **R-5 candidate (memory spine activation, folded into H2+/US-5):** Flutter event tracker (`POST /events` + deviceId), Flutter profile client (`/profile/me`), geo→profile write, optional-JWT guest events. Backend pieces exist; wiring is future work.
+- **Coverage debt:** new widget tests for the simplified `AiSheetController`/`AiBottomSheetContent`; deterministic Nuitee mapping test (fixture coverage was deleted with `NUITEE_FIXTURES`; live-smoke remains).
+- **Housekeeping:** dead `AI_FALLBACK_PROVIDER` line in `backend/.env`; orphaned `offer.entity.ts`; unused `sessions` table; `WatchItem`/`moveToPast`/`ItineraryStage` dead code — tidy only inside an approved phase.
+- **Do NOT run `npm run seed:home`** — the fake Home data was deliberately purged (Nuitee-only Home); the script stays for the future real-content phases.
+
+| Phase | Outcome | External need at this phase |
+|---|---|---|
+| M0–H3 | Nuitee-only Home validation, skeleton rail, no pull-to-refresh, price/availability refresh, Hive image cache | H2/H3 pending; H1 done |
+| NAV | Remove bottom nav; Home-centric buttons (flights/hotels/cars/packages) + Groups into Home | Blocked until US-2 lands (shared router) |
+| 2C-C1/C2, 2D | Flutter /ai/chat wiring, Memory Controls UI, AI context hardening | Backend live; P6 order confirmation |
+| US-2 | Advanced intent + NLP (other agent, in progress) | None |
+| US-3 | Voice search | P1 decision (package) |
+| US-4 | AI assistant inside Universal Search | None |
+| 3A–3D | Unified search foundation → provider aggregation → results/filters/sorting → product details | Cars provider unresolved (TBD); Doville (flights) + Nuitee (hotels) exist |
+| US-5, US-6 | Search personalization (explicit intent always wins), compare + refinement | After 3A–3D; PH-7 handles memory→ranking separately |
+| PH-7 | Explicit Memory → Home Ranking (standalone, regression-heavy) | Approved phase; travel-style consumer check first |
+| 4A–4E | Booking foundation → flight → hotel → car/package → payment (Egyptian gateway, server verification, idempotency) | Real PSP (spec §K); booking DB tables (spec §49) |
+| 5A–5C | Unified Trip model → timeline → live tracking (real sources only) | Provider status sources |
+| 6A–6C | Notifications → contextual trip AI → post-booking AI | Push infra decision |
+| 7A–7B | Home intelligence finalization; REAL Home sections return (no fake deals) | Real content sources |
+| US-7 | Universal Search production hardening | After all search-consuming phases |
+| 8A–8B | Admin hardening; provider health/observability | None |
+| 9A–9B | Security audit (P4 MASVS?) + performance/cache hardening | P4 decision |
+| 10A–10C | E2E regression (P3 integration_test?) → production readiness → release gate | P3 decision |
 
 | Phase | Outcome | External need at this phase |
 |---|---|---|
@@ -25,7 +54,7 @@
 | 17 | Auth: real identity — login/register/me (bcryptjs + JWT guard), profile/settings entry, persisted secure sessions | Complete — none |
 | W0–W3 | Full-app UI rebuild (light-only design language, bottom nav, unified motion, l10n) + real providers (Nuitee LIVE, Duffel revalidation, MarketContext/FX/EGP) + search/home rebuild + booking funnel + mock EG payment gateway with ledger | Complete — see `01_MASTER_MEMORY.md` §12.5 for full detail |
 | 24A–24E | Card system sub-phases | Absorbed/superseded by Wave 2 (unified `onFavorite`, dead primitives removed, `DiscoveryProductCard`, skeletons tokenized). STILL OPEN from 24C: **favorites persistence** (heart toggles are presentational only) |
-| 18 | **NEXT:** PROJECT_MEMORY cloud sync (auto-backup of memory files) + analytics foundation (AI query tracking) | External storage/backup target choice; analytics storage decision when approved |
+| 18 | PROJECT_MEMORY cloud sync (auto-backup of memory files) + analytics foundation (AI query tracking) | SUPERSEDED as "next" — memory files are now maintained live in `PROJECT_MEMORY/` + `MASTER_PLAN.md`; cloud backup remains a valid future option |
 | 19 | Real booking/payment foundation: matching backend booking API, confirmation, idempotency, Bag synchronization | Mostly covered by W1+W3 (revalidate endpoint, state machine, mock gateway, ledger). REMAINING: real Egyptian PSP onboarding (spec §K open questions), provider book wiring end-to-end (Duffel createOrder + Nuitee book from the funnel), booking persistence (DB tables per spec §49) |
 | 20 | Unified Trip Bag: Trip/TripItem, internal+external additions, readiness checklist, Wallet, Price Watch | Database/API persistence; external import options are staged—manual entry first, then approved share/PDF/QR/calendar/email integrations; price watches require a valid offer-price source and scheduled server jobs. (Bag page + TripDetails v1 + Continue-planning shipped in W0) |
 | 21 | Accessibility improvements (screen reader support, text scaling compliance) | Platform accessibility tooling audit; no new vendor required for the first pass |

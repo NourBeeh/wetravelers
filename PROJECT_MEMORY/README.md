@@ -2,6 +2,10 @@
 
 ## Which file should I give an AI?
 
+### ANY agent — read these FIRST (2026-09-06)
+1. `MASTER_PLAN.md` (repo root) — merged execution plan, workstream boundaries, pending decisions.
+2. `03_CURRENT_STATE.md` — live facts + verified baselines.
+
 ### ChatGPT / Claude / analytical model
 Give:
 `01_MASTER_MEMORY.md`
