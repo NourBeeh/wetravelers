@@ -266,3 +266,27 @@ M  test/features/universal_search/universal_search_controller_test.dart
 M  test/features/universal_search/universal_search_page_test.dart
 A  "\331\205\330\255\330\261\331\203 \330\247\331\204\330\252\331\210\330\265\331\212\330\247\330\252.txt"
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+9a5793c2 (HEAD -> main, origin/main, origin/HEAD) feat(memory+search): memory spine backend, AI chat/rerank endpoints, and Universal Search US-2 work
+0f058e8b feat(home): Nuitee-only Home — instant skeleton rail, price-only refresh, Hive image cache (M0-H3)
+794ebcb9 chore(universal-search): remove legacy v1 search page
+b4317d8d chore(phase0): stabilize single-provider tests and document r4
+dd0b11e5 feat(personalization): geo profile events recommend modules and ai single-provider
+f95cecf2 fix(admin): seed-admin camelCase columns + role in /auth/me
+b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
+7344acd2 feat(admin): admin panel - home content management + runtime provider switching
+bf3335d1 feat(app): full UI rebuild, real travel providers, and booking/payment foundation (Waves 0-3)
+66a80f94 feat(project): add automatic git sync and update state documentation
+```
+
+### Pending status
+```
+M  MASTER_PLAN.md
+```

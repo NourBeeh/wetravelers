@@ -205,16 +205,18 @@ M0 → H1 → H2 → H3 → [US-2 lands (theirs) → validate+merge] → NAV
 4. PH-7 after US-5: US-5 explicitly defers memory→ranking to the approved phase — that IS PH-7.
 5. US-7 after 7B: harden search only when all search-consuming phases are final.
 
-# PENDING DECISIONS (need explicit user approval — do NOT implement before answering)
+# DECISIONS (ALL APPROVED by user 2026-09-07 — no longer pending)
 
-| # | Proposal | Phase affected | Default if declined |
+| # | Proposal | Phase affected | Status |
 |---|---|---|---|
-| P1 | `speech_to_text` package for US-3 voice (community standard, Android/iOS/web, AR+EN) | US-3 | Defer US-3, keep disabled mic |
-| P2 | `ResizeImage`/`cacheWidth` decode in H3 image cache (official Flutter guidance — big memory win, no package) | H1/H3 | Plain byte cache only |
-| P3 | Official `integration_test` dev-dependency for 10A E2E journeys | 10A | widget-test-level regression only |
-| P4 | Structure 9A as OWASP MASVS category checklist | 9A | Custom checklist (as spec) |
-| P5 | Android 14 predictive back (`PopScope.canPop`) verification in US-7 + 9B audits | US-7, 9B | As spec (deferred) |
-| P6 | The merged execution order above (esp. NAV after US-2; US-5/US-6 after 3A-3D) | All | Ask user to confirm or reorder |
+| P1 | `speech_to_text` package for US-3 voice (community standard, Android/iOS/web, AR+EN) | US-3 | ✅ APPROVED — install when US-3 starts |
+| P2 | `ResizeImage`/`cacheWidth` decode in H3 image cache (official Flutter guidance — big memory win, no package) | H1/H3 | ✅ APPROVED + IMPLEMENTED (H3) |
+| P3 | Official `integration_test` dev-dependency for 10A E2E journeys | 10A | ✅ APPROVED — install when 10A starts |
+| P4 | Structure 9A as OWASP MASVS category checklist | 9A | ✅ APPROVED |
+| P5 | Android 14 predictive back (`PopScope.canPop`) verification in US-7 + 9B audits | US-7, 9B | ✅ APPROVED |
+| P6 | The merged execution order (NAV after US-2; US-5/US-6 after 3A-3D) | All | ✅ APPROVED — order is final |
+
+External packages are allowed with per-case confirmation (user policy 2026-09-06).
 
 # Files changed by the Home/Platform workstream (uncommitted, 2026-09-06)
 
