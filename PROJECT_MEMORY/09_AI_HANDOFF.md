@@ -1159,3 +1159,22 @@ b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
 bf3335d1 feat(app): full UI rebuild, real travel providers, and booking/payment foundation (Waves 0-3)
 66a80f94 feat(project): add automatic git sync and update state documentation
 ```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+6b08636b (HEAD -> main, origin/main, origin/HEAD) docs(plan): all pending decisions P1-P6 approved by owner — order finalized
+9a5793c2 feat(memory+search): memory spine backend, AI chat/rerank endpoints, and Universal Search US-2 work
+0f058e8b feat(home): Nuitee-only Home — instant skeleton rail, price-only refresh, Hive image cache (M0-H3)
+794ebcb9 chore(universal-search): remove legacy v1 search page
+b4317d8d chore(phase0): stabilize single-provider tests and document r4
+dd0b11e5 feat(personalization): geo profile events recommend modules and ai single-provider
+f95cecf2 fix(admin): seed-admin camelCase columns + role in /auth/me
+b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
+7344acd2 feat(admin): admin panel - home content management + runtime provider switching
+bf3335d1 feat(app): full UI rebuild, real travel providers, and booking/payment foundation (Waves 0-3)
+```

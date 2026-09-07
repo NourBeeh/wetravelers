@@ -8,12 +8,16 @@ import 'package:wetravellers/app/shell.dart';
 import 'package:wetravellers/app/widgets/app_bottom_nav.dart';
 import 'package:wetravellers/l10n/app_localizations.dart';
 
-/// Regression coverage for the tab-index mismatch bug: the router hosts four
-/// branches (Home=0, Search=1, Groups=2, Explore=3) and the floating bottom
-/// bar renders the same four destinations. Tapping each tab must show the
-/// matching page — through the real shell + StatefulShellRoute wiring.
+/// NAV regression coverage (2026-09-07): the floating bottom navigation pill
+/// is RETIRED — the shell hosts the navigation stack only. The historical
+/// four-tab tests are superseded by this suite:
+/// - the shell renders NO AppBottomNav anywhere (branch roots included);
+/// - the retired `AppBottomNavDestination` enum is kept intact (no-deletion
+///   rule) so any future consumer finds it unchanged;
+/// - former tab pages now live as pushed routes on the Home branch.
 void main() {
-  testWidgets('bottom nav tabs land on the correct branches', (tester) async {
+  testWidgets('shell renders without the bottom nav pill on branch roots',
+      (tester) async {
     final router = GoRouter(
       initialLocation: '/',
       routes: <RouteBase>[
@@ -28,30 +32,6 @@ void main() {
                 GoRoute(
                   path: '/',
                   builder: (_, __) => const _BranchLabel('HOME'),
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: <GoRoute>[
-                GoRoute(
-                  path: '/search',
-                  builder: (_, __) => const _BranchLabel('SEARCH'),
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: <GoRoute>[
-                GoRoute(
-                  path: '/groups',
-                  builder: (_, __) => const _BranchLabel('GROUPS'),
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: <GoRoute>[
-                GoRoute(
-                  path: '/explore',
-                  builder: (_, __) => const _BranchLabel('EXPLORE'),
                 ),
               ],
             ),
@@ -78,28 +58,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('HOME'), findsOneWidget);
-
-    // Four floating tabs in order: Home, Search, Groups, Explore.
-    await tester.tap(find.text('Search'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('SEARCH'), findsOneWidget);
-
-    await tester.tap(find.text('Groups'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('GROUPS'), findsOneWidget);
-
-    // Explore is the last slot.
-    await tester.tap(find.text('Explore'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('EXPLORE'), findsOneWidget);
-
-    // Home round-trips back correctly.
-    await tester.tap(find.text('Home'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('HOME'), findsOneWidget);
+    // NAV: the pill never renders anymore.
+    expect(find.byType(AppBottomNav), findsNothing);
   });
 
-  testWidgets('floating pill hides on branch sub-pages', (tester) async {
+  testWidgets('former tab pages are pushable routes on the Home branch',
+      (tester) async {
     final router = GoRouter(
       initialLocation: '/',
       routes: <RouteBase>[
@@ -116,34 +80,10 @@ void main() {
                   builder: (_, __) => const _BranchLabel('HOME'),
                   routes: <GoRoute>[
                     GoRoute(
-                      path: 'flights',
-                      builder: (_, __) => const _BranchLabel('FLIGHTS'),
+                      path: 'groups',
+                      builder: (_, __) => const _BranchLabel('GROUPS'),
                     ),
                   ],
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: <GoRoute>[
-                GoRoute(
-                  path: '/search',
-                  builder: (_, __) => const _BranchLabel('SEARCH'),
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: <GoRoute>[
-                GoRoute(
-                  path: '/groups',
-                  builder: (_, __) => const _BranchLabel('GROUPS'),
-                ),
-              ],
-            ),
-            StatefulShellBranch(
-              routes: <GoRoute>[
-                GoRoute(
-                  path: '/explore',
-                  builder: (_, __) => const _BranchLabel('EXPLORE'),
                 ),
               ],
             ),
@@ -169,18 +109,21 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 400));
 
-    // The pill is visible on the Home tab root.
-    expect(find.byType(AppBottomNav), findsOneWidget);
+    expect(find.text('HOME'), findsOneWidget);
 
-    // Pushing a branch sub-page hides the floating pill.
-    router.push('/flights');
+    // Groups is now a pushed route on the Home branch (NAV).
+    router.push('/groups');
+    // Two pumps: one to start the fade-through transition, one to land it.
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('GROUPS'), findsOneWidget);
     expect(find.byType(AppBottomNav), findsNothing);
   });
 
-  test('branch/tab mapping helpers stay in sync', () {
-    // The shell maps branch indices to tabs; assert the internal contract:
-    // four router branches, four destinations, no AI slot.
+  test('retired AppBottomNavDestination enum stays intact (no-deletion rule)',
+      () {
+    // The historical four-destination vocabulary is preserved for any
+    // future consumer; nothing consumes it in the shell anymore.
     expect(AppBottomNavDestination.values.length, 4);
     expect(AppBottomNavDestination.values, containsAll(<AppBottomNavDestination>[
       AppBottomNavDestination.home,

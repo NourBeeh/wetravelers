@@ -71,15 +71,20 @@ Backend done: Memory Spine 2A (`/memory/me`), 2B DerivedPreferenceProfile + rank
   - **Fix during close-out:** widget tests were hanging forever ("did not complete" + "Bad state: Cannot add event while adding stream" on kill) — root cause: `_pngBytes()` used `PictureRecorder→toImage()→toByteData()`, real engine-async work the testWidgets FakeAsync zone cannot drive. Replaced with constant 1×1 PNG bytes (69B). Also updated 2 pre-P2 assertions to expect the `ResizeImage(MemoryImage)` shape.
 - **VALIDATION: flutter test = 647 passed / ~6 skipped / 0 failed (636 → 647: +11 H3). dart analyze = 0 errors (138 infos/warnings pre-existing, mostly US-2 WIP files — reported, not fixed). No orphan flutter_tester processes at close.**
 
-### NAV — Remove bottom nav; Home-centric navigation — PENDING (user notes)
-- Remove `AppBottomNav` + 4-tab shell; merge Explore + Search hub into Home; Home navigation buttons row (flights/hotels/cars/packages +transfers → existing routes); Groups → Home button/section. Explore/Groups are v1 mock → dissolve into Home discovery awaiting real sources (7B).
-- **COORDINATION:** must land AFTER US-2 completes (router + `/smart-search` root behavior are shared; US contract requires root/branch navigation intact). Profile/AI-chat need new root routes once the shell is gone.
+### NAV — Remove bottom nav; Home-centric navigation — ✅ DONE (2026-09-07)
+- NEW `lib/app/widgets/home_nav_buttons.dart`: `HomeNavButtons` — premium horizontal row of the 4 verticals (طيران/إقامات/سيارات/برامج سياحية, hue-tinted pills, 48px targets) + compact secondary row (Explore + Groups) — pushed routes to the EXISTING pages ('/flights','/hotels','/cars','/packages','/explore','/groups'). No new pages/controllers. l10n keys reused (searchFlights/…/exploreTitle/groupsTitle).
+- `shell.dart`: `WeTravellersShell` simplified — renders the navigation stack only; the floating pill + `_destinationFor`/`_goBranch` retired. `AppBottomNav` widget KEPT (no-deletion rule; its enum asserted intact in tests).
+- `go_router_config.dart`: single Home branch — `/search` (+transfers), `/groups`, `/explore` moved from their own `StatefulShellBranch`es onto the Home branch as pushed routes (fade-through preserved). Retired branch keys kept (documented, analyzer-ignored warnings).
+- `home_page.dart`: `HomeNavButtons` mounted under the AI search pill.
+- Tests rewritten: `full_app_smoke_test.dart` (no pill; visits Flights/Explore/Groups via nav buttons + `router.go('/')` back), `bottom_nav_branch_mapping_test.dart` (shell renders no pill on roots; former tab pages pushable on Home branch; retired enum intact). H1 skeleton fake-data assertion updated (nav labels are navigation, not data).
+- **VALIDATION: flutter test = 647 passed / ~6 skipped / 0 failed. dart analyze = 0 errors.**
 
 ## Track B — Universal Search (other agent's file, merged order)
 
-### US-2 — Advanced intent + NLP — ⏳ THEIRS, in progress (see boundary)
-- After they land: I validate baseline + merge their report here. Parser enhancement authorized ONLY in US-2 (done by them). Gap-chips (ask, never invent) + AI resolution → StructuredTravelIntent only.
-- **BLOCKER NOTE (2026-09-07, from H3 close): US-2 must land before NAV.** Current next-in-order after H3 = [US-2 lands (theirs) → validate+merge] → NAV.
+### US-2 — Advanced intent + NLP — ✅ DONE (their report merged 2026-09-07)
+- Landed in commits 9a5793c2/6b08636b (all US-2 files were included in the session's pushes; tree clean, 647/0 validated after).
+- Their scope: StructuredTravelIntent typed fields (durationNights/passengers/rooms/budget band/minStars/amenities + IntentGap/missingFields per vertical + effectiveEndDate); parser enhancements (40+ city dictionary with Egyptian aliases, Arabic intervals, Indian-Arabic digits, numeric-fragment guards; two documented fixes: first-'من' + first-'إلى'); gap-chip flow (typed patches, never invents facts — no silent dates, vertical defaults only); AI resolution contract (LLM output NEVER controls navigation/providers — must compile to intent); validation (past dates/reversed ranges/32-40 dates/1-9 passengers/≤30 nights/≤5 rooms/≤5 stars; numbers never places); 5 follow-up chips now real (أرخص/أفخم actual bands, غير التواريخ → date gap, شخصين, قريب من المطار amenity). +66 tests, zero regression, boundaries respected (no Ranking/Events/Cards/Booking/Theme/backend changes).
+- NAV unblocked on this landing — executed (below).
 
 ### US-3 — Voice search — PENDING
 - Replace disabled mic with real STT into the SAME query (no parallel state). Arabic+English, full error handling, semantics.

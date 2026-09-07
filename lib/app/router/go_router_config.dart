@@ -49,6 +49,9 @@ const bool _authRedirectEnabled = false;
 /// Tab branches of the bottom navigation shell.
 final GlobalKey<NavigatorState> _homeTabKey =
     GlobalKey<NavigatorState>(debugLabel: 'home');
+// NAV: the search/groups/explore branch navigators are retired — their pages
+// moved onto the Home branch as pushed routes (single-branch shell). Keys
+// kept for reference; no branch uses them anymore.
 final GlobalKey<NavigatorState> _searchTabKey =
     GlobalKey<NavigatorState>(debugLabel: 'search');
 final GlobalKey<NavigatorState> _groupsTabKey =
@@ -253,61 +256,45 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       ),
                     ],
                   ),
-                ],
-              ),
-            ],
-          ),
-          // ---- Search tab ----
-          StatefulShellBranch(
-            navigatorKey: _searchTabKey,
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/search',
-                name: 'search',
-                pageBuilder: (context, state) => fadeThroughPage(
-                  name: 'search',
-                  child: const SearchHubPage(),
-                ),
-                routes: <GoRoute>[
+                  // NAV: the former tab pages live on the Home branch as
+                  // pushed routes — single-branch, Home-centric navigation.
                   GoRoute(
-                    path: 'transfers',
-                    name: 'transfers',
+                    path: 'search',
+                    name: 'search',
                     pageBuilder: (context, state) => fadeThroughPage(
-                      name: 'transfers',
-                      child: const PlaceholderPageScaffold(
-                        routeName: 'transfers',
+                      name: 'search',
+                      child: const SearchHubPage(),
+                    ),
+                    routes: <GoRoute>[
+                      GoRoute(
+                        path: 'transfers',
+                        name: 'transfers',
+                        pageBuilder: (context, state) => fadeThroughPage(
+                          name: 'transfers',
+                          child: const PlaceholderPageScaffold(
+                            routeName: 'transfers',
+                          ),
+                        ),
                       ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'groups',
+                    name: 'groups',
+                    pageBuilder: (context, state) => fadeThroughPage(
+                      name: 'groups',
+                      child: const GroupsPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'explore',
+                    name: 'explore',
+                    pageBuilder: (context, state) => fadeThroughPage(
+                      name: 'explore',
+                      child: const ExplorePage(),
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
-          // ---- Groups tab ----
-          StatefulShellBranch(
-            navigatorKey: _groupsTabKey,
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/groups',
-                name: 'groups',
-                pageBuilder: (context, state) => fadeThroughPage(
-                  name: 'groups',
-                  child: const GroupsPage(),
-                ),
-              ),
-            ],
-          ),
-          // ---- Explore tab ----
-          StatefulShellBranch(
-            navigatorKey: _exploreTabKey,
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/explore',
-                name: 'explore',
-                pageBuilder: (context, state) => fadeThroughPage(
-                  name: 'explore',
-                  child: const ExplorePage(),
-                ),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wetravellers/app/widgets/home_nav_buttons.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_radius.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
@@ -132,6 +133,10 @@ class _HomePageState extends ConsumerState<HomePage>
                   const SizedBox(height: AppSpacing.md),
                   // Smart AI search pill — opens the suggestion sheet.
                   const HomeAiSearchField(),
+                  const SizedBox(height: AppSpacing.md),
+                  // NAV — Home-centric navigation: the product verticals
+                  // (flights/hotels/cars/packages) + compact Explore/Groups.
+                  const HomeNavButtons(),
                 ],
               ),
             ),

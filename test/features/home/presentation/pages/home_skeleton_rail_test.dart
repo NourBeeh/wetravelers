@@ -57,9 +57,13 @@ void main() {
   testWidgets('skeleton rail carries NO fake travel data', (tester) async {
     await tester.pumpWidget(host());
 
-    // Hotel-shaped text that would indicate seeded/fake content must not
-    // exist while loading — only shimmer geometry.
-    expect(find.textContaining('Hotel'), findsNothing);
+    // Hotel-shaped TEXT that would indicate seeded/fake CONTENT must not
+    // exist while loading — only shimmer geometry. (NAV note: the Home nav
+    // buttons legitimately carry 'Flights'/'Hotels'/... — those are
+    // navigation, not data, so the assertions target full content strings.)
+    expect(find.text('Grand Palm Hotel'), findsNothing);
+    expect(find.text('Real Hotel'), findsNothing);
+    expect(find.text('Grand Cairo'), findsNothing);
     expect(find.textContaining('Paris'), findsNothing);
     expect(find.textContaining('Cairo'), findsNothing);
     expect(find.textContaining('USD'), findsNothing);

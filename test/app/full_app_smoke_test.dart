@@ -11,6 +11,7 @@ import 'package:wetravellers/app/app.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
 import 'package:wetravellers/core/storage/offline_cache_providers.dart';
 import 'package:wetravellers/app/widgets/app_bottom_nav.dart';
+import 'package:wetravellers/app/widgets/home_nav_buttons.dart';
 
 void main() {
   setUpAll(() {
@@ -18,7 +19,8 @@ void main() {
     Hive.init(Directory.systemTemp.createTempSync('wt_app_smoke').path);
   });
 
-  testWidgets('full app boots and navigates all tabs without exceptions', (tester) async {
+  testWidgets('full app boots and navigates without exceptions (NAV: no bottom bar)',
+      (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
@@ -29,25 +31,30 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 500));
 
-    // Home tab renders
-    expect(find.byType(AppBottomNav), findsOneWidget);
+    // NAV: the floating bottom navigation pill is GONE — Home-centric.
+    expect(find.byType(AppBottomNav), findsNothing);
+
+    // Home renders its welcome line AND the Home-centric nav buttons.
     expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.byType(HomeNavButtons), findsOneWidget);
 
-    // Navigate through every tab — looking for runtime exceptions
-    await tester.tap(find.text('Search'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(tester.takeException(), isNull);
+    // Navigate through the Home nav buttons — looking for runtime exceptions
+    // (each vertical is a pushed route on the Home branch now).
+    final router = GoRouter.of(tester.element(find.byType(HomeNavButtons)));
 
-    await tester.tap(find.text('Groups'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(tester.takeException(), isNull);
+    Future<void> visit(String label) async {
+      await tester.tap(find.text(label));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.takeException(), isNull);
+      // Back to Home (full-screen pages use their own headers — no system
+      // back button in the widget tree, so route back explicitly).
+      router.go('/');
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.takeException(), isNull);
+    }
 
-    await tester.tap(find.text('Explore'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(tester.takeException(), isNull);
-
-    await tester.tap(find.text('Home'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(tester.takeException(), isNull);
+    await visit('Flights');
+    await visit('Explore');
+    await visit('Groups');
   });
 }
