@@ -10,6 +10,7 @@ import { HomeModule } from './modules/home/home.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AiModule } from './modules/ai/ai.module';
+import { AiConversationModule } from './modules/ai/ai.conversation.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { DuffelModule } from './modules/duffel/duffel.module';
 import { GeoModule } from './modules/geo/geo.module';
@@ -17,6 +18,7 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { EventsModule } from './modules/events/events.module';
 import { RecommendModule } from './modules/recommend/recommend.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { MemoryModule } from './modules/memory/memory.module';
 
 @Module({
   imports: [
@@ -47,6 +49,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     CacheModule,
     AdminModule,
     AiModule,
+    AiConversationModule,
     AuditModule,
     DuffelModule,
     GeoModule,
@@ -54,6 +57,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     EventsModule,
     RecommendModule,
     PaymentsModule,
+    MemoryModule,
   ],
 })
 export class AppModule {}

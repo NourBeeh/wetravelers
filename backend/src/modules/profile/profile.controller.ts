@@ -10,6 +10,7 @@ import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UpdateProfilePreferencesDto } from '../../common/dto/profile.dto';
 import { ProfileService } from './profile.service';
+import { DerivedPreferenceProfileService } from '../memory/derived_preference_profile.service';
 
 /**
  * User profile for personalization (workstream R). Requires a valid JWT.
@@ -18,11 +19,24 @@ import { ProfileService } from './profile.service';
 @UseGuards(JwtAuthGuard)
 @Controller('profile')
 export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(
+    private readonly profileService: ProfileService,
+    private readonly derivedService: DerivedPreferenceProfileService,
+  ) {}
 
   @Get('me')
-  me(@Req() req: Request) {
-    return this.profileService.getView(userId(req));
+  async me(@Req() req: Request) {
+    const view = await this.profileService.getView(userId(req));
+    // Phase 2B — attach the computed Derived Preference Profile (additive,
+    // backward-compatible field). buildForUserSafe degrades to an empty
+    // profile on failure, so /profile/me can never break because of it.
+    return {
+      ...view,
+      derivedPreferences: await this.derivedService.buildForUserSafe(
+        userId(req),
+        view,
+      ),
+    };
   }
 
   @Patch('me')

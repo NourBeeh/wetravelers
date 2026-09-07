@@ -19,6 +19,10 @@ abstract interface class OfflineCache {
 
   /// Removes every stored value for this cache.
   Future<void> clear();
+
+  /// All currently stored keys (Phase 1B — local behavior signals are read by
+  /// scanning key prefixes; never for writing). Order is unspecified.
+  Future<List<String>> keys();
 }
 
 /// Non-persisting in-memory store used by tests before a real store lands.
@@ -41,4 +45,7 @@ class MemoryOfflineCache implements OfflineCache {
   Future<void> write(String key, Map<String, dynamic> value) async {
     _store[key] = value;
   }
+
+  @override
+  Future<List<String>> keys() async => _store.keys.toList();
 }

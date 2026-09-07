@@ -1,0 +1,1404 @@
+2C-C1 — Flutter Client API
+
+نفّذ Phase 2C-C1 فقط: Flutter Client API/Repository wiring for AI Conversation Memory.
+
+اقرأ AGENTS.md أولًا.
+
+الهدف:
+ربط Flutter بالـ Backend endpoint الجديد:
+
+POST /ai/chat
+
+بدون بناء UI في هذه المرحلة.
+
+المطلوب:
+
+افحص Flutter architecture الحالية:
+Feature-first + Riverpod + GoRouter + Repository → UseCase → Controller.
+افحص AI-related files الموجودة قبل إنشاء أي abstraction جديد.
+أنشئ/عدّل فقط الـ models / DTOs / repository / use case / controller اللازمة لإرسال AI chat request.
+دعم:
+prompt <= 4000
+authenticated user
+AI response
+graceful error handling
+memory context القادم من backend بدون Flutter-side inference.
+Flutter لا يستخرج memories بنفسه.
+Flutter لا يقرر relevance.
+Flutter لا يرسل raw transcript كـ memory.
+لا تغيّر Home Ranking.
+لا تغيّر PersonalizationContext.safeAiContext().
+لا تغيّر /ai/rerank.
+لا تغيّر cache architecture.
+لا تبدأ UI أو Memory Controls.
+
+مهم:
+
+/ai/chat هو conversation endpoint.
+/ai/query يبقى كما هو.
+لا تجعل Flutter يعتمد على internal backend implementation details.
+استخدم existing networking/auth/error patterns.
+
+Tests:
+
+request serialization
+response parsing
+4000-char limit
+authenticated request
+server error
+timeout/network failure
+malformed response
+repository/controller behavior
+
+Validation:
+dart analyze lib test
+ثم:
+flutter test
+
+راجع git diff وgit status --short.
+
+لا commit/push.
+STOP بعد 2C-C1.
+
+2C-C2 — Memory Controls + Chat UI
+
+نفّذ Phase 2C-C2 فقط: AI Chat UI + "What I Know About You" Memory Controls.
+
+اقرأ AGENTS.md.
+
+الهدف:
+إكمال تجربة المستخدم الخاصة بالـ AI conversation memory في Flutter.
+
+المطلوب:
+
+AI Chat
+استخدم /ai/chat من 2C-C1.
+لا تعيد بناء AI architecture.
+Chat يكون منفصلًا عن Home.
+حافظ على التصميم Premium Light + RTL/LTR.
+states واضحة:
+loading / streaming-or-waiting / success / error.
+لا تعرض internal memory/context payload للمستخدم.
+What I Know About You
+
+أنشئ UI للوصول إلى explicit memories:
+
+preferred destination
+preferred budget
+preferred travel style
+
+لكل memory:
+
+عرض مفهوم وواضح.
+Edit.
+Delete.
+
+وأضف:
+
+Clear all memories.
+
+Rules:
+
+لا تعرض raw database fields.
+لا تسمح بإنشاء vocabulary خارج الثلاثة.
+لا تسمح بإدخال sensitive data.
+Edit/Delete/Clear يستخدم Backend Memory API الموجود من Phase 2A.
+ownership server-side فقط.
+personalization disabled → لا memory context في AI.
+حذف memory لا يعني حذف profile/behavioral data.
+
+ممنوع:
+
+Memory → Home Ranking.
+تعديل DerivedPreferenceProfile.
+تعديل Home composer/ranking.
+إضافة ML/vector DB.
+duplicate state management.
+package installation.
+
+Tests:
+
+chat success/error
+memory list
+edit
+delete
+clear all
+disabled personalization
+empty state
+RTL
+controller/repository tests
+
+Validation:
+dart analyze lib test
+flutter test
+
+Backend لا تغيّره إلا لو كان هناك contract bug حقيقي.
+
+لا commit/push.
+STOP بعد 2C-C2.
+
+2D — AI Context Hardening
+
+نفّذ Phase 2D فقط: AI Context & Explicit Memory Hardening.
+
+اقرأ AGENTS.md.
+
+الهدف:
+مراجعة وتثبيت كامل مسار:
+
+AI Chat → Relevant Memory → Safe AI Context → Provider
+
+بعد اكتمال 2C.
+
+المطلوب:
+
+Audit كامل لـ:
+ConversationMemoryService
+RelevantMemorySelector
+/ai/chat
+AiService
+AiProvider
+Flutter AI repository/controller
+Memory controls
+تأكد أن explicit memories لا تدخل:
+Home Ranking
+DerivedPreferenceProfile
+/ai/rerank
+تأكد من personalization disabled behavior.
+تأكد من guest isolation.
+تأكد من expiration.
+تأكد من user ownership.
+تأكد من sensitive scanner.
+تأكد أن extraction failure لا يفشل chat.
+تأكد أن selector failure لا يفشل chat.
+تأكد أن memory values لا تظهر في logs.
+راجع prompt injection boundaries: memory data تعتبر untrusted user-derived context وليست instructions.
+امنع memory content من override system/developer rules.
+لا تغيّر model/provider.
+لا تضف ML/embeddings.
+
+أضف regression tests للأمن والعزل.
+
+Validation:
+Backend:
+npx tsc --noEmit
+npx jest
+
+Flutter:
+dart analyze lib test
+flutter test
+
+STOP.
+
+3A — Search Foundation
+
+نفّذ Phase 3A فقط: Unified Search Foundation.
+
+اقرأ AGENTS.md.
+
+الهدف:
+بناء Search architecture موحدة للفنادق والطيران والسيارات والـ packages.
+
+المطلوب:
+
+Search domain models.
+Search request/response contracts.
+Repository → UseCase → Controller.
+Riverpod state.
+Backend aggregation contract.
+loading/error/empty states.
+cancellation/debounce مناسب.
+حفظ search state عند الحاجة.
+
+Product types:
+
+Flight
+Hotel
+Car
+Package
+
+لا تنفذ Booking.
+
+لا تنفذ Payment.
+
+لا تنفذ Details UI بالكامل.
+
+لا تغيّر Home Ranking.
+
+لا تضف provider غير معتمد.
+
+Providers الحالية:
+
+Flights: Doville
+Hotels: Nuitee
+Cars: غير محسوم
+Packages: حسب الـ backend الحالي فقط.
+
+لا تخترع provider.
+
+Tests كاملة للـ contracts/repository/use cases.
+
+Validation Flutter + Backend حسب AGENTS.md.
+
+STOP.
+
+3B — Provider Aggregation
+
+نفّذ Phase 3B فقط: Search Provider Aggregation.
+
+قبل التنفيذ افحص providers الحالية.
+
+المطلوب:
+
+Flight search → Doville integration وفق الـ existing provider contract.
+Hotel search → Nuitee.
+Normalize provider responses إلى unified search models.
+provider-specific IDs محفوظة داخليًا.
+لا تفقد provider identity.
+timeout per provider.
+partial failure: provider failure لا يلغي باقي النتائج.
+deterministic deduplication.
+normalize currency/price metadata بدون اختراع أسعار.
+لا تستخدم cached price كـ booking truth.
+
+ممنوع:
+
+Booking.
+Payment.
+AI ranking.
+ML.
+Vector DB.
+Home changes.
+
+Tests:
+success / timeout / empty / malformed provider response / partial provider failure / duplicate products / provider identity.
+
+Backend validation + regression.
+
+STOP.
+
+3C — Search Results
+
+نفّذ Phase 3C فقط: Premium Search Results + Filters + Sorting.
+
+استخدم Card Engine الحالي ولا تعيد بناءه.
+
+Cards:
+
+FlightSearchCard
+HotelSearchCard
+PackageSearchCard
+CarSearchCard
+
+Mobile:
+Horizontal compact result presentation حيث مناسب.
+
+Tablet/Desktop:
+Vertical/expanded.
+
+Filters يجب أن تكون provider-safe ولا تغيّر الحقيقة القادمة من backend.
+
+Sorting:
+
+price
+rating
+duration / relevant domain metric
+recommended فقط لو كان deterministic backend-supported.
+
+لا تضف AI reranking هنا إلا لو كان existing contract جاهزًا.
+
+لا Booking.
+لا Payment.
+لا Home changes.
+
+Tests:
+filters / sorting / empty / loading / errors / pagination إن كان backend يدعمها / responsive behavior.
+
+Validation.
+STOP.
+
+3D — Product Details
+
+نفّذ Phase 3D فقط: Product Details.
+
+أنشئ/أكمل Details لكل:
+
+Flight
+Hotel
+Car
+Package
+
+استخدم provider-backed data فقط.
+
+Flight:
+route, times, duration, stops, baggage, fare conditions, price.
+
+Hotel:
+images, name, stars, address, rating, room/rate details, cancellation, price/taxes.
+
+Car:
+model, or similar, seats, bags, transmission, mileage, price.
+
+Package:
+name, cities, inclusions, price.
+
+مهم:
+
+لا تخترع بيانات غير موجودة.
+السعر والavailability ليست حقيقة نهائية للحجز.
+CTA التالي يجب أن يمر على revalidation عند الحاجة.
+
+لا تنفذ Booking في هذه المرحلة.
+
+Tests + validation.
+STOP.
+
+4A — Booking Foundation
+
+نفّذ Phase 4A فقط: Booking Foundation.
+
+الآن فقط نبدأ Booking.
+
+افحص contracts/providers الحالية أولًا.
+
+أنشئ:
+
+Booking domain model.
+Booking status lifecycle.
+Booking repository/use cases.
+/bookings/prepare
+/bookings/revalidate
+/bookings
+
+Rules:
+
+Booking لا يعتمد على Hive snapshot كسعر نهائي.
+يجب revalidate provider-backed offer قبل commit.
+provider identity mandatory.
+idempotency mandatory للـ booking creation.
+لا double booking بسبب retry.
+لا تحفظ payment secrets.
+لا expose provider credentials.
+errors normalized.
+
+لا تنفذ payment في هذه المرحلة.
+
+Tests قوية للـ lifecycle وidempotency وrevalidation.
+
+Backend validation.
+STOP.
+
+4B — Flight Booking
+
+نفّذ Phase 4B فقط: Flight Booking Execution.
+
+استخدم Doville الحالي فقط.
+
+Flow:
+
+Search
+→ Flight Details
+→ Revalidate
+→ Passenger Details
+→ Prepare
+→ Booking
+→ Booking Status
+
+المطلوب:
+
+passenger validation.
+fare/offer revalidation.
+provider booking reference.
+normalized booking state.
+retry-safe execution.
+failure recovery.
+
+لا Payment.
+
+لا Hotel/Car booking.
+
+لا تغيّر Home.
+
+Tests تشمل:
+expired offer / price change / successful booking / provider failure / duplicate request / malformed provider response.
+
+Backend + Flutter validation.
+STOP.
+
+4C — Hotel Booking
+
+نفّذ Phase 4C فقط: Hotel Booking Execution باستخدام Nuitee.
+
+Flow:
+Search
+→ Hotel Details
+→ Room/Rate
+→ Revalidate
+→ Guest Details
+→ Prepare
+→ Booking
+→ Confirmation
+
+يجب احترام:
+
+cancellation policy.
+rate conditions.
+taxes/additions.
+occupancy.
+provider booking reference.
+
+لا Payment.
+
+لا Flights changes.
+
+لا Cars.
+
+لا تستخدم cached price كحقيقة.
+
+Tests كاملة.
+
+Validation.
+STOP.
+
+4D — Car + Package Booking
+
+نفّذ Phase 4D فقط: Car + Package Booking.
+
+قبل التنفيذ:
+افحص هل provider implementation حقيقي ومتكامل.
+
+لا تخترع Car provider.
+
+إذا كان provider غير جاهز:
+نفّذ domain/contracts فقط بدون fake booking.
+
+المطلوب عند توفر provider:
+
+revalidation
+customer details
+booking execution
+cancellation/status contract
+provider reference
+idempotency.
+
+Package booking:
+استخدم فقط package provider/data source الموجود فعليًا.
+
+لا fake inventory.
+
+لا Payment.
+
+Tests + validation.
+STOP.
+
+4E — Payment + Confirmation
+
+نفّذ Phase 4E فقط: Payment + Booking Confirmation.
+
+استخدم Egyptian payment gateway integration المعتمد في المشروع فقط.
+
+قبل التنفيذ افحص gateway SDK/API contract الحالي.
+
+المطلوب:
+
+payment intent/session.
+secure redirect/webview حسب gateway.
+server-side verification.
+webhook handling.
+idempotency.
+payment status lifecycle.
+booking/payment consistency.
+success/failure/pending states.
+confirmation screen.
+booking reference.
+
+ممنوع:
+
+تخزين card number/CVV.
+logging payment secrets.
+اعتبار client callback وحده إثبات payment.
+إنشاء booking مدفوع بدون server verification.
+
+Tests:
+success / failure / timeout / duplicate webhook / duplicate payment / pending / booking mismatch.
+
+Security audit.
+
+STOP.
+
+5A — Unified Trip
+
+نفّذ Phase 5A فقط: Unified Trip Model.
+
+القرار النهائي:
+User لديه Trip واحدة نشطة حسب التصميم الحالي.
+
+داخلها TripItem موحد لـ:
+
+flight
+hotel
+car
+train
+activity
+transfer
+
+استخدم:
++ Add to Trip
+
+TripItem يجب أن يدعم:
+
+planned
+booked
+cancelled
+completed
+provider reference عند وجوده.
+
+لا تنشئ models منفصلة متضاربة.
+
+Booking confirmation يجب أن يستطيع إضافة item إلى Trip.
+
+لا تبدأ live tracking.
+
+Tests + migration safety.
+
+STOP.
+
+5B — Trip Timeline
+
+نفّذ Phase 5B فقط: Trip Timeline + Itinerary.
+
+Home/Trip entry:
+
+upcoming trip
+next item
+itinerary
+dates
+locations
+booking references
+actions.
+
+Timeline يجب أن تكون مبنية على TripItem.
+
+UI Premium وRTL/LTR.
+
+لا live provider tracking في هذه المرحلة.
+
+لا notifications automation.
+
+لا AI actions.
+
+Tests + responsive UI + state handling.
+
+STOP.
+
+5C — Trip Tracking
+
+نفّذ Phase 5C فقط: Live Trip Status.
+
+أضف provider/status synchronization فقط عندما يوجد provider source حقيقي.
+
+لا polling بلا داعٍ.
+
+استخدم:
+
+refresh strategy
+timestamps
+stale state
+graceful provider failure.
+
+Flight status إن كان provider يدعمه.
+Hotel/car status حسب availability.
+
+لا تخترع live status.
+
+Trip UI يجب أن يوضح:
+Live / Updated X ago / Unavailable.
+
+Tests للـ stale/live/failure.
+
+STOP.
+
+6A — Notifications
+
+نفّذ Phase 6A فقط: Notification System.
+
+أنواع أولية:
+
+booking confirmation
+payment status
+trip reminder
+schedule/status change
+cancellation/change
+important travel alert
+
+المطلوب:
+
+backend notification model.
+user ownership.
+read/unread.
+preferences.
+deep links.
+Flutter notification centre.
+
+لا spam.
+
+لا duplicate notifications.
+
+لا expose sensitive booking/payment data في notification payload.
+
+Tests + validation.
+
+STOP.
+
+6B — AI Travel Assistant داخل Trip
+
+نفّذ Phase 6B فقط: Contextual AI Travel Assistant.
+
+AI chat الآن يستطيع، عند authorization:
+
+فهم Trip الحالية.
+الإجابة عن itinerary.
+اقتراح ترتيب الأنشطة.
+شرح booking details.
+المساعدة أثناء الرحلة.
+
+لكن:
+
+AI لا يخترع booking data.
+AI لا يخترع prices.
+AI لا ينفذ booking/payment مباشرة.
+أي action حساس يجب أن يمر عبر backend contract.
+لا expose credentials/payment data.
+Trip context يكون minimal وrelevant.
+
+Explicit conversation memory تستمر AI-only.
+
+لا تدخلها Home Ranking.
+
+Tests للـ authorization/context filtering.
+
+STOP.
+
+6C — Post-booking AI
+
+نفّذ Phase 6C فقط: Post-booking AI Assistance.
+
+أضف AI support لـ:
+
+trip preparation
+reminders
+packing/travel preparation
+itinerary questions
+disruption explanation
+alternative suggestions
+
+AI لا ينشئ facts غير موجودة.
+
+أي recommendation تجاري يجب أن يستخدم real backend/provider data.
+
+لا automatic booking/payment.
+
+لا تعديل Home Ranking.
+
+Tests للـ hallucination boundaries وauthorization.
+
+STOP.
+
+7A — Home Intelligence Finalization
+
+نفّذ Phase 7A فقط: Final Home Intelligence Integration.
+
+راجع كل ما سبق:
+Profile
+
+Behavior
+DerivedPreferenceProfile
+Geo
+Trip
+Provider Data
+Recommendation
+AI
+Cache
+
+Home يجب أن يعمل:
+Cache-first
+→ instant snapshot
+→ background refresh
+→ live validation
+→ quiet UI update.
+
+مهم جدًا:
+
+Phase 2B DerivedPreferenceProfile يبقى المصدر الأساسي لـ Home Ranking.
+
+إذا قررت إدخال explicit conversation memories هنا:
+
+لا تفعل ذلك تلقائيًا.
+صمّم consumer واضح.
+أضف dedicated regression tests.
+تأكد أن memory relevance لا تغيّر deterministic guarantees.
+لا تكسر privacy controls.
+
+لا تغيّر Card Engine.
+
+STOP بعد audit + implementation المطلوب فقط.
+
+7B — Deals / Discovery
+
+نفّذ Phase 7B فقط: Deals + Discovery.
+
+Home sections:
+
+Recommended
+Continue browsing
+Deals
+Destinations
+Flights
+Hotels
+Cars
+Packages
+Experiences إذا كان real source موجود.
+
+استخدم الـ approved Card Engine.
+
+لا fake deals.
+
+أي price/availability يجب أن يكون provider-backed أو واضح أنه discovery snapshot وليس booking truth.
+
+Cache-first + background refresh.
+
+لا تغيّر architecture.
+
+Tests للـ section composition وempty states وcache/live behavior.
+
+STOP.
+
+8A — Admin Operations
+
+نفّذ Phase 8A فقط: Admin Operational Hardening.
+
+راجع Admin:
+
+Home sections CRUD
+Home cards CRUD
+reorder
+audit logs
+provider controls.
+
+أضف فقط ما ينقص فعليًا:
+
+validation
+authorization
+audit trail
+safe status changes
+input sanitization.
+
+Admin لا يستطيع تجاوز provider truth أو إنشاء fake booking inventory.
+
+لا تغير frontend إلا عند الحاجة.
+
+Tests authorization + CRUD + audit.
+
+STOP.
+
+8B — Provider Health & Observability
+
+نفّذ Phase 8B فقط: Provider Health + Observability.
+
+Providers:
+
+Doville
+Nuitee
+payment gateway
+أي provider فعلي موجود.
+
+أضف/راجع:
+
+health checks
+timeout metrics
+error classification
+latency
+provider status
+correlation/request IDs.
+
+ممنوع logging:
+
+passwords
+tokens
+payment data
+sensitive memory values
+personal secrets.
+
+Admin health-check يجب أن يكون safe.
+
+Tests.
+
+STOP.
+
+9A — Security & Reliability
+
+نفّذ Phase 9A فقط: Security + Reliability Audit.
+
+راجع المشروع بالكامل:
+
+Auth
+Authorization
+Memory ownership
+AI prompt boundaries
+Provider credentials
+Payment
+Booking
+Webhooks
+Admin
+Notifications
+File/storage
+Logs
+DTO validation
+Rate limiting حيث architecture تسمح.
+
+ركز على:
+
+IDOR
+privilege escalation
+prompt injection
+memory poisoning
+webhook replay
+booking duplication
+payment duplication
+sensitive logging
+malformed provider responses.
+
+لا تغيّر business behavior إلا لإصلاح security/reliability defect.
+
+أضف regression tests لكل finding.
+
+STOP.
+
+9B — Performance + Cache Hardening
+
+نفّذ Phase 9B فقط: Performance & Cache Hardening.
+
+راجع:
+
+Hive Home snapshot
+provider calls
+DB queries
+AI calls
+recommendation pipeline
+search
+booking
+notification queries.
+
+Rules:
+
+cache is never final price/availability truth.
+prevent duplicate requests.
+prevent unnecessary AI calls.
+prevent N+1 queries.
+preserve instant Home startup.
+background refresh must not block first paint.
+
+لا introduce Redis/vector DB/ML إلا إذا كان existing architecture يحتاجه فعليًا.
+
+قياس قبل/بعد حيث يمكن.
+
+Tests.
+
+STOP.
+
+10A — Full E2E Regression
+
+نفّذ Phase 10A فقط: Full End-to-End Regression.
+
+اختبر journeys:
+
+Guest → Home → Search.
+Login → Personalized Home.
+Search flight → Details → Revalidate.
+Search hotel → Details → Revalidate.
+Booking → Payment → Confirmation.
+Confirmation → Add to Trip.
+Trip → Timeline.
+Notifications.
+AI Chat.
+Explicit Memory extraction.
+Memory edit/delete/clear.
+Personalization disabled.
+Provider failure.
+Payment failure.
+Booking retry.
+Cached Home → live validation.
+
+لا تضف features جديدة.
+
+صلّح فقط defects المكتشفة.
+
+Run:
+Backend tsc + full Jest.
+Flutter analyze + full Flutter tests.
+
+STOP.
+
+10B — Production Readiness
+
+نفّذ Phase 10B فقط: Production Readiness Audit.
+
+راجع:
+
+environment configuration
+secrets
+database migrations
+indexes
+API error handling
+auth
+CORS
+rate limits
+logging
+monitoring
+provider credentials
+payment webhooks
+backup/recovery assumptions
+Flutter release configuration
+Android/iOS production settings
+RTL/LTR
+accessibility
+offline/network failure behavior.
+
+ممنوع:
+
+hardcoded secrets
+debug credentials
+fake provider data
+test payment credentials in production config
+destructive migration.
+
+لا commit.
+
+اعرض checklist:
+PASS / FAIL / BLOCKED
+مع file + reason لكل finding.
+
+STOP.
+
+10C — Final Release Gate
+
+نفّذ Phase 10C فقط: Final Release Gate.
+
+لا تضف features.
+
+نفّذ final verification لكل النظام:
+
+Backend:
+npx tsc --noEmit
+npx jest
+
+Flutter:
+dart analyze lib test
+flutter test
+
+راجع:
+
+git status
+git diff
+migrations
+untracked files
+accidental debug code
+secrets
+TODO/FIXME الحرجة
+test-only endpoints
+manual provider tests.
+
+مهم:
+backend/test-nuitee.ts ملف manual/personal Nuitee test:
+
+لا تعدله.
+لا تحذفه.
+لا تضفه للـ commit.
+
+أنت لا تعمل commit/push.
+
+في النهاية أعطني:
+
+Final test counts.
+Analyze/tsc results.
+Critical blockers.
+Release-ready / Not-release-ready.
+الملفات التي ما زالت untracked أو modified بشكل غير متوقع.
+
+STOP.
+
+الترتيب الذي أريد Hermes يمشي عليه
+
+2C-C1 → 2C-C2 → 2D → 3A → 3B → 3C → 3D → 4A → 4B → 4C → 4D → 4E → 5A → 5B → 5C → 6A → 6B → 6C → 7A → 7B → 8A → 8B → 9A → 9B → 10A → 10B → 10C
+
+وكل Prompt فيه STOP عمدًا.
+
+نقطة مهمة جدًا
+
+أنا تعمدت عدم وضع Phase 2D كـ "Memory → Home". لأن قرارنا الحالي هو:
+
+Conversation Memory → AI فقط
+
+بينما:
+
+Behavioral Memory → DerivedPreferenceProfile → Home Ranking
+
+وأي تغيير في هذا الخط لازم يكون Phase مستقلة بعد ما نثبت أن له قيمة فعلية، وليس مجرد توصيل تقني.
+
+كذلك Booking يبدأ فقط من 4A؛ وبالتالي Hermes ممنوع حاليًا يلمس /bookings/prepare, /bookings/revalidate, /bookings أثناء 2C أو 3.x.
+
+ده يحافظ على الـ boundaries ويمنع Hermes من تحويل Phase صغيرة إلى إعادة بناء المشروع كله.
+
+Today 9:14 PM
+ابعت فاز Explicit Memory إلى Home Ranking
+
+تمام. دي المرحلة المؤجلة التي اتفقنا عليها تحديدًا: Explicit Conversation Memory → Home Ranking.
+وهنا لازم Hermes يتعامل معها كـ integration مستقلة مع regression قوي، وليس مجرد إضافة memories إلى DerivedPreferenceProfile.
+
+نفّذ Phase: Explicit Memory → Home Ranking Integration فقط.
+
+هذه Phase مستقلة ومقصودة لإدخال explicit conversation memories في Home Ranking بعد اكتمال:
+
+Phase 2A Memory Spine
+Phase 2B Behavioral Memory + DerivedPreferenceProfile
+Phase 2C-A Explicit Memory Extraction
+Phase 2C-B AI Context Integration
+Phase 2C-C Flutter Memory/AI wiring
+
+اقرأ AGENTS.md أولًا.
+
+الهدف
+
+السماح لـ Home Recommendation/Ranking بالاستفادة من explicit preferences التي صرّح بها المستخدم في AI conversation، مع الحفاظ على architecture الحالية وعدم خلط conversation memory مع behavioral memory.
+
+الـ flow المستهدف:
+
+Explicit Conversation Memory
+↓
+Relevant / Safe Home Preference Signal
+↓
+Home Ranking
+↓
+Recommended Cards
+
+القرار المعماري المهم
+
+لا تحوّل type=conversation إلى type=behavior.
+
+ولا تعتبر conversation memories behavioral events.
+
+ولا تمسح أو تعيد بناء DerivedPreferenceProfile الحالي بشكل غير آمن.
+
+قبل التنفيذ افحص architecture الحالية وحدد أفضل نقطة integration.
+
+الأفضل أن يكون هناك ExplicitPreferenceSignal / ExplicitMemoryPreferenceAdapter منفصل أو equivalent واضح، ثم يستهلكه Home Ranking.
+
+إذا وجدت أن تعديل DerivedPreferenceProfile هو الحل الصحيح فعلًا، لا تنفذه مباشرة:
+
+أثبت من الكود لماذا هو ضروري.
+حافظ على distinction بين behavioral-derived وexplicit conversation facts.
+لا تغيّر semantics الحالية لـ Phase 2B.
+اجعل مصدر الـ explicit signal قابلًا للتمييز والاختبار.
+Vocabulary
+
+المسموح فقط:
+
+1. preferred_destination
+{ destination: string }
+
+max 80 chars.
+
+يجب أن يكون لها تأثير على destination/city matching فقط عندما يكون هناك matching واضح مع candidate.
+
+لا تستخدم fuzzy/semantic/AI inference جديد.
+
+2. preferred_budget
+{ min?: number, max?: number }
+
+يُستخدم فقط عندما يكون price numeric ومقارنته آمنة.
+
+لا تغيّر currency semantics.
+
+لا تعتبر missing min/max = zero.
+
+3. preferred_travel_style
+{ styles: string[] }
+
+max 60 items.
+
+مهم جدًا:
+
+افحص هل Home Ranking الحالي لديه structured travel-style/amenity/category vocabulary يمكن مطابقته بشكل deterministic.
+إذا لم يوجد consumer حقيقي وآمن لـ preferred_travel_style، لا تخترع mapping جديدًا.
+لا تستخدم AI inference داخل ranking.
+لا تحوّل arbitrary style text إلى ranking signal بلا deterministic contract.
+في هذه الحالة، نفّذ integration للباقي ووضّح أن travel style يحتاج vocabulary/consumer مستقل.
+
+لا تضف:
+
+preferred_hotel_style
+arbitrary preferences
+raw conversation text.
+Ranking Rules
+
+Explicit preferences هي user-declared signals، ولذلك يجب أن تكون أقوى من behavioral-derived signals عند وجود تعارض واضح.
+
+لكن لا تكسر deterministic ranking.
+
+الترتيب المنطقي المقترح:
+
+hard validity / provider validity
+explicit user preference signal
+existing Phase 2B explicit profile preferences
+existing DerivedPreferenceProfile behavioral signals
+existing deterministic ranking score
+stable tie-breaker
+
+لا تغيّر ranking rules غير المرتبطة بهذه المرحلة.
+
+لا تجعل explicit memory override:
+
+availability
+price truth
+provider validity
+safety/business constraints.
+Multiple Memories
+
+عند وجود أكثر من conversation memory:
+
+لا تضاعف score بلا حدود.
+لا تسمح لنفس preference بالتكرار لرفع ranking.
+استخدم أحدث/الأكثر authoritative value عندما يكون هناك conflict لنفس key.
+لا تستخدم expired memories.
+لا تستخدم memories من users آخرين.
+لا تستخدم memories غير type=conversation + source=ai_conversation.
+Conflict Resolution
+
+إذا كانت هناك explicit conversation memory تتعارض مع behavioral preference:
+
+مثال:
+
+behavior: Cairo
+explicit conversation: Dubai
+
+لا تدمج النصين بطريقة averaging.
+
+استخدم explicit user-declared preference كـ higher-priority signal.
+
+لكن:
+
+لا تحذف behavioral memory.
+لا تعدّل existing behavior events.
+لا تعيد كتابة historical data.
+Personalization Disabled
+
+إذا كان personalization disabled:
+
+لا تستخدم explicit conversation memories في Home Ranking.
+لا تعمل memory lookup غير ضروري.
+Home يستمر بالسلوك الأساسي الآمن بدون explicit memory.
+
+لا تحذف memories.
+
+Guest
+
+Guest:
+
+لا conversation-memory lookup.
+لا explicit-memory ranking.
+Home يعمل بالـ existing guest/default ranking.
+Expiration
+
+Expired conversation memories يجب ألا تؤثر على Home.
+
+Performance
+
+Home يجب ألا يتحول إلى N+1 memory queries.
+
+لا تعمل DB lookup لكل card.
+
+استخدم:
+
+batch retrieval
+existing context
+single user-scoped lookup
+أو caching مناسب ضمن architecture الحالية.
+
+لا تجعل Home startup ينتظر AI.
+
+لا تجعل Home Ranking يعتمد على OpenRouter.
+
+لا تضف AI call أثناء ranking.
+
+Cache
+
+احترم Home architecture الحالية:
+
+Cache-first
+→ instant snapshot
+→ background refresh
+→ live validation
+
+Explicit memory changes يجب ألا تكسر cache-first behavior.
+
+إذا كانت هناك حاجة لإبطال Home snapshot بعد:
+
+memory edit
+memory delete
+clear all
+
+استخدم mechanism الموجودة حاليًا فقط.
+
+لا تعيد بناء Hive/cache architecture.
+
+ولا تحفظ raw conversation transcript في cache.
+
+Security
+
+تأكد من:
+
+user ownership.
+JWT user identity.
+no cross-user memory.
+sensitive scanner remains active.
+no raw memory values in logs.
+memory content is treated as untrusted user data.
+memory cannot become instructions to the system/AI.
+malformed memory cannot crash Home.
+AI Isolation
+
+بعد هذه المرحلة:
+
+Explicit Conversation Memory يمكن أن تؤثر على:
+
+AI Context
++
+Home Ranking
+
+لكنها لا تزال ليست Behavioral Memory.
+
+لا تستخدم conversation memories داخل:
+
+behavioral event pipeline
+behavioral fact generation
+historical event reconstruction.
+Flutter
+
+عدّل Flutter فقط إذا كان Home يحتاج contract/state change حقيقيًا.
+
+لا تعيد بناء Home UI.
+
+لا تعيد بناء Card Engine.
+
+لا تغيّر approved card types.
+
+لا تغيّر Search.
+
+Required Regression Tests
+
+أضف tests تغطي على الأقل:
+
+Basic
+explicit destination → matching destination ranks higher.
+explicit budget max → candidates within budget receive appropriate preference.
+explicit budget min/max → correct range handling.
+explicit travel style → affects ranking ONLY if deterministic existing consumer exists.
+no explicit memories → existing ranking unchanged.
+Priority
+explicit conversation preference vs behavioral preference conflict → explicit wins.
+explicit conversation preference vs existing profile preference → verify documented precedence.
+duplicate same memory → no score inflation.
+multiple different memories → bounded contribution.
+Safety
+expired memory → ignored.
+other user's memory → ignored.
+wrong type/source → ignored.
+malformed memory → ignored safely.
+sensitive/invalid memory → ignored.
+personalization disabled → no memory ranking.
+guest → no memory ranking.
+Regression
+Phase 2B DerivedPreferenceProfile output remains valid.
+Existing Home ranking tests remain passing.
+Existing /ai/rerank whitelist remains unchanged.
+/ai/chat memory behavior remains unchanged.
+Home cache-first behavior remains unchanged.
+live validation behavior remains unchanged.
+Critical Requirement
+
+قبل تعديل ranking:
+
+اقرأ existing recommendation/ranking implementation.
+حدد بالضبط أين يتم حساب score.
+حدد existing preference precedence.
+حدد existing Home cache/context path.
+لا تخترع ranking architecture جديدة إذا كان existing extension point مناسبًا.
+
+إذا كان هناك ambiguity في معنى preferred_travel_style بالنسبة للـ existing Home candidates، لا تستخدم heuristic/AI guess.
+
+Validation
+
+Backend:
+
+npx tsc --noEmit
+
+npx jest
+
+Flutter:
+
+dart analyze lib test
+
+flutter test
+
+راجع أيضًا:
+
+git diff
+
+git status --short
+
+تحقق أن التغييرات تخص هذه المرحلة فقط.
+
+ممنوع
+ML
+embeddings
+Vector DB
+OpenRouter call أثناء Home ranking
+تغيير provider
+تغيير booking
+تغيير payment
+إعادة بناء Home
+إعادة بناء Card Engine
+حذف files
+destructive git commands
+package installation
+commit
+push
+Final Report
+
+في النهاية اعرض:
+
+الملفات المعدلة/الجديدة.
+نقطة integration التي تم اختيارها ولماذا.
+ranking precedence النهائي.
+كيف تم التعامل مع كل نوع من الـ 3 memories.
+كيف تم التعامل مع conflicts.
+كيف تم منع N+1/performance regression.
+test results بالأرقام.
+dart analyze result.
+tsc result.
+تأكيد صريح:
+DerivedPreferenceProfile لم يتم كسره.
+Behavioral Memory بقيت منفصلة.
+AI Context بقي يعمل.
+/ai/rerank whitelist لم تتوسع.
+Cache-first لم يتكسر.
+لا AI call داخل Home Ranking.
+لا ML/vector DB.
+لا Flutter changes غير ضرورية.
+
+لا commit ولا push.
+
+STOP بعد إكمال هذه Phase فقط.
+
+حدد عقد إشارات التفضيل صراحة
+افصل أولوية الإشارات عن ترتيب النتائج

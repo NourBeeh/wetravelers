@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wetravellers/core/domain/models/search/hotel_search_params.dart';
 import 'package:wetravellers/core/domain/models/offers/hotel_offer.dart';
+import 'package:wetravellers/core/events/events_tracker.dart';
 import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/repositories/contracts/hotel_repository.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
@@ -21,9 +22,20 @@ class HotelSearchState {
 }
 
 class HotelSearchController extends StateNotifier<HotelSearchState> {
+  HotelSearchController(
+    this.repository,
+    this._cache, {
+    EventsTracker? eventsTracker,
+  })  : _events = eventsTracker,
+        super(const HotelSearchState());
+
   final HotelRepository repository;
   final OfflineCache _cache;
-  HotelSearchController(this.repository, this._cache) : super(const HotelSearchState());
+
+  /// Phase 1C — optional behavioral tracker. Null keeps the controller
+  /// exactly as before (tests/legacy wiring); when present, successful
+  /// searches emit a fire-and-forget `hotel_search` event.
+  final EventsTracker? _events;
 
   Future<void> search(HotelSearchParams params) async {
     final cacheKey = hotelSearchCacheKey(
@@ -70,6 +82,13 @@ class HotelSearchController extends StateNotifier<HotelSearchState> {
             // Ignore cache write failures
           }
           state = state.copyWith(status: HotelSearchStatus.success, results: offers, fromCache: false);
+          // Phase 1C — behavioral signal (fire-and-forget, silent on
+          // failure; guests are skipped inside the tracker).
+          _events?.hotelSearch(
+            destination: params.destination,
+            minPrice: params.minPrice,
+            maxPrice: params.maxPrice,
+          );
         }
       },
       failure: (e) async {

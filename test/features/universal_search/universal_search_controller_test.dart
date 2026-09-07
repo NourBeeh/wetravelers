@@ -19,6 +19,7 @@ import 'package:wetravellers/features/search/application/controllers/flight_sear
 import 'package:wetravellers/features/search/application/controllers/hotel_search_controller.dart';
 import 'package:wetravellers/features/universal_search/application/universal_search_controller.dart';
 import 'package:wetravellers/features/universal_search/application/universal_search_state.dart';
+import 'package:wetravellers/features/universal_search/domain/structured_travel_intent.dart';
 
 /// Controller-level coverage (US-1 STEP 26): the state machine doors,
 /// query preservation across close/reopen, submit-only recents, stale
@@ -131,6 +132,136 @@ void main() {
 
     expect(phase(), UniversalSearchPhase.searching);
     expect(controller.currentState.aiInterpreting, isTrue);
+  });
+
+  // -------------------------------------------------------------------------
+  // US-2 §3 — gaps flow: incomplete intents park with question chips,
+  // never invented values.
+  // -------------------------------------------------------------------------
+
+  test('flight without origin parks with an origin gap (US-2 §3)', () async {
+    controller.open();
+    controller.surfaceReady();
+    controller.onQueryChanged('flight to dubai');
+    await controller.submit();
+
+    expect(flight.searchCallCount, 0); // nothing executed
+    expect(phase(), UniversalSearchPhase.typing);
+    expect(controller.currentState.intentGaps, contains(IntentGap.origin));
+    expect(controller.currentState.structuredIntent?.destination, 'dubai');
+  });
+
+  test('service-only hotel parks with a destination gap', () async {
+    controller.open();
+    controller.surfaceReady();
+    controller.onQueryChanged('hotel');
+    await controller.submit();
+
+    expect(hotel.searchCallCount, 0);
+    expect(controller.currentState.intentGaps,
+        <IntentGap>[IntentGap.destination]);
+  });
+
+  test('fillGap completes the intent and runs the search', () async {
+    controller.open();
+    controller.surfaceReady();
+    controller.onQueryChanged('flight to dubai');
+    await controller.submit();
+    expect(controller.currentState.intentGaps, isNotEmpty);
+
+    // The user answers the origin question.
+    final patched = controller.currentState.structuredIntent!
+        .copyWith(origin: 'Cairo');
+    await controller.fillGap(patched);
+
+    expect(controller.currentState.intentGaps, isEmpty);
+    expect(flight.searchCallCount, 1);
+    expect(flight.lastParams!.origin, 'Cairo');
+    expect(flight.lastParams!.destination, 'dubai');
+    expect(phase(), UniversalSearchPhase.results);
+  });
+
+  test('package intents flag unsupported instead of executing', () async {
+    controller.open();
+    controller.surfaceReady();
+    controller.onQueryChanged('hotel in dubai');
+    await controller.submit();
+
+    // Hotel with destination is complete — runs. Packages are the only
+    // unsupported vertical (Phase 19B mock); verified through the state
+    // machine test instead of a query (no package keyword exists).
+    expect(hotel.searchCallCount, 1);
+    expect(controller.currentState.intentGaps, isEmpty);
+  });
+
+  // -------------------------------------------------------------------------
+  // US-2 §8 — the five follow-ups patch typed fields then re-search.
+  // -------------------------------------------------------------------------
+
+  Future<void> _reachHotelResults() async {
+    controller.open();
+    controller.surfaceReady();
+    controller.onQueryChanged('hotel from cairo to dubai');
+    await controller.submit();
+  }
+
+  test('cheaper patches the budget band to low', () async {
+    await _reachHotelResults();
+    final before = hotel.lastParams!.maxPrice;
+
+    await controller.applyFollowUp(FollowUpAction.cheaper);
+
+    expect(hotel.searchCallCount, 2);
+    expect(hotel.lastParams!.maxPrice, 120);
+    expect(before, isNull); // the first run carried no cap
+    expect(phase(), UniversalSearchPhase.results);
+  });
+
+  test('morePremium patches the budget band to high', () async {
+    await _reachHotelResults();
+    await controller.applyFollowUp(FollowUpAction.morePremium);
+
+    expect(hotel.searchCallCount, 2);
+    expect(hotel.lastParams!.minPrice, 200);
+    expect(hotel.lastParams!.minRating, 4.0);
+  });
+
+  test('twoPeople patches passengers to 2', () async {
+    await _reachHotelResults();
+    await controller.applyFollowUp(FollowUpAction.twoPeople);
+
+    expect(hotel.searchCallCount, 2);
+    expect(hotel.lastParams!.adults, 2);
+  });
+
+  test('nearAirport patches the Airport transfer amenity', () async {
+    await _reachHotelResults();
+    await controller.applyFollowUp(FollowUpAction.nearAirport);
+
+    expect(hotel.searchCallCount, 2);
+    expect(hotel.lastParams!.amenities, contains('Airport transfer'));
+  });
+
+  test('changeDates surfaces the dates gap instead of guessing', () async {
+    await _reachHotelResults();
+    await controller.applyFollowUp(FollowUpAction.changeDates);
+
+    expect(hotel.searchCallCount, 1); // no re-search
+    expect(controller.currentState.intentGaps, <IntentGap>[IntentGap.dates]);
+  });
+
+  test('applyDateRange completes the dates gap and re-searches', () async {
+    await _reachHotelResults();
+    await controller.applyFollowUp(FollowUpAction.changeDates);
+
+    final start = DateTime.now().add(const Duration(days: 10));
+    await controller.applyDateRange(start, start.add(const Duration(days: 3)));
+
+    expect(hotel.searchCallCount, 2);
+    expect(hotel.lastParams!.checkIn.day, start.day);
+    expect(hotel.lastParams!.checkOut.difference(start).inDays, 3);
+    expect(controller.currentState.intentGaps, isEmpty);
+    expect(phase(), UniversalSearchPhase.results);
   });
 
   test('recents record ONLY on explicit recordRecent (STEP 9)', () async {

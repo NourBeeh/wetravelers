@@ -95,10 +95,12 @@ void main() {
       expect(await cache.contains('home|sections'), isTrue);
     });
 
-    test('empty feed + cached snapshot → returns the cached snapshot',
+    test(
+        'empty feed is authoritative — stale legacy cache is NOT resurrected',
         () async {
       final client = _ScriptedHomeApiClient(const ApiResult.success([]));
       final cache = MemoryOfflineCache();
+      // Legacy `home|sections` entry still holding withdrawn fake content.
       await cache.write('home|sections', {
         'sections': [
           {
@@ -115,9 +117,10 @@ void main() {
 
       final result = await repo.getHomeSections();
 
-      expect(result.valueOrNull, hasLength(1));
-      expect(result.valueOrNull!.first.title, 'Cached section');
-      expect(result.valueOrNull!.first.layout.name, contains('grid'));
+      // The backend confirmed the feed is empty; the cached fake sections
+      // must never come back.
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull, isEmpty);
     });
 
     test('empty feed + no cache → returns empty state', () async {
@@ -171,8 +174,9 @@ void main() {
       final repo = HomeRepositoryImpl(client, offlineCache: cache);
 
       await repo.getHomeSections();
-      // Second read hits an empty API but must restore from the cache.
-      client.payload = const ApiResult.success([]);
+      // Second read is a network FAILURE — the offline fallback must restore
+      // the cached feed (the empty-feed path no longer resurrects cache).
+      client.payload = const ApiResult.failure(ApiNetworkError(message: 'x'));
 
       final second = await repo.getHomeSections();
 

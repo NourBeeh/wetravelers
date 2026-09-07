@@ -12,6 +12,8 @@ import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/core/theme/app_typography.dart';
 import 'package:wetravellers/core/ui/app_button.dart';
 import 'package:wetravellers/core/widgets/sticky_cta_bar.dart';
+import 'package:wetravellers/features/home/providers/home_providers.dart'
+    show eventsTrackerProvider;
 import 'package:wetravellers/features/search/application/providers/offer_selection_provider.dart';
 import 'package:wetravellers/l10n/app_localizations.dart';
 
@@ -35,6 +37,15 @@ class OfferDetailsPage extends ConsumerWidget {
     final typography = AppTypography.forLight();
     final l10n = AppLocalizations.of(context)!;
     final (title, subtitle, imageUrl, price, currency) = _offerSummary(offer);
+
+    // Phase 1C — behavioral signal: opening a HOTEL offer details page is a
+    // `hotel_view` (fire-and-forget; guests/silence handled in the tracker).
+    if (offer is HotelOffer) {
+      ref.read(eventsTrackerProvider).hotelView(
+            hotelId: (offer as HotelOffer).id,
+            title: title,
+          );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,

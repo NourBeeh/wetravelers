@@ -3,8 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:wetravellers/core/domain/models/home/home_section.dart';
 import 'package:wetravellers/features/universal_search/domain/structured_travel_intent.dart';
 
-/// Universal Search state machine (US-1 contract).
-///
+/// Universal Search state machine (US-1 contract).///
 /// The eight states of the Universal Search + AI experience. Transitions are
 /// strictly validated — any move not in [UniversalSearchState.canGoTo] is
 /// rejected by the controller, so widgets can never mutate the flow
@@ -51,6 +50,7 @@ class UniversalSearchState {
     this.aiNarrative,
     this.resultSections = const [],
     this.selectedResultId,
+    this.intentGaps = const [],
   });
 
   final UniversalSearchPhase phase;
@@ -80,6 +80,10 @@ class UniversalSearchState {
   /// The currently selected result id (booking hand-off).
   final String? selectedResultId;
 
+  /// Missing pieces of the current intent — surfaced as question chips
+  /// (US-2 §3): never invent facts, ask instead.
+  final List<IntentGap> intentGaps;
+
   UniversalSearchState copyWith({
     UniversalSearchPhase? phase,
     String? query,
@@ -91,6 +95,7 @@ class UniversalSearchState {
     String? aiNarrative,
     List<HomeSection>? resultSections,
     String? selectedResultId,
+    List<IntentGap>? intentGaps,
   }) {
     return UniversalSearchState(
       phase: phase ?? this.phase,
@@ -104,6 +109,7 @@ class UniversalSearchState {
       aiNarrative: aiNarrative ?? this.aiNarrative,
       resultSections: resultSections ?? this.resultSections,
       selectedResultId: selectedResultId ?? this.selectedResultId,
+      intentGaps: intentGaps ?? this.intentGaps,
     );
   }
 

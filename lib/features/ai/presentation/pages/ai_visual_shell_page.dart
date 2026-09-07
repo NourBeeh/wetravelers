@@ -82,7 +82,7 @@ class _AiHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'WeTravellers',
+                  'Hopper',
                   style: typography.bodyLargeMedium.copyWith(
                     color: scheme.onSurface,
                   ),

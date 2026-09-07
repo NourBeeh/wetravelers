@@ -17,6 +17,7 @@ class AiApiService implements AiAssistantService {
   final ApiClient _client;
 
   static const String _queryPath = '/ai/query';
+  static const String _suggestPath = '/ai/suggest';
 
   @override
   Future<AiResponse> query(String prompt, {RequestToken? token, Duration? timeout, AiQueryContext? context}) async {
@@ -43,6 +44,36 @@ class AiApiService implements AiAssistantService {
   Future<String> generateContent({required String prompt}) async {
     final response = await query(prompt);
     return response.text ?? '';
+  }
+
+  /// Live typeahead suggestions for the smart search sheet.
+  ///
+  /// Short timeout on purpose: suggestions are a progressive enhancement —
+  /// on any failure the caller silently falls back to local prompts.
+  Future<List<String>> suggest(
+    String query, {
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    final body = <String, dynamic>{'query': query};
+
+    final result = await _client.post<Map<String, dynamic>>(
+      _suggestPath,
+      body: body,
+      timeout: timeout,
+    );
+
+    final map = result.when(
+      success: (data) => data,
+      failure: (error) => throw error,
+    );
+    final suggestions = map['suggestions'];
+    if (suggestions is List) {
+      return suggestions
+          .map((e) => e.toString())
+          .where((e) => e.trim().isNotEmpty)
+          .toList();
+    }
+    return const <String>[];
   }
 
   @override

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:wetravellers/core/domain/models/search/hotel_search_params.dart';
+import 'package:wetravellers/features/home/providers/home_providers.dart'
+    show eventsTrackerProvider;
 import 'package:wetravellers/features/search/application/providers/hotel_car_providers.dart';
 import 'package:wetravellers/features/search/application/controllers/hotel_search_controller.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
@@ -318,7 +320,15 @@ class _HotelSearchPageState extends ConsumerState<HotelSearchPage> {
                 offer: offer,
                 onTap: () => context.push('/offer-details', extra: offer),
                 onFavorite: (value) {
-                  // TODO: Implement wishlist persistence
+                  // Phase 1C — behavioral signal (fire-and-forget). Heart
+                  // persistence itself stays future work; only the true
+                  // (favoriting) transition is tracked.
+                  if (value) {
+                    ref.read(eventsTrackerProvider).hotelFavorite(
+                          hotelId: offer.id,
+                          title: offer.title,
+                        );
+                  }
                 },
                 isFavorite: false,
               ),

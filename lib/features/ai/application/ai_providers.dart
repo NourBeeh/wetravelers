@@ -18,6 +18,13 @@ final aiAssistantServiceProvider = Provider<AiApiService>((ref) {
   return AiApiService(client);
 });
 
+/// Suggestions service for the smart search typeahead sheet. Separate from
+/// [aiAssistantServiceProvider] so tests can stub typeahead independently.
+final aiSuggestionsServiceProvider = Provider<AiApiService>((ref) {
+  final client = ref.watch(apiClientProvider);
+  return AiApiService(client);
+});
+
 // Memory sync test
 /// Exposes the reactive [AiState] produced by [AiController].
 ///

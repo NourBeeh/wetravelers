@@ -53,7 +53,7 @@ void main() {
     (tester) async {
       await pumpPage(tester);
 
-      expect(find.text('Travellers AI'), findsOneWidget);
+      expect(find.text('Hopper AI'), findsOneWidget);
       expect(find.text('Hi! Ask me about flights, hotels, and more…'),
           findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
@@ -92,7 +92,7 @@ void main() {
       // the full exit transition.
       await tester.pumpAndSettle();
 
-      expect(find.text('Travellers AI'), findsNothing);
+      expect(find.text('Hopper AI'), findsNothing);
     },
   );
 
@@ -104,7 +104,7 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pumpAndSettle();
 
-      expect(find.text('Travellers AI'), findsNothing);
+      expect(find.text('Hopper AI'), findsNothing);
     },
   );
 }

@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEvent } from '../../database/entities/user_event.entity';
 import { ProfileService } from '../profile/profile.service';
+import { BehavioralMemoryService } from '../memory/behavioral_memory.service';
 
 export interface Sig {
   userId?: string;
@@ -19,6 +20,9 @@ export class EventsService {
     @InjectRepository(UserEvent)
     private readonly events: Repository<UserEvent>,
     private readonly profiles: ProfileService,
+    // Phase 2B — optional so existing tests/wiring without the memory layer
+    // keep working; absent = extraction silently skipped.
+    @Optional() private readonly behavioralMemory?: BehavioralMemoryService,
   ) {}
 
   /** Records a behavioural signal and folds it into the user profile. */
@@ -32,13 +36,27 @@ export class EventsService {
       }),
     );
 
-    // Fold signals into the derived profile (only meaningful for logged-in users).
-    if (sig.userId) {
+    if (!sig.userId) return; // Guests: no server memory (Phase 1C decision).
+
+    // Fold signals into the derived profile — never let aggregation failure
+    // fail the event itself.
+    try {
+      await this.applyToProfile(sig);
+    } catch (error) {
+      this.logger.warn(
+        `Profile aggregation skipped (${sig.type}): ${(error as Error).message}`,
+      );
+    }
+
+    // Phase 2B — derive typed behavioral memories from the same event.
+    // Isolated by design: memory failure NEVER breaks the event flow (§19).
+    const memory = this.behavioralMemory;
+    if (memory) {
       try {
-        await this.applyToProfile(sig);
+        await memory.extractFromEvent(sig.userId, sig.type, sig.payload ?? {});
       } catch (error) {
         this.logger.warn(
-          `Profile aggregation skipped (${sig.type}): ${(error as Error).message}`,
+          `Behavioral memory extraction skipped (${sig.type}): ${(error as Error).message}`,
         );
       }
     }

@@ -10,6 +10,8 @@ import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/core/theme/app_typography.dart';
 import 'package:wetravellers/core/ui/app_button.dart';
 import 'package:wetravellers/features/booking/application/providers/checkout_flow_providers.dart';
+import 'package:wetravellers/features/home/providers/home_providers.dart'
+    show eventsTrackerProvider;
 import 'package:wetravellers/features/bag/application/bag_controller.dart';
 import 'package:wetravellers/features/bag/domain/trip.dart';
 import 'package:wetravellers/l10n/app_localizations.dart';
@@ -58,8 +60,14 @@ class _BookingConfirmationPageState extends ConsumerState<BookingConfirmationPag
               total: ref.read(checkoutBasePriceProvider),
               currency: 'USD',
               bookingReference: _reference,
-              providerName: 'WeTravellers',
+              providerName: 'Hopper',
             ),
+          );
+      // Phase 1C — behavioral signal (fire-and-forget, guests skipped).
+      // The destination is the checkout context when known; the backend
+      // folds `upcomingDestination` into the derived profile.
+      ref.read(eventsTrackerProvider).bookingConfirmed(
+            destination: 'See details',
           );
     });
   }

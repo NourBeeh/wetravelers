@@ -179,6 +179,33 @@ void main() {
     expect(find.text('Hotels'), findsNothing);
   });
 
+  testWidgets('incomplete intent surfaces question chips instead of searching', (tester) async {
+    await tester.pumpWidget(harness());
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.tap(find.byType(HomeAiSearchField));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(UniversalSearchPage), findsOneWidget);
+
+    // "flight to dubai" — valid service + destination, no origin: the
+    // gaps body asks instead of executing a search with an invented
+    // origin (US-2 §3).
+    await tester.enterText(find.byType(TextField).first, 'flight to dubai');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byIcon(Icons.arrow_upward));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('منين بتسافر؟'), findsOneWidget);
+    expect(find.text('القاهرة'), findsOneWidget);
+
+    // Answering the question completes the intent and runs the search.
+    await tester.tap(find.text('القاهرة'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(UniversalSearchPage), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('disabled microphone placeholder renders with disabled semantics', (tester) async {
     await tester.pumpWidget(harness());
     await tester.pump(const Duration(milliseconds: 500));

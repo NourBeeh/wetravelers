@@ -193,6 +193,17 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> {
   }
 
   Widget _buildBody(UniversalSearchState state) {
+    // US-2 §3: an incomplete-but-valid intent parks with question chips —
+    // visible in every non-searching phase while gaps remain.
+    if (state.intentGaps.isNotEmpty &&
+        state.phase != UniversalSearchPhase.searching) {
+      return UniversalSearchGapsBody(
+        state: state,
+        onGapAnswered: (patched) => ref
+            .read(universalSearchControllerProvider.notifier)
+            .fillGap(patched),
+      );
+    }
     switch (state.phase) {
       case UniversalSearchPhase.active:
       case UniversalSearchPhase.typing:

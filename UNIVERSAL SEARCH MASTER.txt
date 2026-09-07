@@ -1,0 +1,1413 @@
+UNIVERSAL SEARCH — MASTER EXECUTION PACK
+US-0 — UX & Technical Contract
+
+الحالة: ✅ مكتمل
+
+You are working on the WeTravellers Flutter project.
+
+TASK:
+Create the canonical UX + Technical Contract for the Universal Search feature.
+
+IMPORTANT:
+This is a CONTRACT/DOCUMENTATION phase.
+Do not implement production code unless explicitly required to document existing behavior.
+Do not delete files.
+Do not refactor unrelated code.
+
+OBJECTIVE:
+Define one unified Messenger-like Search + AI entry point for WeTravellers.
+
+The Universal Search must evolve the existing v1 AiSmartSearchPage rather than creating a second independent search implementation.
+
+FIXED DECISIONS:
+
+MIGRATION
+Existing v1 AiSmartSearchPage is the starting point.
+Future implementation moves into:
+lib/features/universal_search/
+Old files may only be deleted after functional equivalence is verified and explicit deletion approval is given.
+Never delete by assumption.
+QUERY PRESERVATION
+Closing Universal Search must NOT clear the query.
+Controller preserves the latest query.
+Reopening with a non-empty saved query enters TYPING.
+Cursor is at the end.
+Keyboard opens.
+Live suggestions resume.
+Recents are updated only after actual submit.
+MICROPHONE
+Mic is currently disabled.
+36px circular control.
+textTertiary with approximately 0.35 opacity.
+Semantics:
+label: "البحث الصوتي — قريبًا"
+enabled: false
+No STT implementation in US-0/US-1.
+Leave a clean extension point for future US-3.
+CATEGORIES
+US-1 has exactly four fixed categories:
+Flights
+Hotels
+Cars
+Packages
+
+Use existing localization keys such as:
+searchFlights
+
+Categories:
+
+appear only in ACTIVE with empty query
+appear after Recent Searches
+appear before AI idea
+disappear in TYPING
+tapping a category routes to:
+/flights
+/hotels
+/cars
+/packages
+
+Do not create new backend/controllers.
+
+STATE MACHINE
+
+CLOSED
+→ OPENING
+→ ACTIVE
+→ TYPING
+→ SEARCHING
+→ RESULTS / AI_RESULT
+→ CLOSING
+→ CLOSED
+
+Additional valid transitions:
+OPENING → TYPING
+AI_RESULT → TYPING
+
+Invalid transitions must be guarded.
+
+OPENING ANIMATION
+Duration: 320ms.
+
+Use existing:
+HomeAiSearchField
+kAiSmartSearchHeroTag
+ContainerTransformTransition
+containerTransformPage()
+
+Animation:
+
+Hero/shared-element feel
+fastOutSlowIn
+scrim linear
+content reveal begins around 40%
+fade + 16px upward translation
+focus requested with addPostFrameCallback
+mounted guard required
+
+Collapsed bounds:
+approximately 60px height
+horizontal margins AppSpacing.lg
+pill radius
+
+Expanded:
+full width minus AppSpacing.md * 2
+approximately 52px height
+pill radius
+
+Use MaterialRectArcTween.
+
+Critical requirement:
+The Hero shuttle at t=1 must be pixel-identical to the expanded target.
+No shape/color/border snap at the end.
+
+CLOSING
+320ms reverse animation
+keyboard unfocuses on first frame
+content fades
+Hero returns to Home
+query remains preserved
+back/close disabled while closing
+final focus release after animation
+KEYBOARD
+TextInputAction.search
+TextInputType.text
+Search header remains fixed
+internal content handles MediaQuery.viewInsets.bottom
+reopening saved query restores focus and keyboard
+BACK BEHAVIOR
+Universal Search owns PopScope.
+Keyboard closes before page closes.
+Desktop/Web:
+Esc closes search
+close/back supported
+
+iOS:
+
+native root pop/swipe behavior
+first interaction while keyboard open closes keyboard
+next closes search
+
+Predictive back animation may be deferred to US-2+.
+
+COLLAPSED BAR
+
+Structure:
+
+[ ✦ اسأل أو ابحث… 🎙 ]
+
+sparkle: Icons.auto_awesome_rounded
+24px
+decorative
+placeholder uses aiSearchHint
+bodyLarge
+textSecondary
+mic 36px disabled
+whole control ≥48px accessible
+text area is the interactive area
+aura remains outside Hero
+CONTENT ORDER
+
+ACTIVE / empty:
+Header
+Recent Searches
+Categories
+AI Idea
+
+TYPING:
+Header
+Live Suggestions
+AI Idea
+
+SEARCHING:
+Header
+Shimmer
+
+RESULTS / AI_RESULT:
+Header
+Edit
+Results
+
+SUGGESTIONS
+Sources:
+kCities
+kAirports
+aiSuggestionsServiceProvider
+bilingual local fallback
+
+Debounce:
+400ms
+
+Use version/request cancellation.
+Failures must fail silently and retain deterministic fallback behavior.
+
+Recent searches:
+
+maximum 8
+OfflineCache
+key:
+ai_search_recent/<n>
+SEARCH vs AI
+
+Simple query:
+"Dubai"
+→ deterministic/direct search
+
+Natural-language:
+"عايز فندق رخيص في دبي 3 ليالي"
+→ SearchIntentParser
+→ structured intent
+→ existing search controller
+
+AI must never become a text-only dead end.
+
+AI failure:
+→ deterministic results where possible
+→ otherwise empty state + follow-up actions.
+
+SEARCH INTENT
+Reuse:
+lib/features/ai/domain/search_intent_parser.dart
+
+Do NOT create a second parser.
+
+Current parser behavior is intentionally limited.
+Do not improve it in US-1.
+
+RESULTS
+Use existing HomeSectionWidget.
+
+Adapters:
+FlightOffer
+HotelOffer
+CarOffer
+TravelPackageOffer
+
+→ HomeItem
+
+metadata must preserve:
+providerOfferId
+providerId
+providerName
+relevant product fields
+
+Use:
+customerPrice first.
+
+Flights:
+flightRecommendationList
+
+Other verticals:
+existing vertical/grid presentation.
+
+Tap:
+SelectedOffer
+→ /booking/review
+
+EVENTS
+Do not modify EventsTracker.
+
+Universal Search must trigger existing search events at existing/new search call sites.
+
+Hotel search must fire:
+hotel_search
+
+Do not redesign the event system.
+
+AI FOLLOW-UP
+
+AI_RESULT contains:
+
+one narrative line
+product sections
+follow-up chips
+
+Examples:
+أرخص
+أفخم
+قريب من X
+مقارنة
+غيّر التواريخ
+
+Follow-up patches StructuredTravelIntent and re-enters SEARCHING.
+
+No free-form chat loop in US-1.
+
+ARCHITECTURE RULES
+
+Reuse existing:
+
+Home
+Search controllers
+SearchIntentParser
+Product Cards
+HomeSectionWidget
+SelectedOffer
+Booking review
+EventsTracker
+navigation
+caching
+
+Do not create duplicate systems.
+
+HARD BOUNDARIES
+
+Do NOT modify:
+
+Recommendation Engine
+Home Ranking
+Product Card architecture
+Booking architecture
+EventsTracker implementation
+Backend
+Theme
+SearchIntentParser behavior
+
+unless a later phase explicitly authorizes it.
+
+VALIDATION
+
+Document:
+
+current architecture
+state machine
+transitions
+animations
+keyboard/back behavior
+search/AI behavior
+migration strategy
+testing strategy
+future US-1 → US-7 boundaries
+
+Run:
+flutter analyze
+flutter test
+
+Do not modify unrelated files to make tests pass.
+
+DELIVERABLE:
+docs/universal-search-ux-contract.md
+
+STOP after completing the contract and validation.
+
+US-1 — Universal Search Core
+
+الحالة: ✅ مكتمل — 568 passed / 6 skipped / 0 failed
+
+You are implementing US-1 of WeTravellers Universal Search.
+
+READ FIRST:
+docs/universal-search-ux-contract.md
+
+OBJECTIVE:
+Implement the Universal Search core using the existing v1 AiSmartSearchPage infrastructure.
+
+Do NOT create a second search system.
+
+ARCHITECTURE:
+
+Create:
+
+lib/features/universal_search/
+├── application/
+│ ├── universal_search_state.dart
+│ └── universal_search_controller.dart
+├── domain/
+│ └── structured_travel_intent.dart
+├── data/
+│ └── offer_to_home_item_adapters.dart
+└── presentation/
+├── pages/
+│ └── universal_search_page.dart
+└── widgets/
+└── universal_search_widgets.dart
+
+STATE MACHINE:
+
+CLOSED
+OPENING
+ACTIVE
+TYPING
+SEARCHING
+RESULTS
+AI_RESULT
+CLOSING
+
+Required transitions include:
+OPENING → TYPING
+AI_RESULT → TYPING
+
+Reject invalid transitions.
+
+CONTROLLER:
+The controller is the orchestrator.
+
+Responsibilities:
+
+state transitions
+query persistence
+debounce/versioning
+suggestions
+intent parsing
+triggering existing search infrastructure
+results mapping
+follow-up actions
+keyboard-related state decisions
+
+Use Riverpod.
+
+Keep provider autoDispose unless existing architecture requires otherwise.
+
+PAGE:
+UniversalSearchPage must remain primarily a renderer.
+Do not put business logic into widgets.
+
+OPENING:
+Reuse:
+HomeAiSearchField
+kAiSmartSearchHeroTag
+ContainerTransformTransition
+containerTransformPage
+
+320ms.
+
+At t=1 the Hero shuttle must exactly match expanded header:
+
+same background
+same border
+same sparkle
+same padding
+same radius
+
+No visual snap.
+
+QUERY:
+
+preserve query when closing
+persist query via OfflineCache
+reopening saved query:
+OPENING → TYPING
+focus
+keyboard
+cursor at end
+live suggestions
+
+RECENTS:
+
+max 8
+update only after actual submit
+
+MIC:
+
+disabled
+36px
+Semantics enabled=false
+label:
+"البحث الصوتي — قريبًا"
+
+CATEGORIES:
+Exactly:
+Flights
+Hotels
+Cars
+Packages
+
+Only:
+ACTIVE + empty query
+
+Use existing localization.
+
+Routes:
+context.go('/flights')
+context.go('/hotels')
+context.go('/cars')
+context.go('/packages')
+
+SUGGESTIONS:
+Reuse:
+aiSuggestionsServiceProvider
+kCities
+kAirports
+existing bilingual fallback
+
+400ms debounce.
+Version/request cancellation.
+Failure must not break UI.
+
+INTENT:
+Reuse:
+SearchIntentParser.parse()
+
+Map into:
+StructuredTravelIntent
+
+Do not create another parser.
+Do not improve parser behavior in US-1.
+
+SEARCH:
+Wire intent to EXISTING:
+flight controller
+hotel controller
+car controller
+package search infrastructure
+
+Do not create replacement controllers.
+
+RESULTS:
+Create adapters:
+
+FlightOffer → HomeItem
+HotelOffer → HomeItem
+CarOffer → HomeItem
+TravelPackageOffer → HomeItem
+
+Preserve provider metadata.
+
+Use HomeSectionWidget.
+
+Flights:
+flightRecommendationList
+
+Other products:
+existing vertical/grid.
+
+Card tap:
+SelectedOffer
+→ /booking/review
+
+AI:
+Natural-language searches may enter AI_RESULT.
+
+AI_RESULT:
+
+one narrative line
+product sections
+follow-up chips
+
+Follow-up:
+أرخص
+أفخم
+قريب من X
+مقارنة
+غيّر التواريخ
+
+Follow-up modifies StructuredTravelIntent and returns to SEARCHING.
+
+EVENTS:
+Do not modify EventsTracker.
+
+Ensure hotel_search and applicable sibling search events fire through the existing event system/call sites.
+
+NAVIGATION:
+Keep /smart-search path.
+Point it to UniversalSearchPage.
+Keep root navigator behavior.
+Keep existing 320ms container transform.
+
+BACK:
+PopScope only on UniversalSearchPage.
+Keyboard-first behavior.
+Do not globally alter navigation.
+
+RESPONSIVE:
+Use AdaptiveLayout for Universal Search presentation.
+Do not refactor AppBreakpoints/AdaptiveLayout conflict.
+
+TESTS:
+Create comprehensive tests for:
+
+state machine
+valid/invalid transitions
+query preservation
+reopening saved query
+suggestions debounce/version cancellation
+categories
+mic semantics
+intent mapping
+adapters
+AI follow-up
+navigation
+edit from AI_RESULT
+
+IMPORTANT:
+Existing v1 tests must eventually be migrated into Universal Search coverage.
+
+VALIDATION:
+flutter analyze
+flutter test
+
+Required final result:
+0 failed tests
+0 compilation errors
+0 analyzer errors
+
+Do not fix unrelated issues.
+
+REPORT:
+List:
+
+files created
+files modified
+tests
+analyze
+architecture reused
+deferred items
+any blockers
+
+STOP.
+
+US-1 FINAL — Legacy Deletion
+
+الحالة: تم اعتماد الحذف
+
+You are performing the FINAL legacy cleanup for US-1 Universal Search.
+
+EXPLICIT APPROVAL:
+You are authorized to delete EXACTLY these two files:
+
+lib/features/ai/presentation/pages/ai_smart_search_page.dart
+
+test/features/ai/presentation/pages/ai_smart_search_page_test.dart
+
+NO OTHER FILE MAY BE DELETED.
+
+BEFORE DELETE:
+
+Verify:
+
+/smart-search points to UniversalSearchPage.
+There are zero consumers/imports/routes/references to AiSmartSearchPage.
+Universal Search tests cover the behavior previously covered by v1.
+Current baseline is:
+568 passed
+6 skipped
+0 failed
+
+If any verification fails:
+STOP.
+Do not delete.
+
+DELETE ONLY THE TWO APPROVED FILES.
+
+AFTER DELETE:
+
+Run:
+flutter analyze
+flutter test
+
+Required:
+0 failed
+0 compilation errors
+0 analyzer errors
+
+Then run a repository reference audit confirming no remaining references to:
+AiSmartSearchPage
+ai_smart_search_page.dart
+
+Run:
+git status
+
+STAGE ONLY:
+
+deleted ai_smart_search_page.dart
+deleted ai_smart_search_page_test.dart
+
+Create a separate commit:
+
+chore(universal-search): remove legacy v1 search page
+
+IMPORTANT:
+
+No unrelated cleanup.
+No refactoring.
+No parser changes.
+No US-2 work.
+No Recommendation changes.
+No Home changes.
+No Product Card changes.
+No Booking changes.
+No EventsTracker changes.
+No Backend changes.
+No Theme changes.
+
+If an unrelated test/build failure appears:
+STOP.
+Do not fix it.
+
+FINAL REPORT:
+
+deleted files
+flutter analyze result
+flutter test result
+reference audit
+git status
+commit hash
+
+STOP.
+
+US-2 — Advanced AI Search & Intent
+
+الحالة: ⏳ التالي
+
+You are implementing US-2 of WeTravellers Universal Search.
+
+READ FIRST:
+docs/universal-search-ux-contract.md
+
+PREREQUISITE:
+US-1 must be complete.
+Legacy v1 deletion must be complete.
+All baseline tests must pass before starting.
+
+OBJECTIVE:
+Upgrade natural-language travel understanding without creating a second search architecture.
+
+IMPORTANT:
+Do not redesign Universal Search.
+Do not change the visual UX contract.
+
+MAIN WORK:
+
+EXTEND STRUCTURED TRAVEL INTENT
+
+Support:
+
+destination
+origin
+dates
+duration
+passengers
+rooms
+budget
+stars
+service
+amenities
+trip preferences where already supported by existing domain models
+
+Use strongly typed fields.
+
+Do not introduce free-form blobs where structured fields are possible.
+
+SEARCH INTENT PARSER
+
+Now, and ONLY now, the parser may be enhanced.
+
+Examples:
+
+"فندق رخيص في دبي"
+→ destination = Dubai
+→ service = hotel
+→ budget = low
+
+"عايز فندق في دبي 3 ليالي"
+→ destination = Dubai
+→ service = hotel
+→ duration = 3 nights
+
+"from Cairo to Dubai"
+→ origin = Cairo
+→ destination = Dubai
+
+"رحلة من القاهرة لدبي من 10 لـ 15 أكتوبر"
+→ origin = Cairo
+→ destination = Dubai
+→ dates = specified interval
+
+Support Arabic + English.
+
+Do not break existing parser behavior.
+
+AMBIGUITY
+
+If intent is incomplete:
+do not invent facts.
+
+Use follow-up chips/questions.
+
+Examples:
+
+أي تاريخ؟
+شخصين ولا أكتر؟
+فندق ولا شقة؟
+الميزانية كام؟
+AI RESOLUTION
+
+AI may be used to resolve difficult natural-language intent.
+
+However:
+AI output must always be converted into StructuredTravelIntent.
+
+Never allow raw LLM output to directly control navigation or provider APIs.
+
+VALIDATION
+
+Validate:
+
+destination
+date ranges
+passenger counts
+budget ranges
+service type
+
+Reject impossible values safely.
+
+SEARCH EXECUTION
+
+Structured intent must continue through existing:
+
+flight search
+hotel search
+car search
+package search
+
+Do not duplicate controllers.
+
+RESULTS
+
+Continue using:
+HomeItem
+HomeSectionWidget
+existing Product Cards
+SelectedOffer
+
+FOLLOW-UP
+
+Follow-up chips patch the current StructuredTravelIntent.
+
+Examples:
+أرخص
+أفخم
+غير التواريخ
+شخصين
+قريب من المطار
+
+Then:
+SEARCHING
+
+TESTS
+
+Add extensive Arabic/English parser tests.
+
+Include:
+
+happy paths
+incomplete queries
+ambiguous queries
+invalid dates
+invalid passenger counts
+mixed Arabic/English
+destination-only queries
+service-only queries
+
+Regression:
+All existing tests must remain green.
+
+HARD BOUNDARIES
+
+Do not modify:
+
+Recommendation Engine
+Home Ranking
+EventsTracker implementation
+Product Card architecture
+Booking architecture
+Theme
+
+unless directly required by a typed intent integration contract.
+
+VALIDATION:
+flutter analyze
+flutter test
+
+Required:
+0 failed.
+
+STOP after report.
+
+US-3 — Voice Search
+
+الحالة: ⏳
+
+You are implementing US-3 of WeTravellers Universal Search.
+
+READ:
+docs/universal-search-ux-contract.md
+
+OBJECTIVE:
+Enable voice input inside the existing Universal Search.
+
+DO NOT create a second voice/search UI.
+
+MIC:
+Replace the existing disabled placeholder with real voice interaction.
+
+Keep:
+36px circle
+same visual language
+same placement
+
+VOICE FLOW:
+
+TAP MIC
+→ requesting permission
+→ listening
+→ transcription
+→ query populated
+→ TYPING
+→ suggestions
+
+If transcription appears complete:
+user can submit normally.
+
+DO NOT automatically search unless the existing UX explicitly supports that behavior.
+
+LANGUAGES:
+Arabic
+English
+
+The implementation must gracefully handle unavailable permissions/services.
+
+ERROR STATES:
+
+permission denied
+microphone unavailable
+speech recognition unavailable
+network/service error
+empty transcription
+cancellation
+
+Never crash.
+
+ACCESSIBILITY:
+Provide meaningful semantics for:
+
+microphone
+listening state
+stop/cancel
+
+QUERY:
+Voice transcription must enter the SAME controller query.
+
+Do not create a parallel voice query state.
+
+INTENT:
+Use the existing SearchIntentParser / StructuredTravelIntent pipeline.
+
+SEARCH:
+Use existing controllers.
+
+TESTS:
+
+permission handling
+listening state
+cancellation
+Arabic transcription
+English transcription
+empty result
+error result
+query preservation
+submit
+
+Do not modify unrelated modules.
+
+VALIDATION:
+flutter analyze
+flutter test
+
+0 failed required.
+
+STOP.
+
+US-4 — AI Assistant داخل Universal Search
+
+الحالة: ⏳
+
+You are implementing US-4 of WeTravellers Universal Search.
+
+OBJECTIVE:
+Turn Universal Search into a contextual AI travel assistant while preserving the Search-first UX.
+
+IMPORTANT:
+This is NOT a generic chatbot.
+
+Universal Search remains:
+Search + structured AI travel assistance.
+
+AI must always connect to real travel actions/results.
+
+UX:
+
+User query
+→ intent understanding
+→ results
+→ optional narrative
+→ follow-up actions
+
+AI_RESULT may contain:
+
+one concise narrative
+real product sections
+follow-up chips
+
+Examples:
+"لقيتلك 8 فنادق في دبي ضمن ميزانيتك."
+
+Then:
+[ أرخص ]
+[ أفخم ]
+[ قريب من وسط المدينة ]
+[ قارن ]
+[ غيّر التواريخ ]
+
+DO NOT create an infinite free-form chat loop.
+
+CONTEXT:
+AI receives only safe structured search context.
+
+Never expose:
+credentials
+tokens
+private backend data
+unnecessary personal information
+
+FOLLOW-UP:
+Each chip modifies StructuredTravelIntent.
+
+Examples:
+"أرخص"
+→ sort/budget constraint
+
+"أفخم"
+→ rating/star constraint
+
+"غيّر التواريخ"
+→ date editing state
+
+"قريب من المطار"
+→ location/amenity constraint
+
+COMPARISON:
+Introduce only the contract needed for comparison.
+Full comparison implementation may remain US-6.
+
+FAILURE:
+If AI fails:
+fall back to deterministic search.
+
+AI must never block normal search.
+
+TEST:
+
+AI success
+AI timeout
+AI malformed response
+deterministic fallback
+follow-up
+context safety
+AI_RESULT → TYPING
+AI_RESULT → SEARCHING
+
+Do not modify Recommendation Engine.
+
+VALIDATION:
+flutter analyze
+flutter test
+
+0 failed.
+
+STOP.
+
+US-5 — Search Intelligence & Personalization
+
+الحالة: ⏳
+
+You are implementing US-5.
+
+OBJECTIVE:
+Make Universal Search smarter using existing behavioral signals and profile context.
+
+IMPORTANT:
+Do not redesign R-4.
+
+Use the existing recommendation architecture.
+
+PIPELINE:
+
+Universal Search
+→ StructuredTravelIntent
+→ candidate search
+→ deterministic ranking
+→ optional AI assistance
+
+SIGNALS MAY INCLUDE:
+
+search history
+hotel_search
+hotel_view
+hotel_favorite
+trip_planned
+booking_confirmed
+
+Reuse EventsTracker.
+
+Do not modify EventsTracker unless an explicitly required event contract is missing.
+
+PERSONALIZATION:
+Use existing Dynamic Profile / safe AI context where permitted.
+
+IMPORTANT 2C RULE:
+Do NOT inject explicit memory facts:
+preferred_destination
+preferred_budget
+
+into DerivedPreferenceProfile/Home ranking unless a later approved phase explicitly authorizes it.
+
+preferred_hotel_style remains deferred until it has a real consumer.
+
+SEARCH:
+Personalization may influence:
+
+ordering
+suggestions
+explanation
+
+It must NOT override explicit user intent.
+
+Example:
+User normally likes Cairo.
+User searches:
+"فنادق في دبي"
+
+Dubai must win.
+
+CACHE:
+Respect cache-first architecture.
+
+Do not use Hive as source of truth for price/availability.
+
+RESULTS:
+Final live validation remains authoritative.
+
+TEST:
+
+personalization
+explicit intent precedence
+cold start
+anonymous user
+cached search
+behavioral signals
+no-data fallback
+
+Do not introduce:
+ML
+Vector DB
+embeddings infrastructure
+
+unless separately approved.
+
+VALIDATION:
+flutter analyze
+flutter test
+
+0 failed.
+
+STOP.
+
+US-6 — Advanced Results / Compare / Refinement
+
+الحالة: ⏳
+
+You are implementing US-6.
+
+OBJECTIVE:
+Make Universal Search results interactive and refinement-driven.
+
+RESULT ACTIONS:
+
+User can:
+
+edit query
+refine filters
+change dates
+change passengers
+sort
+compare supported products
+rerun search
+
+IMPORTANT:
+Do not create a second result-card system.
+
+Use existing:
+HomeSectionWidget
+Product Cards
+HomeItem
+SelectedOffer
+
+COMPARE:
+Support a contract-based comparison model.
+
+Comparison must use structured product fields.
+
+Examples:
+Hotel:
+
+price
+stars
+rating
+location
+amenities
+cancellation
+
+Flight:
+
+price
+airline
+duration
+stops
+baggage
+departure/arrival
+
+Car:
+
+price
+category
+seats
+bags
+transmission
+mileage
+
+Do not invent missing data.
+
+REFINEMENT:
+Every refinement patches StructuredTravelIntent or an explicit SearchFilter model.
+
+Then:
+SEARCHING
+
+RESULTS should remain consistent.
+
+BACK:
+Preserve previous query and refinement state when appropriate.
+
+NAVIGATION:
+Do not break root/branch navigation.
+
+TEST:
+
+compare
+refinement
+sorting
+edit
+back
+preserved query
+product tap
+SelectedOffer
+missing product fields
+
+VALIDATION:
+flutter analyze
+flutter test
+
+0 failed.
+
+STOP.
+
+US-7 — Production Hardening
+
+الحالة: ⏳ آخر مرحلة
+
+You are performing the final production-hardening phase for Universal Search.
+
+OBJECTIVE:
+Audit the complete Universal Search implementation for production readiness.
+
+DO NOT introduce new UX features.
+
+DO NOT redesign architecture.
+
+AUDIT:
+
+STATE MACHINE
+all transitions valid
+invalid transitions guarded
+no impossible UI states
+ANIMATION
+opening 320ms
+closing 320ms
+Hero handoff pixel-stable
+no keyboard jump
+no flicker
+no route flash
+KEYBOARD
+iOS
+Android
+desktop
+web
+BACK
+keyboard-first
+page-second
+close behavior
+no accidental navigation
+QUERY
+preserved
+persisted
+restored
+recents correct
+SUGGESTIONS
+debounce
+cancellation
+stale response protection
+fallback
+bilingual behavior
+AI
+timeout
+malformed response
+fallback
+safe context
+no raw AI control over providers
+SEARCH
+flight
+hotel
+car
+package
+RESULTS
+adapters
+HomeItem
+HomeSectionWidget
+Product Cards
+SelectedOffer
+EVENTS
+correct event emission
+no duplicate events
+CACHE
+cache-first
+background refresh
+no stale price treated as authoritative
+ACCESSIBILITY
+semantics
+focus
+keyboard
+touch targets
+screen reader behavior
+RESPONSIVE
+mobile
+tablet
+desktop
+web
+PERFORMANCE
+Check for:
+unnecessary rebuilds
+excessive animations
+leaked listeners
+timers not cancelled
+controllers not disposed
+stale async results
+TESTS
+
+Run:
+flutter analyze
+flutter test
+
+Also run relevant integration/widget tests if already present.
+
+Required:
+0 failed
+0 compilation errors
+0 analyzer errors
+
+IMPORTANT:
+Do not fix unrelated legacy issues.
+
+Any unrelated failure:
+report it separately.
+
+GIT:
+Show:
+git status
+git diff --stat
+
+Do not commit unless explicitly instructed.
+
+FINAL REPORT:
+
+production audit
+tests
+analyze
+performance findings
+accessibility findings
+remaining known limitations
+files changed
+
+STOP.
+
+الخريطة النهائية
+المرحلة	الوظيفة	الحالة
+US-0	UX + Technical Contract	✅
+US-1	Core Universal Search	✅
+US-1 Final	حذف v1 القديم	🔜/حسب آخر تنفيذ
+US-2	Advanced Intent + NLP	⏳
+US-3	Voice Search	⏳
+US-4	AI Assistant	⏳
+US-5	Personalization	⏳
+US-6	Compare + Refinement	⏳
+US-7	Production Hardening	⏳
+

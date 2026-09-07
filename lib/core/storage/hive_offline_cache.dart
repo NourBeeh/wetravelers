@@ -66,6 +66,10 @@ class HiveOfflineCache implements OfflineCache {
     _box.put(key, value);
   }
 
+  @override
+  Future<List<String>> keys() async =>
+      _box.toMap().keys.map((k) => k.toString()).toList();
+
   /// Deep-converts a raw (possibly Hive-deserialized) value into a
   /// `Map<String, dynamic>` tree. Returns null for non-map input.
   ///

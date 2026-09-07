@@ -40,6 +40,44 @@ export function formatAiAttempt(record: AiAttemptRecord): string {
 export class AiService {
   private readonly logger = new Logger(AiService.name);
 
+  /** Bilingual display templates for /ai/suggest typeahead. */
+  private static readonly SUGGEST_CATALOGUE: readonly string[] = [
+    'Flights from Cairo to Dubai',
+    'Flights from Riyadh to Cairo',
+    'Cheap flights to Istanbul',
+    'Flights to Sharm El Sheikh',
+    'Hotels in Dubai for 2 nights',
+    'Hotels in Cairo city centre',
+    'Hotels in Sharm El Sheikh with a pool',
+    'Car rental in Riyadh for 3 days',
+    'Car rental in Cairo airport',
+    'Weekend trip ideas under $300',
+    'Family destinations in Egypt',
+    'Beach escapes in Egypt',
+    'طيران من القاهرة إلى دبي',
+    'طيران من الرياض إلى القاهرة',
+    'أرخص رحلات إلى إستنبول',
+    'رحلات إلى شرم الشيخ',
+    'فنادق في دبي لليلتين',
+    'فنادق في وسط القاهرة',
+    'فنادق في شرم الشيخ بمسبح',
+    'تأجير عربية في الرياض لمدة ٣ أيام',
+    'تأجير عربية من مطار القاهرة',
+    'أفكار ويك إند بميزانية تحت ٣٠٠ دولار',
+    'وجهات عائلية في مصر',
+    'رحلات شاطئية في مصر',
+  ];
+
+  /** Shown when the typed query matches nothing in the catalogue. */
+  private static readonly DEFAULT_SUGGESTIONS: readonly string[] = [
+    'Flights from Cairo to Dubai',
+    'Hotels in Dubai for 2 nights',
+    'طيران من القاهرة إلى دبي',
+    'أرخص رحلات إلى إستنبول',
+    'Weekend trip ideas under $300',
+    'فنادق في شرم الشيخ بمسبح',
+  ];
+
   constructor(
     @Inject(AI_PROVIDER) private readonly provider: AiProvider,
     private readonly duffelService: DuffelService,
@@ -70,8 +108,11 @@ export class AiService {
     return { isTravelSearch: true, searchData };
   }
 
-  async query(prompt: string, context?: AiContextDto | null): Promise<AiResponseDto> {
-    const startedAt = Date.now();
+  async query(
+    prompt: string,
+    context?: AiContextDto | null,
+    memoryContext?: string | null,
+  ): Promise<AiResponseDto> {    const startedAt = Date.now();
     let fullPrompt = prompt;
     if (context) {
       const contextParts = [];
@@ -134,7 +175,14 @@ export class AiService {
     }
 
     try {
-      const response = await this.provider.generate(fullPrompt);
+      // Phase 2C-B: the conversation-memory context (when present) rides the
+      // provider system prompt — it is NEVER concatenated into the user
+      // prompt, so the Duffel keyword shortcut and the flight-path prompt
+      // stay byte-identical when no memory is relevant.
+      const response = await this.provider.generate(
+        fullPrompt,
+        memoryContext ?? undefined,
+      );
       this.record({
         provider: this.provider.providerId,
         outcome: 'success',
@@ -151,6 +199,49 @@ export class AiService {
       });
       throw error;
     }
+  }
+
+  /**
+   * POST /ai/suggest — fast typeahead suggestions for the smart search
+   * sheet. Deliberately NOT an LLM call: typeahead must return in tens of
+   * milliseconds and stay free. Template matching over a small bilingual
+   * travel catalogue — no ML, no vector search (per architecture rules).
+   */
+  async suggest(query: string): Promise<string[]> {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) {
+      return AiService.DEFAULT_SUGGESTIONS.slice(0, 6);
+    }
+
+    const catalogue = AiService.SUGGEST_CATALOGUE;
+    const scored: { text: string; score: number }[] = [];
+
+    for (const entry of catalogue) {
+      const haystack = entry.toLowerCase();
+      let score = 0;
+
+      // Containment on either side (partial prefix or substring) beats
+      // nothing; language-agnostic for the mixed AR/EN catalogue.
+      const direct = haystack.indexOf(q);
+      if (direct >= 0) {
+        score = 100 - Math.min(direct, 50);
+      } else {
+        // Token-overlap fallback for word-order differences.
+        const tokens = q.split(/\s+/).filter((t) => t.length > 1);
+        const matched = tokens.filter((t) => haystack.includes(t)).length;
+        if (tokens.length > 0 && matched > 0) {
+          score = Math.round((matched / tokens.length) * 60);
+        }
+      }
+
+      if (score > 0) {
+        scored.push({ text: entry, score });
+      }
+    }
+
+    scored.sort((a, b) => b.score - a.score);
+    const results = scored.slice(0, 6).map((s) => s.text);
+    return results.length > 0 ? results : AiService.DEFAULT_SUGGESTIONS.slice(0, 6);
   }
 
   private record(record: AiAttemptRecord): void {

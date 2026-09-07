@@ -112,7 +112,7 @@ export class OpenAiAiProvider implements AiProvider {
     this.model = config.get<string>('AI_MODEL') ?? DEFAULT_MODEL;
   }
 
-  async generate(prompt: string): Promise<AiResponseDto> {
+  async generate(prompt: string, systemPrompt?: string): Promise<AiResponseDto> {
     const key = this.apiKey;
     if (!key) {
       // A missing key is a deployment mistake, not a transient outage: failing
@@ -125,6 +125,13 @@ export class OpenAiAiProvider implements AiProvider {
     }
 
     try {
+      // Phase 2C-B: a caller may LAYER a conversation-memory context block on
+      // top of the base system prompt. The base prompt is never replaced —
+      // memory context is additive, and the merged prompt stays a single
+      // system message so the chat-completions contract is unchanged.
+      const system = systemPrompt
+        ? `${SYSTEM_PROMPT}\n\n${systemPrompt}`
+        : SYSTEM_PROMPT;
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -135,7 +142,7 @@ export class OpenAiAiProvider implements AiProvider {
           model: this.model,
           temperature: 0.2,
           messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: system },
             { role: 'user', content: prompt },
           ],
         }),

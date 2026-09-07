@@ -195,39 +195,87 @@ class UniversalSearchController extends StateNotifier<UniversalSearchState> {
   // Submission — SearchIntentParser door (US-1 STEP 14).
   // ---------------------------------------------------------------------------
 
-  /// Submit the current query. A query that compiles into a valid intent
-  /// runs through the EXISTING vertical controllers; anything else keeps
-  /// the established AI sheet flow (page layer renders it).
+  /// Submit the current query. A query that compiles into a COMPLETE
+  /// intent runs through the EXISTING vertical controllers; a valid but
+  /// INCOMPLETE intent surfaces its gaps as question chips (US-2 §3 —
+  /// never invent facts); anything else keeps the established AI sheet
+  /// flow (page layer renders it).
   Future<void> submit() async {
     final text = state.query.trim();
     if (text.isEmpty) return;
     _debounce?.cancel();
 
     final parsed = SearchIntentParser.parse(text);
-    if (parsed.isValid && parsed.destination != null) {
-      await _runStructured(parsed);
+    if (parsed.isValid) {
+      final intent = _intentFromParsed(parsed);
+      final gaps = intent.missingFields();
+      if (gaps.isNotEmpty) {
+        // US-2 §3: ask, don't invent. The intent stays parked on the
+        // state; filling a gap resumes the flow.
+        state = state.copyWith(
+          structuredIntent: intent,
+          intentGaps: gaps,
+          aiInterpreting: false,
+        );
+        return;
+      }
+      await _runIntent(intent);
     } else {
+      // AI resolution contract (US-2 §4): whatever the AI layer returns
+      // must be converted into a StructuredTravelIntent before it may
+      // execute — raw LLM output never controls navigation or provider
+      // APIs. The AI sheet flow renders sections; intent conversion hooks
+      // in aiResultsReady when a structured payload is present.
       _goTo(UniversalSearchPhase.searching);
       state = state.copyWith(aiInterpreting: true);
     }
   }
 
-  Future<void> _runStructured(ParsedSearchIntent parsed) async {
+  /// Compiles the parser result into the typed intent (US-2 §1).
+  StructuredTravelIntent _intentFromParsed(ParsedSearchIntent parsed) {
+    return StructuredTravelIntent(
+      type: parsed.service!,
+      origin: parsed.origin,
+      destination: parsed.destination,
+      date: parsed.date,
+      returnDate: parsed.returnDate,
+      durationNights: parsed.durationNights,
+      passengers: parsed.passengers,
+      rooms: parsed.rooms,
+      budget: switch (parsed.budgetBand) {
+        'low' => IntentBudgetBand.low,
+        'medium' => IntentBudgetBand.medium,
+        'high' => IntentBudgetBand.high,
+        _ => IntentBudgetBand.none,
+      },
+      minStars: parsed.minStars,
+      amenities: parsed.amenities,
+    );
+  }
+
+  /// A gap chip was answered (US-2 §3): patch the parked intent and
+  /// resume — search only once every required field stands on facts.
+  Future<void> fillGap(StructuredTravelIntent patched) async {
+    final gaps = patched.missingFields();
+    state = state.copyWith(
+      structuredIntent: patched,
+      intentGaps: gaps,
+    );
+    if (gaps.isEmpty) {
+      await _runIntent(patched);
+    }
+  }
+
+  Future<void> _runIntent(StructuredTravelIntent intent) async {
     final version = ++_searchVersion;
     _goTo(UniversalSearchPhase.searching);
     state = state.copyWith(
       aiInterpreting: false,
-      structuredIntent: StructuredTravelIntent(
-        type: parsed.service!,
-        origin: parsed.origin,
-        destination: parsed.destination,
-        date: parsed.date,
-        returnDate: parsed.returnDate,
-        guests: parsed.passengers,
-      ),
+      structuredIntent: intent,
+      intentGaps: const [],
     );
 
-    final sections = await _executeIntent(state.structuredIntent!);
+    final sections = await _executeIntent(intent);
     if (version != _searchVersion) return;
 
     if (sections.isEmpty) {
@@ -243,38 +291,77 @@ class UniversalSearchController extends StateNotifier<UniversalSearchState> {
   /// into renderable Home sections. `hotel_search` behavioral events fire
   /// from inside the hotel controller on success — same as the vertical
   /// flows, no duplicate event schema.
+  ///
+  /// US-2: every mapped value comes from the intent or the vertical's own
+  /// documented convention — the SAME defaults the vertical forms present
+  /// (flight/hotel: today + 7d, car: today + 1d). The budget band
+  /// translates to CONCRETE param windows here (never raw LLM numbers
+  /// reaching providers).
   Future<List<HomeSection>> _executeIntent(StructuredTravelIntent intent) async {
-    final fallback = DateTime.now().add(const Duration(days: 7));
     switch (intent.type) {
       case 'flight':
+        // Flights require both endpoints — guaranteed non-null by
+        // `missingFields()` gating in submit/fillGap. The departure date
+        // falls back to the vertical form's own default (+7d).
         await flightSearch.search(FlightSearchParams(
-          origin: intent.origin ?? 'CAI',
+          origin: intent.origin!,
           destination: intent.destination!,
-          departureDate: intent.date ?? fallback,
+          departureDate: intent.date ?? _verticalDefaultStart(),
           returnDate: intent.returnDate,
-          adults: intent.guests ?? 1,
+          adults: intent.passengers ?? 1,
         ));
         return offersToHomeSections(flightSearch.state.results);
       case 'hotel':
+        final checkIn = intent.date ?? _verticalDefaultStart();
         await hotelSearch.search(HotelSearchParams(
           destination: intent.destination!,
-          checkIn: intent.date ?? fallback,
-          checkOut:
-              intent.returnDate ?? (intent.date ?? fallback).add(const Duration(days: 2)),
-          adults: intent.guests ?? 2,
+          checkIn: checkIn,
+          checkOut: intent.effectiveEndDate(checkIn),
+          rooms: intent.rooms ?? 1,
+          adults: intent.passengers ?? 2,
+          minRating: _minRatingFor(intent),
+          maxPrice: _maxPriceFor(intent),
+          minPrice: _minPriceFor(intent),
+          amenities: intent.amenities,
         ));
         return offersToHomeSections(hotelSearch.state.results);
       case 'car':
+        // The car form's own convention: pickup tomorrow, +3-day span.
+        final pickup = intent.date ?? DateTime.now().add(const Duration(days: 1));
         await carSearch.search(CarSearchParams(
           pickupLocation: intent.origin ?? intent.destination!,
           dropoffLocation: intent.destination!,
-          pickupDateTime: intent.date ?? fallback,
-          dropoffDateTime: (intent.date ?? fallback).add(const Duration(days: 3)),
+          pickupDateTime: pickup,
+          dropoffDateTime: intent.effectiveEndDate(pickup, defaultNights: 3),
         ));
         return offersToHomeSections(carSearch.state.results);
       default:
         return const <HomeSection>[];
     }
+  }
+
+  /// The flight/hotel vertical forms' shared default start (today + 7d)
+  /// — their own documented convention, mirrored exactly.
+  DateTime _verticalDefaultStart() =>
+      DateTime.now().add(const Duration(days: 7));
+
+  /// Budget bands to concrete windows (US-2 §4): the grammar says the
+  /// BAND, execution decides the numbers. Bands are conservative caps.
+  double? _maxPriceFor(StructuredTravelIntent intent) {
+    return switch (intent.budget) {
+      IntentBudgetBand.low => 120,
+      IntentBudgetBand.medium => 300,
+      _ => null,
+    };
+  }
+
+  double? _minPriceFor(StructuredTravelIntent intent) {
+    return intent.budget == IntentBudgetBand.high ? 200 : null;
+  }
+
+  double? _minRatingFor(StructuredTravelIntent intent) {
+    if (intent.minStars != null) return intent.minStars;
+    return intent.budget == IntentBudgetBand.high ? 4.0 : null;
   }
 
   /// The AI flow (page layer) landed with product sections.
@@ -303,13 +390,27 @@ class UniversalSearchController extends StateNotifier<UniversalSearchState> {
     final intent = state.structuredIntent;
     if (intent == null) return;
     final version = ++_searchVersion;
-    _goTo(UniversalSearchPhase.searching);
 
-    // Patch the intent (US-0 §12): a follow-up is a NEW intent, the
-    // original stays immutable. The two US-1 actions re-run the same
-    // intent through the existing controllers — the vertical forms carry
-    // the price refinements in their own flows.
-    final patched = intent.copyWith();
+    StructuredTravelIntent patched;
+    switch (action) {
+      case FollowUpAction.cheaper:
+        // Patch the BAND, not a number (US-2 §4) — execution maps it.
+        patched = intent.copyWith(budget: IntentBudgetBand.low);
+      case FollowUpAction.morePremium:
+        patched = intent.copyWith(budget: IntentBudgetBand.high);
+      case FollowUpAction.changeDates:
+        // Surface the date question instead of guessing (US-2 §3).
+        state = state.copyWith(intentGaps: <IntentGap>[IntentGap.dates]);
+        return;
+      case FollowUpAction.twoPeople:
+        patched = intent.copyWith(passengers: 2);
+      case FollowUpAction.nearAirport:
+        patched = intent.copyWith(
+          amenities: <String>[...intent.amenities, 'Airport transfer'],
+        );
+    }
+
+    _goTo(UniversalSearchPhase.searching);
     state = state.copyWith(structuredIntent: patched);
 
     final sections = await _executeIntent(patched);
@@ -318,6 +419,18 @@ class UniversalSearchController extends StateNotifier<UniversalSearchState> {
     _goTo(sections.isEmpty
         ? UniversalSearchPhase.aiResult
         : UniversalSearchPhase.results);
+  }
+
+  /// The change-dates chip answered with concrete dates (US-2 §8).
+  Future<void> applyDateRange(DateTime start, DateTime? end) async {
+    final intent = state.structuredIntent;
+    if (intent == null) return;
+    final patched = intent.copyWith(date: start, returnDate: end);
+    state = state.copyWith(
+      structuredIntent: patched,
+      intentGaps: const [],
+    );
+    await _runIntent(patched);
   }
 
   // ---------------------------------------------------------------------------

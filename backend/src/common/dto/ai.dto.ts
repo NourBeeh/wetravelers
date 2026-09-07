@@ -59,6 +59,39 @@ export class AiQueryDto {
 }
 
 /**
+ * POST /ai/suggest request body — live typeahead for the smart search sheet.
+ * `query` is deliberately short: this is a partial prompt, not a full one.
+ */
+export class AiSuggestDto {
+  @IsString()
+  @IsNotEmpty({ message: 'query must not be empty' })
+  @MaxLength(120, { message: 'query must be at most 120 characters' })
+  query!: string;
+}
+
+/** POST /ai/suggest response — short, display-ready prompt suggestions. */
+export interface AiSuggestResponseDto {
+  suggestions: string[];
+}
+
+/**
+ * POST /ai/chat request body (Phase 2C-B). Same prompt contract as
+ * AiQueryDto; the endpoint itself is JWT-only and enriches the call with
+ * the caller's relevant explicit conversation memories server-side.
+ */
+export class AiChatDto {
+  @IsString()
+  @IsNotEmpty({ message: 'prompt must not be empty' })
+  @MaxLength(4000, { message: 'prompt must be at most 4000 characters' })
+  prompt!: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AiContextDto)
+  context?: AiContextDto;
+}
+
+/**
  * Normalized, provider-agnostic AI response contract.
  *
  * Field names mirror the Flutter AiResponse contract exactly so the mobile

@@ -54,7 +54,7 @@ class PlaceholderPage extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Wetravellers • Phase 1 Foundation',
+                'Hopper • Phase 1 Foundation',
                 style: typography.label.copyWith(color: theme.colorScheme.outline),
               ),
             ],

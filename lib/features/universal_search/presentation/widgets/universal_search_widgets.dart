@@ -388,6 +388,148 @@ class _CategoryChip extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Gaps body — question chips for an incomplete intent (US-2 §3).
+// ---------------------------------------------------------------------------
+
+typedef GapAnswerCallback = void Function(StructuredTravelIntent patched);
+
+/// The parked state for a valid-but-incomplete intent: a short summary of
+/// what was understood plus question chips for what is missing. Never
+/// invents a value — the user answers, then the search runs.
+class UniversalSearchGapsBody extends StatelessWidget {
+  const UniversalSearchGapsBody({
+    super.key,
+    required this.state,
+    required this.onGapAnswered,
+  });
+
+  final UniversalSearchState state;
+  final GapAnswerCallback onGapAnswered;
+
+  String _summaryLabel(AppLocalizations l10n) {
+    final intent = state.structuredIntent;
+    if (intent == null) return l10n.aiSearchNoSuggestions;
+    final place =
+        intent.destination ?? intent.origin ?? l10n.aiSearchNoSuggestions;
+    return l10n.aiSearchResultsFor(place);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = AppTypography.forLight();
+    final l10n = AppLocalizations.of(context)!;
+    final intent = state.structuredIntent;
+    if (intent == null) return const SizedBox.shrink();
+
+    // Each gap renders a question + concrete answer chips. The chips patch
+    // the parked intent — typed answers only, no free text.
+    final answers = <IntentGap, List<({_GapPatch patch, String label})>>{};
+    for (final gap in state.intentGaps) {
+      switch (gap) {
+        case IntentGap.origin:
+          answers[gap] = <({_GapPatch patch, String label})>[
+            (patch: (c) => c.copyWith(origin: 'Cairo'), label: 'القاهرة'),
+            (patch: (c) => c.copyWith(origin: 'Riyadh'), label: 'الرياض'),
+          ];
+        case IntentGap.destination:
+          answers[gap] = <({_GapPatch patch, String label})>[
+            (patch: (c) => c.copyWith(destination: 'Dubai'), label: 'دبي'),
+            (patch: (c) => c.copyWith(destination: 'Cairo'), label: 'القاهرة'),
+            (patch: (c) => c.copyWith(destination: 'Sharm El Sheikh'),
+             label: 'شرم الشيخ'),
+          ];
+        case IntentGap.dates:
+          answers[gap] = <({_GapPatch patch, String label})>[
+            (patch: (c) => c.copyWith(
+               date: DateTime.now().add(const Duration(days: 7))),
+             label: 'الأسبوع الجاي'),
+            (patch: (c) => c.copyWith(
+               date: DateTime.now().add(const Duration(days: 14)),
+               returnDate: DateTime.now().add(const Duration(days: 17))),
+             label: 'بأسبوعين · 3 ليالي'),
+          ];
+        case IntentGap.passengers:
+          answers[gap] = <({_GapPatch patch, String label})>[
+            (patch: (c) => c.copyWith(passengers: 1), label: 'شخص واحد'),
+            (patch: (c) => c.copyWith(passengers: 2), label: 'شخصين'),
+            (patch: (c) => c.copyWith(passengers: 4), label: '4 أشخاص'),
+          ];
+        case IntentGap.budget:
+          answers[gap] = <({_GapPatch patch, String label})>[
+            (patch: (c) => c.copyWith(budget: IntentBudgetBand.low),
+             label: 'ميزانية صغيرة'),
+            (patch: (c) => c.copyWith(budget: IntentBudgetBand.medium),
+             label: 'متوسطة'),
+            (patch: (c) => c.copyWith(budget: IntentBudgetBand.high),
+             label: 'ميزانية مريحة'),
+          ];
+        case IntentGap.rooms:
+          answers[gap] = <({_GapPatch patch, String label})>[
+            (patch: (c) => c.copyWith(rooms: 1), label: 'غرفة واحدة'),
+            (patch: (c) => c.copyWith(rooms: 2), label: 'غرفتين'),
+          ];
+        case IntentGap.service:
+        case IntentGap.unsupportedPackage:
+          // No quick patch — informational only.
+          answers[gap] = <({_GapPatch patch, String label})>[];
+      }
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: <Widget>[
+        Text(
+          _summaryLabel(l10n),
+          style: typography.title.copyWith(color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'بس محتاج تفاصيل كمان عشان أدور صح:',
+          style: typography.body.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        for (final entry in answers.entries) ...<Widget>[
+          Text(
+            switch (entry.key) {
+              IntentGap.origin => 'منين بتسافر؟',
+              IntentGap.destination => 'رايح فين؟',
+              IntentGap.dates => 'أي تاريخ؟',
+              IntentGap.passengers => 'شخصين ولا أكتر؟',
+              IntentGap.budget => 'الميزانية كام تقريبًا؟',
+              IntentGap.rooms => 'محتاج كام غرفة؟',
+              IntentGap.service => 'بتدور على إيه؟',
+              IntentGap.unsupportedPackage =>
+                'الباقات قادمة قريبًا — جرّب فنادق أو رحلات',
+            },
+            style: typography.captionSemibold.copyWith(
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            children: <Widget>[
+              for (final option in entry.value)
+                _FollowUpChip(
+                  label: option.label,
+                  onTap: () => onGapAnswered(option.patch(intent)),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
+      ],
+    );
+  }
+}
+
+/// Signature of a typed gap answer — patches the parked intent.
+typedef _GapPatch = StructuredTravelIntent Function(
+  StructuredTravelIntent current,
+);
+
+// ---------------------------------------------------------------------------
 // Loading + Results bodies (US-1 STEP 19/20).
 // ---------------------------------------------------------------------------
 
@@ -498,9 +640,10 @@ class UniversalSearchResultsBody extends ConsumerWidget {
           ),
         ),
         // Follow-up chips — only when the result came from a structured
-        // intent (US-1 STEP 20: the two intent-patchable follow-ups).
-        if (state.phase == UniversalSearchPhase.aiResult &&
-            state.structuredIntent != null)
+        // intent (US-2 §8: five intent-patchable follow-ups).
+        if (state.structuredIntent != null &&
+            (state.phase == UniversalSearchPhase.aiResult ||
+                state.phase == UniversalSearchPhase.results))
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: Wrap(
@@ -514,6 +657,18 @@ class UniversalSearchResultsBody extends ConsumerWidget {
                 _FollowUpChip(
                   label: 'أفخم',
                   onTap: () => onFollowUp(FollowUpAction.morePremium),
+                ),
+                _FollowUpChip(
+                  label: 'غير التواريخ',
+                  onTap: () => onFollowUp(FollowUpAction.changeDates),
+                ),
+                _FollowUpChip(
+                  label: 'شخصين',
+                  onTap: () => onFollowUp(FollowUpAction.twoPeople),
+                ),
+                _FollowUpChip(
+                  label: 'قريب من المطار',
+                  onTap: () => onFollowUp(FollowUpAction.nearAirport),
                 ),
               ],
             ),

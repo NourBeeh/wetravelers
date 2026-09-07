@@ -142,7 +142,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           const SizedBox(width: AppSpacing.sm + 2),
           Expanded(
             child: Text(
-              'Travellers AI',
+              'Hopper AI',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: scheme.onSurface,

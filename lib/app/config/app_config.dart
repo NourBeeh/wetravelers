@@ -14,7 +14,7 @@ enum AppEnvironment {
 class AppConfig {
   const AppConfig._();
 
-  static const String appName = 'WeTravellers';
+  static const String appName = 'Hopper';
   static const String bundleId = 'com.wetravellers.wetravellers';
   static const String version = '1.0.0';
   static const AppEnvironment environment = AppEnvironment.dev;

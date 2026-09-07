@@ -24,8 +24,15 @@ export interface AiProvider {
   readonly providerId: string;
   readonly providerName: string;
 
-  /** Produces a normalized [AiResponseDto] for the given prompt. */
-  generate(prompt: string): Promise<AiResponseDto>;
+  /**
+   * Produces a normalized [AiResponseDto] for the given prompt.
+   *
+   * [systemPrompt] is an OPTIONAL layered instruction block (Phase 2C-B
+   * conversation-memory context). Providers that cannot carry it simply
+   * ignore it — the base travel-assistant system prompt stays the default,
+   * so the call is 100% backward-compatible.
+   */
+  generate(prompt: string, systemPrompt?: string): Promise<AiResponseDto>;
 }
 
 /**
