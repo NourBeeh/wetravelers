@@ -23,9 +23,16 @@ class CarSearchState {
 class CarSearchController extends StateNotifier<CarSearchState> {
   final CarRepository repository;
   final OfflineCache _cache;
+
+  /// Phase 3A — request versioning (stale-response guard, same as the
+  /// flight/hotel controllers).
+  int _requestVersion = 0;
+
   CarSearchController(this.repository, this._cache) : super(const CarSearchState());
 
   Future<void> search(CarSearchParams params) async {
+    final version = ++_requestVersion;
+
     final cacheKey = carSearchCacheKey(
       pickupLocation: params.pickupLocation,
       pickupTime: params.pickupDateTime,
@@ -34,6 +41,7 @@ class CarSearchController extends StateNotifier<CarSearchState> {
 
     // Try to load from cache first
     final cached = await _cache.read(cacheKey);
+    if (version != _requestVersion) return; // Superseded mid-flight.
     if (cached != null) {
       final offers = <CarOffer>[];
       for (final item in (cached['offers'] as List? ?? [])) {
@@ -53,6 +61,7 @@ class CarSearchController extends StateNotifier<CarSearchState> {
       pickupTime: params.pickupDateTime,
       dropoffTime: params.dropoffDateTime,
     );
+    if (version != _requestVersion) return; // Superseded mid-flight.
     await result.when<Future<void>>(
       success: (offers) async {
         if (offers.isEmpty) {

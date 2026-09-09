@@ -9,7 +9,7 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appTitle => 'هوبر';
+  String get appTitle => 'TokiGo';
 
   @override
   String get navHome => 'الرئيسية';
@@ -42,7 +42,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchHint => 'رايح فين؟';
 
   @override
-  String get aiSearchHint => 'اسأل هوبر الذكي…';
+  String get aiSearchHint => 'اسأل Toki — مساعدك السياحي';
+
+  @override
+  String get aiHintPhrase1 => 'اسأل Toki — مساعدك السياحي';
+
+  @override
+  String get aiHintPhrase2 => 'إلى أين تريد السفر؟';
+
+  @override
+  String get aiHintPhrase3 => 'فنادق في إستنبول؟ رحلات إلى القاهرة؟';
 
   @override
   String get aiSearchSheetHint => 'عايز تسافر فين؟';
@@ -304,4 +313,74 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adminDeal => 'عروض';
+
+  @override
+  String get aiMemoryTitle => 'اللي أعرفه عنك';
+
+  @override
+  String get aiMemorySubtitle =>
+      'حقائق شاركتها في محادثات الذكاء الاصطناعي. تقدر تعدّلها أو تحذفها في أي وقت.';
+
+  @override
+  String get aiMemorySignInPrompt =>
+      'سجّل الدخول لتشاهد وتتحكم في اللي المساعد الذكي يتذكره عنك.';
+
+  @override
+  String get aiMemoryEmpty =>
+      'مفيش حاجة بعد. الحقائق اللي هتشاركها مع المساعد الذكي هتظهر هنا.';
+
+  @override
+  String get aiMemoryEdit => 'تعديل';
+
+  @override
+  String get aiMemoryDelete => 'حذف';
+
+  @override
+  String get aiMemoryDeleted => 'تم الحذف.';
+
+  @override
+  String get aiMemoryClearAll => 'حذف الكل';
+
+  @override
+  String get aiMemoryClearAllConfirm =>
+      'تحذف كل الحقائق المعروضة هنا؟ ملفك الشخصي وسجل سفرك مش هيتأثروا.';
+
+  @override
+  String get aiMemoryClearedAll => 'تم حذف كل الحقائق.';
+
+  @override
+  String get aiMemoryFieldDestination => 'الوجهة';
+
+  @override
+  String get aiMemoryFieldBudgetMin => 'أقل ميزانية';
+
+  @override
+  String get aiMemoryFieldBudgetMax => 'أقصى ميزانية';
+
+  @override
+  String get aiMemoryFieldStyles => 'أساليب السفر';
+
+  @override
+  String get aiMemoryFieldStylesHelper => 'افصل بين الأساليب بفواصل';
+
+  @override
+  String get aiMemoryMemoryButton => 'اللي أعرفه عنك';
+
+  @override
+  String get voiceSearch => 'البحث الصوتي';
+
+  @override
+  String get voiceStarting => 'جارٍ بدء البحث الصوتي…';
+
+  @override
+  String get voiceStop => 'إيقاف البحث الصوتي';
+
+  @override
+  String get voiceErrorPermission => 'الوصول للمايك مطلوب للبحث الصوتي.';
+
+  @override
+  String get voiceErrorUnavailable => 'البحث الصوتي غير متاح على هذا الجهاز.';
+
+  @override
+  String get voiceErrorEmpty => 'لم أسمع شيئًا — حاول التحدث مرة أخرى.';
 }

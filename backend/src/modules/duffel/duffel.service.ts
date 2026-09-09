@@ -169,6 +169,10 @@ export class DuffelService implements FlightProvider {
             expiresAt:
               offer.expires_at ??
               new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+            // 3D — verbatim detail fields for the details page (never
+            // invented): Duffel exposes checked baggage on the offer when
+            // present; absent stays absent (never fabricated).
+            baggage: offer.baggage ?? undefined,
           },
         };
       });

@@ -126,8 +126,11 @@ void main() {
     final controller = HomeController(repo);
     await settle();
 
-    expect(controller.state.status, HomeStatus.developmentPreview);
-    expect(controller.state.sections, isNotEmpty);
+    // 2026-09-08: the honest no-content state replaces the old skeleton
+    // preview — an empty feed with no hotel rail renders the explicit
+    // empty state (retry affordance), never fake-looking headings.
+    expect(controller.state.status, HomeStatus.empty);
+    expect(controller.state.sections, isEmpty);
   });
 
   test('HomeController loads error', () async {
@@ -192,7 +195,7 @@ void main() {
     expect(controller.state.recommendedHotels, isNotEmpty);
   });
 
-  test('Nuitee-only Home: empty feed with NO hotels → neutral loading preview',
+  test('Nuitee-only Home: empty feed with NO hotels → honest empty state',
       () async {
     final repo = FakeHomeRepo(
       result: ApiResult.success([]),
@@ -201,8 +204,10 @@ void main() {
     final controller = HomeController(repo);
     await settle();
 
-    expect(controller.state.status, HomeStatus.developmentPreview);
-    expect(controller.state.sections, isNotEmpty); // skeleton UI, no fake data
+    // 2026-09-08: no skeleton preview — the explicit no-content state with
+    // its retry affordance (rendered by the page's empty branch).
+    expect(controller.state.status, HomeStatus.empty);
+    expect(controller.state.sections, isEmpty); // no fake data, no headings
     expect(controller.state.recommendedHotels, isEmpty);
   });
 
@@ -224,8 +229,9 @@ void main() {
     // The stale snapshot (fake sections) must be gone so it can never
     // resurface on cold starts or offline.
     expect(await repo.hasSnapshot('anon'), isFalse);
-    expect(controller.state.sections.every((s) => s.id.startsWith('dev-')),
-        isTrue);
+    // 2026-09-08: no dev-* skeleton sections are produced anymore —
+    // the empty feed renders the honest empty state instead.
+    expect(controller.state.sections, isEmpty);
   });
 
   test('loadRecommendedHotels ignores failure and empty list silently', () async {

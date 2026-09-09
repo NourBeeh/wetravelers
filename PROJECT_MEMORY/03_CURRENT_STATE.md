@@ -349,3 +349,117 @@ A  lib/features/ai/data/ai_chat_repository.dart
 A  lib/features/ai/data/ai_chat_repository_impl.dart
 A  test/features/ai/data/ai_chat_repository_test.dart
 ```
+---
+## Automatic Git Sync
+- Branch: main
+- Last sync before commit
+- Repository status captured automatically
+
+### Recent commits
+```
+89adc1a8 (HEAD -> main, origin/main, origin/HEAD) feat(ai): 2C-C1 — Flutter wiring for POST /ai/chat (conversation memory endpoint)
+d72a93e5 feat(nav): Home-centric navigation — bottom bar removed, verticals as Home buttons
+6b08636b docs(plan): all pending decisions P1-P6 approved by owner — order finalized
+9a5793c2 feat(memory+search): memory spine backend, AI chat/rerank endpoints, and Universal Search US-2 work
+0f058e8b feat(home): Nuitee-only Home — instant skeleton rail, price-only refresh, Hive image cache (M0-H3)
+794ebcb9 chore(universal-search): remove legacy v1 search page
+b4317d8d chore(phase0): stabilize single-provider tests and document r4
+dd0b11e5 feat(personalization): geo profile events recommend modules and ai single-provider
+f95cecf2 fix(admin): seed-admin camelCase columns + role in /auth/me
+b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
+```
+
+### Pending status
+```
+M  MASTER_PLAN.md
+A  "TOKI AI.png"
+M  android/app/src/main/AndroidManifest.xml
+M  backend/src/common/dto/hotel.search.dto.ts
+M  backend/src/common/dto/memory.dto.ts
+M  backend/src/modules/ai/ai.conversation.controller.ts
+M  backend/src/modules/duffel/duffel.service.ts
+M  backend/src/modules/home/home.controller.ts
+M  backend/src/modules/home/home.module.ts
+A  backend/src/modules/home/home.recommended.service.ts
+M  backend/src/modules/memory/conversation_facts.ts
+M  backend/src/modules/memory/memory.service.ts
+A  backend/src/modules/nuitee/nuitee.flight.service.ts
+M  backend/src/modules/nuitee/nuitee.service.ts
+M  backend/src/modules/providers/providers.module.ts
+M  backend/src/modules/providers/registry.sync.service.ts
+M  backend/src/modules/providers/search.service.ts
+A  backend/test/ai.context-hardening.spec.ts
+A  backend/test/home.recommended.spec.ts
+A  backend/test/hotel.search.dto.contract.spec.ts
+A  backend/test/nuitee.adapter.dedup.spec.ts
+A  backend/test/nuitee.details.3d.spec.ts
+A  backend/test/search.aggregation.3b.spec.ts
+M  ios/Runner/Info.plist
+M  lib/app/config/app_config.dart
+M  lib/app/router/go_router_config.dart
+M  lib/app/widgets/home_nav_buttons.dart
+M  lib/core/repositories/impl/hotel_repository_impl.dart
+M  lib/core/theme/app_colors.dart
+A  lib/features/ai/application/ai_chat_guest_only_cache.dart
+A  lib/features/ai/application/ai_chat_page_providers.dart
+A  lib/features/ai/application/ai_chat_service_adapter.dart
+A  lib/features/ai/application/explicit_memory_controller.dart
+A  lib/features/ai/application/memory_controls_providers.dart
+A  lib/features/ai/domain/explicit_memory_view.dart
+M  lib/features/ai/presentation/pages/ai_chat_page.dart
+A  lib/features/ai/presentation/pages/ai_memory_page.dart
+M  lib/features/ai/presentation/pages/ai_visual_shell_page.dart
+M  lib/features/bag/presentation/pages/trip_details_page.dart
+M  lib/features/booking/presentation/pages/booking_confirmation_page.dart
+A  lib/features/home/application/hotel_image_memory_cache.dart
+M  lib/features/home/presentation/home_controller.dart
+M  lib/features/home/presentation/pages/home_page.dart
+M  lib/features/home/presentation/widgets/cached_hotel_image.dart
+M  lib/features/home/presentation/widgets/home_ai_search_field.dart
+M  lib/features/home/providers/home_providers.dart
+M  lib/features/search/application/controllers/car_search_controller.dart
+M  lib/features/search/application/controllers/flight_search_controller.dart
+M  lib/features/search/application/controllers/hotel_search_controller.dart
+A  lib/features/search/application/search_results_processing.dart
+M  lib/features/search/domain/search_filters.dart
+M  lib/features/search/presentation/pages/car_search_page.dart
+M  lib/features/search/presentation/pages/flight_search_page.dart
+M  lib/features/search/presentation/pages/hotel_search_page.dart
+M  lib/features/search/presentation/pages/offer_details_page.dart
+M  lib/features/search/presentation/widgets/filter_panel.dart
+M  lib/features/universal_search/application/universal_search_controller.dart
+A  lib/features/universal_search/application/voice_search_controller.dart
+A  lib/features/universal_search/application/voice_search_providers.dart
+A  lib/features/universal_search/application/voice_search_state.dart
+A  lib/features/universal_search/data/speech_to_text_voice_service.dart
+M  lib/features/universal_search/domain/structured_travel_intent.dart
+A  lib/features/universal_search/domain/voice_search_service.dart
+M  lib/features/universal_search/presentation/pages/universal_search_page.dart
+M  lib/features/universal_search/presentation/widgets/universal_search_widgets.dart
+M  lib/l10n/app_ar.arb
+M  lib/l10n/app_en.arb
+M  lib/l10n/app_localizations.dart
+M  lib/l10n/app_localizations_ar.dart
+M  lib/l10n/app_localizations_en.dart
+M  lib/shared/widgets/placeholder_page.dart
+M  pubspec.lock
+M  pubspec.yaml
+A  test/app/home_nav_responsive_test.dart
+A  test/features/ai/application/ai_chat_guest_only_cache_test.dart
+A  test/features/ai/application/explicit_memory_controller_test.dart
+A  test/features/ai/domain/explicit_memory_view_test.dart
+M  test/features/ai/presentation/pages/ai_chat_page_test.dart
+A  test/features/ai/presentation/pages/ai_memory_page_test.dart
+A  test/features/home/cached_hotel_image_infinity_regression_test.dart
+M  test/features/home/home_controller_test.dart
+A  test/features/home/hotel_image_scroll_reload_regression_test.dart
+M  test/features/home/presentation/pages/home_skeleton_rail_test.dart
+A  test/features/home/presentation/widgets/ai_search_typewriter_test.dart
+A  test/features/search/offer_details_3d_test.dart
+A  test/features/search/search_foundation_3a_test.dart
+A  test/features/search/search_results_processing_3c_test.dart
+A  test/features/universal_search/ai_assistant_us4_test.dart
+A  test/features/universal_search/application/voice_search_controller_test.dart
+M  test/features/universal_search/universal_search_page_test.dart
+?? session-20260908.json
+```

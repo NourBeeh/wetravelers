@@ -4,6 +4,7 @@ import 'package:wetravellers/core/domain/models/offers/hotel_offer.dart';
 import 'package:wetravellers/core/events/events_tracker.dart';
 import 'package:wetravellers/core/network/user_facing_message.dart';
 import 'package:wetravellers/core/repositories/contracts/hotel_repository.dart';
+import 'package:wetravellers/core/repositories/impl/hotel_repository_impl.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
 import 'package:wetravellers/core/storage/offline_cache_serializers.dart';
 
@@ -32,12 +33,33 @@ class HotelSearchController extends StateNotifier<HotelSearchState> {
   final HotelRepository repository;
   final OfflineCache _cache;
 
+  /// Phase 3A — request versioning: a stale response (from an older
+  /// superseded search) never overwrites the state of the newest one.
+  int _requestVersion = 0;
+
   /// Phase 1C — optional behavioral tracker. Null keeps the controller
   /// exactly as before (tests/legacy wiring); when present, successful
   /// searches emit a fire-and-forget `hotel_search` event.
   final EventsTracker? _events;
 
   Future<void> search(HotelSearchParams params) async {
+    // Phase 3A — supersede any in-flight search: this call owns the state
+    // from here on; the old one's late results are dropped by version.
+    final version = ++_requestVersion;
+
+    // Phase 3A — seed the rich params through the repository's extras
+    // contract BEFORE the call (the interface's own fields stay stable).
+    final repo = repository;
+    if (repo is HotelRepositoryImpl) {
+      repo.setNextSearchExtras(
+        rooms: params.rooms,
+        minRating: params.minRating,
+        maxPrice: params.maxPrice,
+        minPrice: params.minPrice,
+        amenities: params.amenities,
+      );
+    }
+
     final cacheKey = hotelSearchCacheKey(
       city: params.destination,
       checkIn: params.checkIn,
@@ -47,6 +69,7 @@ class HotelSearchController extends StateNotifier<HotelSearchState> {
 
     // Try to load from cache first
     final cached = await _cache.read(cacheKey);
+    if (version != _requestVersion) return; // Superseded mid-flight.
     if (cached != null) {
       final offers = <HotelOffer>[];
       for (final item in (cached['offers'] as List? ?? [])) {
@@ -67,6 +90,7 @@ class HotelSearchController extends StateNotifier<HotelSearchState> {
       checkOut: params.checkOut,
       guests: params.adults,
     );
+    if (version != _requestVersion) return; // Superseded mid-flight.
     await result.when<Future<void>>(
       success: (offers) async {
         if (offers.isEmpty) {

@@ -60,7 +60,7 @@ class _BookingConfirmationPageState extends ConsumerState<BookingConfirmationPag
               total: ref.read(checkoutBasePriceProvider),
               currency: 'USD',
               bookingReference: _reference,
-              providerName: 'Hopper',
+              providerName: 'TokiGo',
             ),
           );
       // Phase 1C — behavioral signal (fire-and-forget, guests skipped).

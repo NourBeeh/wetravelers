@@ -143,6 +143,15 @@ export function validateConversationFact(
     if (destination !== undefined && destination.trim().length === 0) {
       return { valid: false, error: 'Field "destination" must not be empty.' };
     }
+    // Phase 2D: free-text values must be SINGLE-LINE — CR/LF and other
+    // control characters let a stored value forge new prompt lines when the
+    // fact is later rendered into the AI context block.
+    if (destination !== undefined && /[\u0000-\u001f\u007f]/.test(destination)) {
+      return {
+        valid: false,
+        error: 'Field "destination" must not contain control characters.',
+      };
+    }
   }
   if (kind === 'preferred_travel_style') {
     const styles = value.styles as string[] | undefined;
@@ -162,6 +171,13 @@ export function validateConversationFact(
       return {
         valid: false,
         error: `A style exceeds ${CONVERSATION_FACT_LIMITS.styleMaxChars} characters.`,
+      };
+    }
+    // Phase 2D: same single-line rule per style item (line-forgery guard).
+    if (styles !== undefined && styles.some((s) => /[\u0000-\u001f\u007f]/.test(s))) {
+      return {
+        valid: false,
+        error: 'A style must not contain control characters.',
       };
     }
   }

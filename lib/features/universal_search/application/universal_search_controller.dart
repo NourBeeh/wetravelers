@@ -226,8 +226,11 @@ class UniversalSearchController extends StateNotifier<UniversalSearchState> {
       // execute — raw LLM output never controls navigation or provider
       // APIs. The AI sheet flow renders sections; intent conversion hooks
       // in aiResultsReady when a structured payload is present.
+      // US-4: the AI path is now the CONTEXTUAL ASSISTANT layer — it may
+      // answer with a narrative + real sections, but it can never trap the
+      // user: aiResultsFailed degrades to deterministic search below.
       _goTo(UniversalSearchPhase.searching);
-      state = state.copyWith(aiInterpreting: true);
+      state = state.copyWith(aiInterpreting: true, aiNarrative: null);
     }
   }
 
@@ -375,11 +378,73 @@ class UniversalSearchController extends StateNotifier<UniversalSearchState> {
     _goTo(UniversalSearchPhase.aiResult);
   }
 
-  /// The AI flow failed — the surface stays actionable.
+  /// The AI flow failed — US-4: AI must NEVER block search.
+  ///
+  /// Degrades to the DETERMINISTIC path: the query is retried through the
+  /// parser with a best-effort service inference; when that yields a
+  /// complete intent it executes through the real controllers, and the
+  /// user lands on results (or the empty state) exactly like a typed
+  /// search. When even the fallback cannot compile an intent, the surface
+  /// shows the empty-state with the edit affordance — never a trap.
   void aiResultsFailed() {
     if (state.phase != UniversalSearchPhase.searching) return;
     state = state.copyWith(aiInterpreting: false, aiNarrative: null);
+
+    // US-4 deterministic fallback: try the query once more as a plain
+    // location/service search. This reuses the SAME parser door as a
+    // typed query — no parallel interpretation logic.
+    final text = state.query.trim();
+    final fallbackIntent = _deterministicFallbackIntent(text);
+    if (fallbackIntent != null && fallbackIntent.isComplete) {
+      // Fire-and-forget by design: _runIntent owns the phase machine and
+      // versioning; the page rebuilds on every state emission.
+      _runIntent(fallbackIntent);
+      return;
+    }
     _goTo(UniversalSearchPhase.aiResult);
+  }
+
+  /// Best-effort deterministic interpretation for the AI-failure fallback
+  /// (US-4). The parser already returned invalid for this text — the only
+  /// remaining honest signal is a NAMED PLACE the user typed. We extract
+  /// it through the parser's own place dictionary and default to the
+  /// HOTEL vertical (the traveler's most common need), never inventing
+  /// dates or budgets.
+  StructuredTravelIntent? _deterministicFallbackIntent(String text) {
+    if (text.isEmpty) return null;
+    final parsed = SearchIntentParser.parse(text);
+    // The parser DID find a service but the intent was incomplete → the
+    // gaps flow already owns that case; do not duplicate it here.
+    if (parsed.isValid) return null;
+    final place = _lonePlaceIn(text);
+    if (place == null) return null;
+    return StructuredTravelIntent(
+      type: 'hotel',
+      destination: place,
+    );
+  }
+
+  /// Extracts a lone dictionary place from a service-less query — reuses
+  /// the parser's own `_extractInPlace` behavior by probing common
+  /// prepositions. Pure and deterministic.
+  String? _lonePlaceIn(String text) {
+    final lower = text.toLowerCase();
+    // The parser's place dictionary resolves "in/at/في <place>" — reuse
+    // its full public parse on a normalized probe string.
+    for (final probe in <String>['in ', 'at ', 'في ']) {
+      final idx = lower.indexOf(probe);
+      if (idx >= 0) {
+        final candidate = lower.substring(idx + probe.length).trim();
+        if (candidate.isNotEmpty) {
+          // A dictionary hit re-parses into a valid hotel intent — take it.
+          final reparsed = SearchIntentParser.parse('hotel in $candidate');
+          if (reparsed.isValid && reparsed.destination != null) {
+            return reparsed.destination;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   // ---------------------------------------------------------------------------
@@ -408,6 +473,12 @@ class UniversalSearchController extends StateNotifier<UniversalSearchState> {
         patched = intent.copyWith(
           amenities: <String>[...intent.amenities, 'Airport transfer'],
         );
+      case FollowUpAction.compare:
+        // US-4 — contract only: comparison selection state is the US-6
+        // surface's concern. The intent is untouched (nothing to patch),
+        // the phase stays on results — the chip's presence in the UI is
+        // the contract; US-6 builds the comparison view on this signal.
+        return;
     }
 
     _goTo(UniversalSearchPhase.searching);

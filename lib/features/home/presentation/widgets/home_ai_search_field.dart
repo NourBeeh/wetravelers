@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -121,10 +124,7 @@ class _HomeAiSearchFieldState extends State<HomeAiSearchField>
                               onTap: () => context.push('/smart-search'),
                               child: Align(
                                 alignment: AlignmentDirectional.centerStart,
-                                child: Text(
-                                  l10n.aiSearchHint,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                child: _TypewriterHint(
                                   style: typography.bodyLarge.copyWith(
                                     color: AppColors.textSecondary.withValues(
                                       alpha: 0.7,
@@ -270,40 +270,169 @@ class _RotatingAuraBorder extends StatelessWidget {
               animation: aura,
               builder: (context, _) {
                 final rotation = aura.value * 2 * 3.141592653589793;
-                return ShaderMask(
-                  blendMode: BlendMode.srcATop,
-                  shaderCallback: (bounds) {
-                    return SweepGradient(
-                      startAngle: -1.5707963267948966,
-                      endAngle: 4.71238898038469,
-                      colors: const <Color>[
-                        Color(0x00000000),
-                        Color(0x00000000),
-                        AppColors.ai,
-                        AppColors.brand,
-                        AppColors.aiLight,
-                        Color(0x00000000),
-                        Color(0x00000000),
-                      ],
-                      stops: const <double>[0.0, 0.52, 0.62, 0.72, 0.82, 0.92, 1.0],
-                      transform: GradientRotation(rotation),
-                    ).createShader(bounds);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                      border: Border.all(
-                        color: AppColors.ai,
-                        width: _borderWidth,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+                 return ShaderMask(
+                   blendMode: BlendMode.srcATop,
+                   shaderCallback: (bounds) {
+                     return SweepGradient(
+                       startAngle: -1.5707963267948966,
+                       endAngle: 4.71238898038469,
+                       colors: const <Color>[
+                         Color(0x00000000),
+                         Color(0x00000000),
+                         AppColors.ai,
+                         AppColors.brand,
+                         AppColors.aiLight,
+                         Color(0x00000000),
+                         Color(0x00000000),
+                       ],
+                       stops: const <double>[0.0, 0.52, 0.62, 0.72, 0.82, 0.92, 1.0],
+                       transform: GradientRotation(rotation),
+                     ).createShader(bounds);
+                   },
+                   child: Container(
+                     decoration: BoxDecoration(
+                       borderRadius: BorderRadius.circular(AppRadius.pill),
+                       border: Border.all(
+                         color: AppColors.ai,
+                         width: _borderWidth,
+                       ),
+                     ),
+                   ),
+                 );
+               },
+             ),
+           ),
+         ),
+       ],
+     );
+   }
+}
+
+/// Self-writing rotating hint for the AI search pill.
+///
+/// Cycles through the locale's `aiHintPhrase1..3` like a patient assistant
+/// typing at a keyboard: types character by character (~45ms), holds the
+/// finished line for two seconds, wipes it back faster, then starts the
+/// next phrase. A block cursor is shown only while typing. Language changes
+/// mid-flight re-seed the phrase list and restart the current line so the
+/// strings always match the active locale.
+class _TypewriterHint extends StatefulWidget {
+  const _TypewriterHint({required this.style});
+
+  final TextStyle style;
+
+  @override
+  State<_TypewriterHint> createState() => _TypewriterHintState();
+}
+
+class _TypewriterHintState extends State<_TypewriterHint> {
+  static const Duration _typeTick = Duration(milliseconds: 45);
+  static const Duration _eraseTick = Duration(milliseconds: 25);
+  static const Duration _holdLine = Duration(seconds: 2);
+
+  late List<String> _phrases;
+  int _phraseIndex = 0;
+  int _charCount = 0;
+  bool _erasing = false;
+  Timer? _timer;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final l10n = AppLocalizations.of(context)!;
+    final phrases = <String>[
+      l10n.aiHintPhrase1,
+      l10n.aiHintPhrase2,
+      l10n.aiHintPhrase3,
+    ];
+    // Locale changed mid-flight — restart the current line with the new
+    // language's phrases (keeps the index so rotation stays seamless).
+    if (listEquals(_phrases, phrases)) return;
+    final restart = _phrases.isNotEmpty;
+    _phrases = phrases;
+    if (restart) {
+      _charCount = 0;
+      _erasing = false;
+      _scheduleTick(_typeTick);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // didChangeDependencies runs after initState on the first build and
+    // seeds _phrases; the ticker starts from there.
+    _phrases = const <String>[];
+    _scheduleTick(_typeTick);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _scheduleTick(Duration interval) {
+    _timer?.cancel();
+    _timer = Timer.periodic(interval, (_) => _tick());
+  }
+
+  void _tick() {
+    if (!mounted) return;
+    final phrase = _phrases[_phraseIndex % _phrases.length];
+    if (!_erasing) {
+      if (_charCount < phrase.length) {
+        _charCount++;
+        if (_charCount == 1) {
+          // Typing just began — full typing cadence (in case we were in
+          // hold/erase cadence before).
+          _scheduleTick(_typeTick);
+        }
+        setState(() {});
+      } else {
+        // Line complete — hold it before wiping.
+        _scheduleTick(_holdLine);
+        _erasing = true;
+      }
+    } else {
+      if (_charCount > 0) {
+        _charCount--;
+        if (_charCount == phrase.length - 1) {
+          // Wiping just began — switch to the faster erase cadence.
+          _scheduleTick(_eraseTick);
+        }
+        setState(() {});
+      } else {
+        // Wiped — advance to the next phrase and start typing it.
+        _phraseIndex = (_phraseIndex + 1) % _phrases.length;
+        _erasing = false;
+        _scheduleTick(_typeTick);
+        setState(() {});
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final phrase = _phrases.isEmpty ? '' : _phrases[_phraseIndex];
+    final visible = phrase.substring(
+      0,
+      _charCount.clamp(0, phrase.length),
+    );
+    return RepaintBoundary(
+      child: Text.rich(
+        TextSpan(
+          children: <InlineSpan>[
+            TextSpan(text: visible),
+            // Block cursor while typing/wiping — gone on the full hold.
+            if (_charCount < phrase.length || _erasing)
+              const TextSpan(text: '▌'),
+          ],
         ),
-      ],
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: widget.style,
+      ),
     );
   }
 }

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Hopper';
+  String get appTitle => 'TokiGo';
 
   @override
   String get navHome => 'Home';
@@ -42,7 +42,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchHint => 'Where to?';
 
   @override
-  String get aiSearchHint => 'Ask Hopper AI…';
+  String get aiSearchHint => 'Ask Toki AI — Your Travel Assistant';
+
+  @override
+  String get aiHintPhrase1 => 'Ask Toki AI — Your Travel Assistant';
+
+  @override
+  String get aiHintPhrase2 => 'Where do you want to go?';
+
+  @override
+  String get aiHintPhrase3 => 'Hotels in Istanbul? Flights to Cairo?';
 
   @override
   String get aiSearchSheetHint => 'Where do you want to go?';
@@ -305,4 +314,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminDeal => 'Deal';
+
+  @override
+  String get aiMemoryTitle => 'What I Know About You';
+
+  @override
+  String get aiMemorySubtitle =>
+      'Facts you shared in AI chats. You can edit or remove them anytime.';
+
+  @override
+  String get aiMemorySignInPrompt =>
+      'Sign in to see and manage what the AI remembers about you.';
+
+  @override
+  String get aiMemoryEmpty =>
+      'Nothing yet. Facts you share with the AI assistant will appear here.';
+
+  @override
+  String get aiMemoryEdit => 'Edit';
+
+  @override
+  String get aiMemoryDelete => 'Delete';
+
+  @override
+  String get aiMemoryDeleted => 'Removed.';
+
+  @override
+  String get aiMemoryClearAll => 'Clear all';
+
+  @override
+  String get aiMemoryClearAllConfirm =>
+      'Remove every fact listed here? Your profile and travel history are not affected.';
+
+  @override
+  String get aiMemoryClearedAll => 'All facts removed.';
+
+  @override
+  String get aiMemoryFieldDestination => 'Destination';
+
+  @override
+  String get aiMemoryFieldBudgetMin => 'Minimum budget';
+
+  @override
+  String get aiMemoryFieldBudgetMax => 'Maximum budget';
+
+  @override
+  String get aiMemoryFieldStyles => 'Travel styles';
+
+  @override
+  String get aiMemoryFieldStylesHelper => 'Separate styles with commas';
+
+  @override
+  String get aiMemoryMemoryButton => 'What I Know About You';
+
+  @override
+  String get voiceSearch => 'Voice search';
+
+  @override
+  String get voiceStarting => 'Starting voice search…';
+
+  @override
+  String get voiceStop => 'Stop voice search';
+
+  @override
+  String get voiceErrorPermission =>
+      'Microphone permission is needed for voice search.';
+
+  @override
+  String get voiceErrorUnavailable =>
+      'Voice search is not available on this device.';
+
+  @override
+  String get voiceErrorEmpty => 'Didn\'t catch that — try speaking again.';
 }

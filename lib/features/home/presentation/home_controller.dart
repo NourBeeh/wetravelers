@@ -148,18 +148,25 @@ class HomeController extends StateNotifier<HomeState> {
         if (sections.isEmpty) {
           // Backend reachable but feed legitimately EMPTY (fake sections
           // removed — Home is Nuitee-only now). Drop the audience snapshot so
-          // stale fake sections can never resurface from cache, then show the
-          // neutral loading preview until the real Nuitee rail lands —
-          // loadRecommendedHotels upgrades this to success as soon as the
-          // rail arrives. The preview carries NO fake data, only skeletons.
+          // stale fake sections can never resurface from cache. The page now
+          // renders the honest Nuitee-only state: the hotel rail when it
+          // lands, or an explicit no-content state with a retry — never the
+          // old empty skeleton preview (removed 2026-09-08: headings with no
+          // data carry zero information and look unfinished).
           await repository.clearHomeSnapshot(audience: audience);
           state = state.copyWith(
-            status: HomeStatus.developmentPreview,
-            sections: _developmentPreviewSections(),
+            status: HomeStatus.success,
+            sections: const [],
             isRefreshing: false,
             fromCache: false,
             greeting: _greeting(),
           );
+          // If the rail is already on screen (parallel load finished
+          // first), this is a no-op; otherwise the honest empty state
+          // shows until loadRecommendedHotels lands.
+          if (state.recommendedHotels.isEmpty) {
+            state = state.copyWith(status: HomeStatus.empty);
+          }
         } else {
           // Phase 1B: compose the dynamic Home from the network sections +
           // the current user context, then publish and persist it. Same
@@ -503,9 +510,11 @@ class HomeController extends StateNotifier<HomeState> {
           // The R-4 rail feeds the authenticated "Picked for You" section —
           // re-run the deterministic composition so the rail lands in place.
           //
-          // Nuitee-only Home (empty feed): the rail IS the content, so the
-          // loading preview gives way to success immediately.
-          if (state.status == HomeStatus.developmentPreview) {
+          // Nuitee-only Home (empty feed): the rail IS the content. Whether
+          // the empty-feed branch left us on the honest empty state or the
+          // rail landed first, real hotels on screen = success.
+          if (state.status == HomeStatus.developmentPreview ||
+              state.status == HomeStatus.empty) {
             state = state.copyWith(
               status: HomeStatus.success,
               sections: const [],
@@ -516,7 +525,9 @@ class HomeController extends StateNotifier<HomeState> {
         }
       },
       failure: (_) {
-        // Silently ignore — recommended hotels are supplementary
+        // Silently ignore — recommended hotels are supplementary. If the
+        // feed was empty too, the honest empty state stays on screen with
+        // its retry affordance.
       },
     );
   }

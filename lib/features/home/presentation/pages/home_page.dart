@@ -215,7 +215,41 @@ class _HomePageState extends ConsumerState<HomePage>
             ],
         );
       case HomeStatus.empty:
-        return const Center(child: Text('No content available'));
+        // Honest no-content state (2026-09-08): the Nuitee-only Home feed is
+        // empty and no hotel rail arrived — say so clearly with a retry,
+        // never skeleton headings with no data.
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.explore_off_outlined,
+                  size: 48, color: AppColors.textTertiary),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'No recommendations right now',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'We couldn\'t load hotels at the moment.',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.textTertiary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              FilledButton(
+                onPressed: () =>
+                    ref.read(homeControllerProvider.notifier).load(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        );
       case HomeStatus.error:
         return Center(
           child: Column(
@@ -378,19 +412,112 @@ class _ContinueTripTile extends StatelessWidget {
 
 /// Seamless merged header actions — the page flows directly under the status
 /// bar with no fixed shell header. Bag (my trips), notifications and profile.
-class _HomeTopActions extends StatelessWidget {
+///
+/// The TokiGo wordmark plays a one-shot "slide & merge" entrance — Toki from
+/// the left, Go from the right, settling with an elastic bounce — then keeps
+/// a permanent gentle heartbeat pulse on the red "Go" half only. A
+/// [RepaintBoundary] isolates the per-frame pulse repaints inside the logo.
+class _HomeTopActions extends StatefulWidget {
   const _HomeTopActions();
 
   @override
+  State<_HomeTopActions> createState() => _HomeTopActionsState();
+}
+
+class _HomeTopActionsState extends State<_HomeTopActions>
+    with TickerProviderStateMixin {
+  /// Wordmark colours — "Toki" dark grey, "Go" bright red.
+  static const Color _tokiColor = Color(0xFF2E2E2E);
+  static const Color _goColor = Color(0xFFFF2D2D);
+
+  late final AnimationController _entrance;
+  late final AnimationController _pulse;
+  late final CurvedAnimation _merge;
+  late final CurvedAnimation _entranceFade;
+  late final Animation<double> _heartbeat;
+
+  /// Fraction of the entrance the wordmark holds still (hidden off-stage)
+  /// before merging — built into the curve so no real Timer is pending (the
+  /// route transition would otherwise swallow the animation).
+  static const double _entranceHold = 0.25;
+
+  @override
+  void initState() {
+    super.initState();
+    _entrance = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..forward();
+    _merge = CurvedAnimation(
+      parent: _entrance,
+      curve: const _DelayedCurve(Curves.elasticOut, _entranceHold),
+    );
+    _entranceFade = CurvedAnimation(
+      parent: _entrance,
+      curve: const _DelayedCurve(Curves.easeOut, _entranceHold),
+    );
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _heartbeat = Tween<double>(begin: 1.0, end: 1.06).animate(
+      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _entrance.dispose();
+    _pulse.dispose();
+    _merge.dispose();
+    _entranceFade.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontWeight: AppTypography.weightExtraBold,
+        );
     return Row(
       children: [
-        Text(
-          'Hopper',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: AppTypography.weightExtraBold,
-                color: AppColors.brand,
+        RepaintBoundary(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              // Toki — slides in from the left and settles with the merge.
+              SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(-2.5, 0),
+                  end: Offset.zero,
+                ).animate(_merge),
+                child: FadeTransition(
+                  opacity: _entranceFade,
+                  child: Text(
+                    'Toki',
+                    style: titleStyle?.copyWith(color: _tokiColor),
+                  ),
+                ),
               ),
+              // Go — slides in from the right, then heartbeats forever.
+              SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(2.5, 0),
+                  end: Offset.zero,
+                ).animate(_merge),
+                child: FadeTransition(
+                  opacity: _entranceFade,
+                  child: ScaleTransition(
+                    scale: _heartbeat,
+                    child: Text(
+                      'Go',
+                      style: titleStyle?.copyWith(color: _goColor),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const Spacer(),
         _TopAction(
@@ -410,6 +537,23 @@ class _HomeTopActions extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Curve wrapper that holds the parent value at its starting point for the
+/// first [hold] fraction of the animation, then remaps the remaining span onto
+/// the wrapped curve — a pure-math settle delay with no pending Timer (safe
+/// for widget tests' fake async).
+class _DelayedCurve extends Curve {
+  const _DelayedCurve(this.curve, this.hold);
+
+  final Curve curve;
+  final double hold;
+
+  @override
+  double transformInternal(double t) {
+    if (t <= hold) return 0.0;
+    return curve.transform((t - hold) / (1 - hold));
   }
 }
 
@@ -610,18 +754,36 @@ class _RecommendedHotelsCarousel extends StatelessWidget {
   }
 }
 
-class _HotelCard extends ConsumerWidget {
+/// Scroll-fix 2026-09-08: the card is a StatefulWidget with
+/// [AutomaticKeepAliveClientMixin] so the ListView keeps its state alive
+/// while scrolled off-screen — no re-load flash on scroll-back. The rail
+/// is bounded (max 40 items from the repository), so keep-alive memory is
+/// bounded by the same cap.
+class _HotelCard extends ConsumerStatefulWidget {
   const _HotelCard({required this.hotel});
 
   final HomeItem hotel;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HotelCard> createState() => _HotelCardState();
+}
+
+class _HotelCardState extends ConsumerState<_HotelCard>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // KeepAlive contract.
     final theme = Theme.of(context);
+    final hotel = widget.hotel;
     // H3: hotel images load through the Hive-backed cache — a cached photo
     // renders instantly on cold start without any network call, and P2
-    // decode sizing keeps memory tiny.
+    // decode sizing keeps memory tiny. The session memory layer renders
+    // scroll-back photos in the same frame (no shimmer flash).
     final imageCache = ref.watch(hotelImageCacheProvider);
+    final memoryCache = ref.watch(hotelImageMemoryCacheProvider);
     return SizedBox(
       width: 260,
       child: Card(
@@ -639,6 +801,7 @@ class _HotelCard extends ConsumerWidget {
                 height: 120,
                 width: double.infinity,
                 cache: imageCache,
+                memoryCache: memoryCache,
               )
             else
               Container(

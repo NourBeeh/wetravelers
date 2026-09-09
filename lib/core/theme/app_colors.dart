@@ -74,4 +74,6 @@ abstract final class AppColors {
   static const Color hotelHue = Color(0xFFB85C3F);
   static const Color carHue = Color(0xFF0E8A7B);
   static const Color packageHue = Color(0xFF7C5CFF);
+  static const Color exploreHue = Color(0xFF0284C7);
+  static const Color groupsHue = Color(0xFF16A34A);
 }

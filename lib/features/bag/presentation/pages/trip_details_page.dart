@@ -85,7 +85,7 @@ class TripDetailsPage extends StatelessWidget {
                     rows: <(String, String)>[
                       ('Status', 'confirmed'),
                       ('Type', 'booking'),
-                      ('Provider', 'Hopper'),
+                      ('Provider', 'TokiGo'),
                       ('Reference', tripId),
                     ],
                   ),

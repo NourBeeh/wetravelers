@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,17 +14,17 @@ import 'package:wetravellers/features/home/presentation/pages/home_page.dart';
 import 'package:wetravellers/features/home/providers/home_providers.dart';
 import 'package:wetravellers/l10n/app_localizations.dart';
 
-/// H1 — Nuitee-only Home loading rail tests.
+/// H1 — Nuitee-only Home loading rail tests (updated 2026-09-08).
 ///
-/// The Home controller is overridden into the EXACT Nuitee-only loading
-/// state: feed legitimately empty (developmentPreview with no sections) and
-/// recommended hotels still in flight. The skeleton rail must mirror the
-/// real carousel geometry (title + 220px rail + cards) with zero fake travel
-/// data, and the pull-to-refresh must be gone.
+/// The old "development preview" (skeleton section HEADINGS with no data)
+/// was removed: an empty feed now renders the honest no-content state with
+/// a retry. The skeleton rail remains legitimate in exactly ONE state —
+/// while real content is still loading (feed empty + hotels in flight + no
+/// snapshot), mirroring the real carousel geometry with zero fake data.
 void main() {
-  Widget host() => ProviderScope(
+  Widget host(HomeController controller) => ProviderScope(
         overrides: [
-          homeControllerProvider.overrideWith((ref) => _PreviewController()),
+          homeControllerProvider.overrideWith((ref) => controller),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -37,30 +39,37 @@ void main() {
         ),
       );
 
-  testWidgets('skeleton rail renders the fixed real title', (tester) async {
-    await tester.pumpWidget(host());
-    // In the empty-feed loading state ONLY the skeleton rail's fixed title
-    // renders (the real rail has no hotels to show yet).
-    expect(find.text('Recommended for You'), findsOneWidget);
-  });
-
-  testWidgets('skeleton rail shows while Nuitee hotels are absent',
+  testWidgets('LOADING state: skeleton cards show, no pull-to-refresh',
       (tester) async {
-    await tester.pumpWidget(host());
+    await tester.pumpWidget(host(_PinnedController(
+      const HomeState(status: HomeStatus.loading),
+    )));
 
-    // Three skeleton hotel cards render (placeholder rail width).
-    expect(find.byType(Card), findsAtLeast(3));
-    // No pull-to-refresh remains anywhere on the Home surface (H1).
+    // The loading body renders its shimmer placeholder cards.
+    expect(find.byType(Card), findsNothing); // real data cards never render
     expect(find.byType(RefreshIndicator), findsNothing);
   });
 
-  testWidgets('skeleton rail carries NO fake travel data', (tester) async {
-    await tester.pumpWidget(host());
+  testWidgets('SUCCESS + empty content: the skeleton RAIL renders with its fixed title',
+      (tester) async {
+    // The rail is the Nuitee-only placeholder while hotels are in flight —
+    // success with no sections and no hotels yet (the exact state the Home
+    // sits in right after an empty feed until the rail lands).
+    await tester.pumpWidget(host(_PinnedController(
+      const HomeState(status: HomeStatus.success),
+    )));
 
-    // Hotel-shaped TEXT that would indicate seeded/fake CONTENT must not
-    // exist while loading — only shimmer geometry. (NAV note: the Home nav
-    // buttons legitimately carry 'Flights'/'Hotels'/... — those are
-    // navigation, not data, so the assertions target full content strings.)
+    expect(find.text('Recommended for You'), findsOneWidget);
+    expect(find.byType(Card), findsAtLeast(3));
+    expect(find.byType(RefreshIndicator), findsNothing);
+  });
+
+  testWidgets('LOADING state: skeleton rail carries NO fake travel data',
+      (tester) async {
+    await tester.pumpWidget(host(_PinnedController(
+      const HomeState(status: HomeStatus.loading),
+    )));
+
     expect(find.text('Grand Palm Hotel'), findsNothing);
     expect(find.text('Real Hotel'), findsNothing);
     expect(find.text('Grand Cairo'), findsNothing);
@@ -69,44 +78,69 @@ void main() {
     expect(find.textContaining('USD'), findsNothing);
     expect(find.textContaining('\$'), findsNothing);
   });
+
+  testWidgets('EMPTY state (2026-09-08): honest no-content + retry, '
+      'NO skeleton section headings', (tester) async {
+    await tester.pumpWidget(host(_PinnedController(
+      const HomeState(status: HomeStatus.empty),
+    )));
+
+    // The honest empty message and its retry affordance render.
+    expect(find.text('No recommendations right now'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+
+    // The old empty preview HEADINGS are gone ('Hotels' here would only be
+    // the nav button label — the old preview section titles are what must
+    // NOT appear).
+    expect(find.text('Flight Recommendations'), findsNothing);
+    expect(find.text('Car Rentals'), findsNothing);
+    expect(find.text('Tour Packages'), findsNothing);
+    expect(find.text('Hot Deals'), findsNothing);
+    expect(find.text('Destinations'), findsNothing);
+
+    // The skeleton rail does not render in the empty state — loading
+    // placeholders belong to loading, not to empty.
+    expect(find.text('Recommended for You'), findsNothing);
+  });
 }
 
-/// Controller pinned to the Nuitee-only loading state: empty feed published
-/// as developmentPreview, sections empty, no hotels yet. The repository
-/// returns inert empty results for the async startup paths (the real startup
-/// behavior is covered by home_controller_test.dart).
-class _PreviewController extends HomeController {
-  _PreviewController() : super(_InertRepo(), liveValidation: null) {
-    state = const HomeState(
-      status: HomeStatus.developmentPreview,
-      sections: [],
-    );
+/// Controller pinned to the given state: the inert repository returns a
+/// NEVER-COMPLETING future for the startup paths so the pinned state can
+/// never be overwritten asynchronously (startup behavior itself is covered
+/// by home_controller_test.dart).
+class _PinnedController extends HomeController {
+  _PinnedController(HomeState pinned) : super(_InertRepo(), liveValidation: null) {
+    state = pinned;
   }
 }
 
-/// Inert repository: every call succeeds with empty/null — nothing can
-/// throw or override the pinned state asynchronously.
+/// Inert repository: every startup path HANGS (never completes) — the
+/// pinned state stays exactly as the test set it.
 class _InertRepo implements HomeRepository {
   @override
-  Future<ApiResult<List<HomeSection>>> getHomeSections() async =>
-      const ApiResult.success([]);
+  Future<ApiResult<List<HomeSection>>> getHomeSections() =>
+      Completer<ApiResult<List<HomeSection>>>().future;
 
   @override
-  Future<ApiResult<List<HomeItem>>> getRecommendedHotels({int limit = 6}) async =>
-      const ApiResult.success([]);
+  Future<ApiResult<List<HomeItem>>> getRecommendedHotels({int limit = 6}) =>
+      Completer<ApiResult<List<HomeItem>>>().future;
 
   @override
-  Future<ApiResult<void>> refresh() async => const ApiResult.success(null);
+  Future<ApiResult<void>> refresh() =>
+      Completer<ApiResult<void>>().future;
 
   @override
-  Future<List<HomeSection>?> readHomeSnapshot({required String audience}) async => null;
+  Future<List<HomeSection>?> readHomeSnapshot({required String audience}) =>
+      Completer<List<HomeSection>?>().future;
 
   @override
-  Future<void> clearHomeSnapshot({required String audience}) async {}
+  Future<void> clearHomeSnapshot({required String audience}) =>
+      Completer<void>().future;
 
   @override
   Future<void> saveHomeSnapshot(
     List<HomeSection> sections, {
     required String audience,
-  }) async {}
+  }) =>
+      Completer<void>().future;
 }

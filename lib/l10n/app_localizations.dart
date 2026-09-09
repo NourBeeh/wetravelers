@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Hopper'**
+  /// **'TokiGo'**
   String get appTitle;
 
   /// No description provided for @navHome.
@@ -167,8 +167,26 @@ abstract class AppLocalizations {
   /// No description provided for @aiSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Ask Hopper AI…'**
+  /// **'Ask Toki AI — Your Travel Assistant'**
   String get aiSearchHint;
+
+  /// No description provided for @aiHintPhrase1.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Toki AI — Your Travel Assistant'**
+  String get aiHintPhrase1;
+
+  /// No description provided for @aiHintPhrase2.
+  ///
+  /// In en, this message translates to:
+  /// **'Where do you want to go?'**
+  String get aiHintPhrase2;
+
+  /// No description provided for @aiHintPhrase3.
+  ///
+  /// In en, this message translates to:
+  /// **'Hotels in Istanbul? Flights to Cairo?'**
+  String get aiHintPhrase3;
 
   /// No description provided for @aiSearchSheetHint.
   ///
@@ -685,6 +703,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deal'**
   String get adminDeal;
+
+  /// No description provided for @aiMemoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What I Know About You'**
+  String get aiMemoryTitle;
+
+  /// No description provided for @aiMemorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Facts you shared in AI chats. You can edit or remove them anytime.'**
+  String get aiMemorySubtitle;
+
+  /// No description provided for @aiMemorySignInPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to see and manage what the AI remembers about you.'**
+  String get aiMemorySignInPrompt;
+
+  /// No description provided for @aiMemoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet. Facts you share with the AI assistant will appear here.'**
+  String get aiMemoryEmpty;
+
+  /// No description provided for @aiMemoryEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get aiMemoryEdit;
+
+  /// No description provided for @aiMemoryDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get aiMemoryDelete;
+
+  /// No description provided for @aiMemoryDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed.'**
+  String get aiMemoryDeleted;
+
+  /// No description provided for @aiMemoryClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get aiMemoryClearAll;
+
+  /// No description provided for @aiMemoryClearAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove every fact listed here? Your profile and travel history are not affected.'**
+  String get aiMemoryClearAllConfirm;
+
+  /// No description provided for @aiMemoryClearedAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All facts removed.'**
+  String get aiMemoryClearedAll;
+
+  /// No description provided for @aiMemoryFieldDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get aiMemoryFieldDestination;
+
+  /// No description provided for @aiMemoryFieldBudgetMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum budget'**
+  String get aiMemoryFieldBudgetMin;
+
+  /// No description provided for @aiMemoryFieldBudgetMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum budget'**
+  String get aiMemoryFieldBudgetMax;
+
+  /// No description provided for @aiMemoryFieldStyles.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel styles'**
+  String get aiMemoryFieldStyles;
+
+  /// No description provided for @aiMemoryFieldStylesHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate styles with commas'**
+  String get aiMemoryFieldStylesHelper;
+
+  /// No description provided for @aiMemoryMemoryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'What I Know About You'**
+  String get aiMemoryMemoryButton;
+
+  /// No description provided for @voiceSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice search'**
+  String get voiceSearch;
+
+  /// No description provided for @voiceStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting voice search…'**
+  String get voiceStarting;
+
+  /// No description provided for @voiceStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop voice search'**
+  String get voiceStop;
+
+  /// No description provided for @voiceErrorPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone permission is needed for voice search.'**
+  String get voiceErrorPermission;
+
+  /// No description provided for @voiceErrorUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice search is not available on this device.'**
+  String get voiceErrorUnavailable;
+
+  /// No description provided for @voiceErrorEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t catch that — try speaking again.'**
+  String get voiceErrorEmpty;
 }
 
 class _AppLocalizationsDelegate

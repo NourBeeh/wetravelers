@@ -43,9 +43,16 @@ class FlightSearchState {
 class FlightSearchController extends StateNotifier<FlightSearchState> {
   final SearchFlightsUseCase usecase;
   final OfflineCache _cache;
+
+  /// Phase 3A — request versioning: a stale response from a superseded
+  /// search never overwrites the newest state.
+  int _requestVersion = 0;
+
   FlightSearchController(this.usecase, this._cache) : super(const FlightSearchState());
 
   Future<void> search(FlightSearchParams params) async {
+    final version = ++_requestVersion;
+
     final cacheKey = flightSearchCacheKey(
       origin: params.origin,
       destination: params.destination,
@@ -56,6 +63,7 @@ class FlightSearchController extends StateNotifier<FlightSearchState> {
 
     // Try to load from cache first (for instant UI)
     final cached = await _cache.read(cacheKey);
+    if (version != _requestVersion) return; // Superseded mid-flight.
     if (cached != null) {
       final offers = <FlightOffer>[];
       for (final item in (cached['offers'] as List? ?? [])) {
@@ -77,6 +85,7 @@ class FlightSearchController extends StateNotifier<FlightSearchState> {
       returnDate: params.returnDate,
       passengers: params.adults,
     );
+    if (version != _requestVersion) return; // Superseded mid-flight.
     await result.when<Future<void>>(
       success: (offers) async {
         if (offers.isEmpty) {

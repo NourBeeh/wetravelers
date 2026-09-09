@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/widgets/shimmer.dart';
 import 'package:wetravellers/features/home/application/hotel_image_cache.dart';
+import 'package:wetravellers/features/home/application/hotel_image_memory_cache.dart';
 
 /// H3 — Hive-backed hotel card image.
 ///
@@ -32,6 +33,7 @@ class CachedHotelImage extends StatefulWidget {
     this.height = 120,
     this.width,
     this.cache,
+    this.memoryCache,
     this.httpClient,
   });
 
@@ -43,9 +45,14 @@ class CachedHotelImage extends StatefulWidget {
   /// Optional tight width (defaults to the parent's constraints).
   final double? width;
 
-  /// Optional injected cache (defaults to a no-op cache so the widget also
-  /// works in tests without Hive).
+  /// Optional injected disk cache (defaults to a no-op cache so the widget
+  /// also works in tests without Hive).
   final HotelImageCache? cache;
+
+  /// Optional injected session memory layer — synchronous reads so a
+  /// re-mounted card (ListView destroys off-screen children) renders in
+  /// the SAME frame instead of flashing the shimmer on every scroll-back.
+  final HotelImageMemoryCache? memoryCache;
 
   /// Optional injected byte fetcher (defaults to `http.get` style function;
   /// tests inject deterministic bytes).
@@ -66,6 +73,14 @@ class _CachedHotelImageState extends State<CachedHotelImage> {
   @override
   void initState() {
     super.initState();
+    // Session memory layer first — a synchronous hit renders in THIS frame
+    // (no shimmer flash on scroll-back; the ListView destroys off-screen
+    // cards so the state itself is gone).
+    final warm = widget.memoryCache?.read(widget.url);
+    if (warm != null) {
+      _bytes = warm;
+      return;
+    }
     _load();
   }
 
@@ -74,6 +89,11 @@ class _CachedHotelImageState extends State<CachedHotelImage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
       _bytes = null;
+      final warm = widget.memoryCache?.read(widget.url);
+      if (warm != null) {
+        _bytes = warm;
+        return;
+      }
       _load();
     }
   }
@@ -86,6 +106,8 @@ class _CachedHotelImageState extends State<CachedHotelImage> {
     if (cache != null) {
       final cached = await cache.read(url);
       if (cached != null && mounted && widget.url == url) {
+        // Warm the session layer for the next synchronous read.
+        widget.memoryCache?.write(url, cached);
         setState(() => _bytes = cached);
         return;
       }
@@ -95,6 +117,7 @@ class _CachedHotelImageState extends State<CachedHotelImage> {
     final fetched = await _sharedFetch(url);
     if (fetched != null) {
       await cache?.write(url, fetched); // Best-effort store.
+      widget.memoryCache?.write(url, fetched);
     }
     if (!mounted || widget.url != url) return;
     setState(() => _bytes = fetched);
@@ -142,6 +165,7 @@ class _CachedHotelImageState extends State<CachedHotelImage> {
     final bytes = _bytes;
 
     // Loading / miss → shimmer (same primitive as the H1 skeleton rail).
+    // width:double.infinity is legit (fill the card) — shimmer accepts it.
     if (bytes == null) {
       return ShimmerBox(
         height: widget.height,
@@ -151,17 +175,37 @@ class _CachedHotelImageState extends State<CachedHotelImage> {
 
     // P2: decode at display resolution — the engine downsamples on decode,
     // so ImageCache holds ~260×120@dpi bitmaps, never multi-megapixel ones.
-    final devicePixelRatio =
-        MediaQuery.maybeOf(context)?.devicePixelRatio ?? 2.0;
-    final decodeWidth = ((widget.width ?? 260) * devicePixelRatio).round();
+    //
+    // Bugfix 2026-09-08: callers pass `width: double.infinity` to fill the
+    // card; multiplying that by dpr and rounding threw "Infinity or NaN
+    // toInt" as soon as cached bytes arrived. The DECODE width now resolves
+    // from the actual layout constraints (LayoutBuilder) — infinity simply
+    // means "whatever the parent gives me".
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final devicePixelRatio =
+            MediaQuery.maybeOf(context)?.devicePixelRatio ?? 2.0;
 
-    return Image.memory(
-      bytes,
-      height: widget.height,
-      width: widget.width,
-      fit: BoxFit.cover,
-      cacheWidth: decodeWidth,
-      errorBuilder: (_, __, ___) => _fallback(),
+        final double layoutWidth = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : (widget.width != null &&
+                    widget.width!.isFinite &&
+                    widget.width! > 0
+                ? widget.width!
+                : 260.0);
+
+        final decodeWidth =
+            (layoutWidth * devicePixelRatio).round().clamp(1, 4096);
+
+        return Image.memory(
+          bytes,
+          height: widget.height,
+          width: widget.width,
+          fit: BoxFit.cover,
+          cacheWidth: decodeWidth,
+          errorBuilder: (_, __, ___) => _fallback(),
+        );
+      },
     );
   }
 

@@ -1197,3 +1197,22 @@ f95cecf2 fix(admin): seed-admin camelCase columns + role in /auth/me
 b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
 7344acd2 feat(admin): admin panel - home content management + runtime provider switching
 ```
+---
+## Automatic Git Sync
+This handoff was synchronized automatically before the latest commit.
+
+Branch: main
+
+Recent commits:
+```
+89adc1a8 (HEAD -> main, origin/main, origin/HEAD) feat(ai): 2C-C1 — Flutter wiring for POST /ai/chat (conversation memory endpoint)
+d72a93e5 feat(nav): Home-centric navigation — bottom bar removed, verticals as Home buttons
+6b08636b docs(plan): all pending decisions P1-P6 approved by owner — order finalized
+9a5793c2 feat(memory+search): memory spine backend, AI chat/rerank endpoints, and Universal Search US-2 work
+0f058e8b feat(home): Nuitee-only Home — instant skeleton rail, price-only refresh, Hive image cache (M0-H3)
+794ebcb9 chore(universal-search): remove legacy v1 search page
+b4317d8d chore(phase0): stabilize single-provider tests and document r4
+dd0b11e5 feat(personalization): geo profile events recommend modules and ai single-provider
+f95cecf2 fix(admin): seed-admin camelCase columns + role in /auth/me
+b41ae2f4 fix(providers): restore NuiteeService export dropped in ADM-B1 rewrite
+```

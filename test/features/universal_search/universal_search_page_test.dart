@@ -11,6 +11,8 @@ import 'package:wetravellers/features/ai/data/ai_api_service.dart';
 import 'package:wetravellers/features/ai/application/ai_providers.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_ai_search_field.dart';
 import 'package:wetravellers/features/universal_search/application/universal_search_controller.dart';
+import 'package:wetravellers/features/universal_search/application/voice_search_providers.dart';
+import 'package:wetravellers/features/universal_search/application/voice_search_state.dart';
 import 'package:wetravellers/features/universal_search/presentation/pages/universal_search_page.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
 import 'package:wetravellers/core/storage/offline_cache_providers.dart';
@@ -206,20 +208,51 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('disabled microphone placeholder renders with disabled semantics', (tester) async {
+  testWidgets('US-3: the live mic button renders and starts a session on tap', (tester) async {
     await tester.pumpWidget(harness());
     await tester.pump(const Duration(milliseconds: 500));
 
-    // Collapsed bar carries the disabled mic.
-    expect(find.byIcon(Icons.mic_none_rounded), findsOneWidget);
+    // The collapsed Home bar still has no mic (voice lives in the expanded
+    // header only)…
+    await tester.tap(find.byType(HomeAiSearchField));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(UniversalSearchPage), findsOneWidget);
 
+    // …the expanded header carries the LIVE mic (was: disabled placeholder).
+    final mic = find.byIcon(Icons.mic_rounded);
+    expect(mic, findsOneWidget);
+
+    // Tapping it starts a session — with no recognizer available in the
+    // test env, the service degrades to a typed failure (never a crash)
+    // and the page stays mounted.
+    await tester.tap(mic);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(UniversalSearchPage), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('US-3: the listening state renders the stop affordance with pulse', (tester) async {
+    await tester.pumpWidget(harness());
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.tap(find.byType(HomeAiSearchField));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 600));
 
-    // Expanded header carries it too — and tapping it never navigates.
-    expect(find.byIcon(Icons.mic_none_rounded), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.mic_none_rounded));
+    // Drive the mic into LISTENING through the controller's own state.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(UniversalSearchPage)),
+    );
+    final voice =
+        container.read(voiceSearchControllerProvider.notifier);
+    voice.stateForTesting = const VoiceSearchState(
+      status: VoiceSearchStatus.listening,
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Stop icon + semantics label are present; tapping it stops cleanly.
+    expect(find.byIcon(Icons.stop_circle_rounded), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.stop_circle_rounded));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(UniversalSearchPage), findsOneWidget);
     expect(tester.takeException(), isNull);

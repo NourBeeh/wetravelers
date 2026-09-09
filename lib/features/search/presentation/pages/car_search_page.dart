@@ -13,6 +13,14 @@ import 'package:wetravellers/features/search/presentation/widgets/search_scaffol
 import 'package:wetravellers/features/search/presentation/widgets/search_states_view.dart';
 import 'package:wetravellers/features/search/presentation/widgets/destination_picker_sheet.dart';
 import 'package:wetravellers/features/search/presentation/widgets/car_search_card.dart';
+import 'package:wetravellers/features/search/domain/sort_option.dart';
+import 'package:wetravellers/features/search/application/search_results_processing.dart';
+import 'package:wetravellers/features/search/domain/search_filters.dart';
+import 'package:wetravellers/features/search/presentation/widgets/filter_panel.dart';
+
+/// Phase 3C — per-vertical sort/filters state (cars).
+final carSortProvider = StateProvider<SortOption>((ref) => SortOption.recommended);
+final carFiltersProvider = StateProvider<SearchFilters>((ref) => const SearchFilters());
 
 class CarSearchPage extends ConsumerStatefulWidget {
   const CarSearchPage({super.key});
@@ -147,6 +155,44 @@ class _CarSearchPageState extends ConsumerState<CarSearchPage> {
     }
   }
 
+  /// Phase 3C — shared sort/filter controls (same visual language as
+  /// flights/hotels).
+  static const List<String> _sortLabels = ['Recommended', 'Cheapest', 'Top rated'];
+  String _sortLabel = 'Recommended';
+
+  SortOption get _sortOption => switch (_sortLabel) {
+        'Cheapest' => SortOption.priceLowHigh,
+        'Top rated' => SortOption.rating,
+        _ => SortOption.recommended,
+      };
+
+  void _showFilters() {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => FilterPanel(
+        filters: ref.read(carFiltersProvider),
+        onChanged: (f) => ref.read(carFiltersProvider.notifier).state = f,
+        showSeats: true,
+        showTransmission: true,
+      ),
+    );
+  }
+
+  Widget _buildSortAndFilters() {
+    final filters = ref.watch(carFiltersProvider);
+    return SortChipsRow(
+      options: _sortLabels,
+      selected: _sortLabel,
+      onSelected: (label) {
+        setState(() => _sortLabel = label);
+        ref.read(carSortProvider.notifier).state = _sortOption;
+      },
+      filtersLabel: 'Filters',
+      filtersActive: !filters.isEmpty,
+      onFilters: _showFilters,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(carSearchControllerProvider);
@@ -157,6 +203,7 @@ class _CarSearchPageState extends ConsumerState<CarSearchPage> {
       subtitle: 'Rental cars at your destination',
       collapsedTitle: _pickupLabel.isEmpty ? 'Cars' : 'Cars · $_pickupLabel',
       form: _buildForm(),
+      bottomContent: _buildSortAndFilters(),
       body: _buildResults(state),
     );
   }
@@ -269,9 +316,23 @@ class _CarSearchPageState extends ConsumerState<CarSearchPage> {
           ),
         );
       case CarSearchStatus.success:
+        // Phase 3C — provider-safe post-processing (filter then sort the
+        // returned list; provider order = "recommended").
+        final filters = ref.watch(carFiltersProvider);
+        final visible = sortCarResults(
+          applyCarFilters(state.results, filters),
+          ref.read(carSortProvider),
+        );
+        if (visible.isEmpty && state.results.isNotEmpty) {
+          return const SearchStatesView.empty(
+            icon: Icons.filter_alt_off_outlined,
+            title: 'No matches for your filters',
+            body: 'Try widening the price range or clearing filters',
+          );
+        }
         return Column(
           children: [
-            for (final offer in state.results)
+            for (final offer in visible)
               CarSearchCard(
                 offer: offer,
                 onTap: () => context.push('/offer-details', extra: offer),

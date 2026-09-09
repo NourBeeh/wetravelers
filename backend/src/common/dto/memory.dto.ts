@@ -62,6 +62,35 @@ export function containsSensitiveData(value: unknown): boolean {
   return _scan(value);
 }
 
+/**
+ * Phase 2D — string values stored in the memory spine must be SINGLE-LINE.
+ * CR/LF and other control characters would let a stored fact forge new
+ * lines when it is later rendered into the AI context block (memory values
+ * are untrusted user-derived DATA, never instructions). Applies to every
+ * string at any depth of the value tree — same recursion as the sensitive
+ * scanner.
+ */
+export function containsControlCharacters(value: unknown): boolean {
+  return _scanStrings(value, (s) => /[\u0000-\u001f\u007f]/.test(s));
+}
+
+function _scanStrings(
+  node: unknown,
+  predicate: (s: string) => boolean,
+): boolean {
+  if (node === null || node === undefined) return false;
+  if (typeof node === 'string') return predicate(node);
+  if (Array.isArray(node)) {
+    return node.some((entry) => _scanStrings(entry, predicate));
+  }
+  if (typeof node === 'object') {
+    for (const child of Object.values(node as Record<string, unknown>)) {
+      if (_scanStrings(child, predicate)) return true;
+    }
+  }
+  return false;
+}
+
 function _scan(node: unknown): boolean {
   if (node === null || node === undefined) return false;
   if (Array.isArray(node)) return node.some((entry) => _scan(entry));

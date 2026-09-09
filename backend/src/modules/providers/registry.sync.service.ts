@@ -32,7 +32,8 @@ export class RegistrySyncService {
     isFallback: boolean;
   }> = [
     { key: 'duffel-flight', name: 'Duffel Flights', vertical: 'flight', priority: 1, isFallback: false },
-    { key: 'mock-flight', name: 'Mock Flights', vertical: 'flight', priority: 2, isFallback: true },
+    { key: 'nuitee-flight', name: 'Nuitee Flights', vertical: 'flight', priority: 2, isFallback: true },
+    { key: 'mock-flight', name: 'Mock Flights', vertical: 'flight', priority: 3, isFallback: true },
     { key: 'nuitee', name: 'Nuitee Hotels', vertical: 'hotel', priority: 1, isFallback: false },
     { key: 'duffel-hotel', name: 'Duffel Hotels', vertical: 'hotel', priority: 2, isFallback: true },
     { key: 'mock-hotel', name: 'Mock Hotels', vertical: 'hotel', priority: 3, isFallback: true },

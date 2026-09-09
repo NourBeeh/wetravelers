@@ -14,6 +14,7 @@ import '../../features/bag/presentation/pages/bag_page.dart';
 import '../../features/bag/presentation/pages/trip_details_page.dart';
 import '../../features/admin/presentation/pages/admin_page.dart';
 import '../../features/ai/presentation/pages/ai_chat_page.dart';
+import '../../features/ai/presentation/pages/ai_memory_page.dart';
 import '../../features/universal_search/presentation/pages/universal_search_page.dart';
 import '../../features/booking/presentation/pages/add_ons_page.dart';
 import '../../features/booking/presentation/pages/booking_confirmation_page.dart';
@@ -330,6 +331,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => fadeThroughPage(
           name: 'ai_chat',
           child: const AiChatPage(),
+        ),
+      ),
+      // 2C-C2 — "What I Know About You": explicit memory controls, opened
+      // from the AI chat header (root-level like /ai-chat).
+      GoRoute(
+        path: '/ai-memory',
+        name: 'ai_memory',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) => fadeThroughPage(
+          name: 'ai_memory',
+          child: const AiMemoryPage(),
         ),
       ),
       // Universal Search + AI (US-1) — root route outside the shell so the

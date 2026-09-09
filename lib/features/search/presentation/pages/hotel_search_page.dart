@@ -19,6 +19,14 @@ import 'package:wetravellers/features/search/presentation/widgets/search_view_to
 import 'package:wetravellers/features/search/presentation/widgets/search_map_placeholder.dart';
 import 'package:wetravellers/features/search/application/providers/search_view_providers.dart';
 import 'package:wetravellers/features/search/domain/search_view_mode.dart';
+import 'package:wetravellers/features/search/domain/sort_option.dart';
+import 'package:wetravellers/features/search/application/search_results_processing.dart';
+import 'package:wetravellers/features/search/domain/search_filters.dart';
+import 'package:wetravellers/features/search/presentation/widgets/filter_panel.dart';
+
+/// Phase 3C — per-vertical sort/filters state (hotels).
+final hotelSortProvider = StateProvider<SortOption>((ref) => SortOption.recommended);
+final hotelFiltersProvider = StateProvider<SearchFilters>((ref) => const SearchFilters());
 
 class HotelSearchPage extends ConsumerStatefulWidget {
   const HotelSearchPage({super.key});
@@ -153,6 +161,44 @@ class _HotelSearchPageState extends ConsumerState<HotelSearchPage> {
     }
   }
 
+  /// Phase 3C — shared sort/filter controls under the results (same visual
+  /// language as the flights page).
+  static const List<String> _sortLabels = ['Recommended', 'Cheapest', 'Top rated'];
+  String _sortLabel = 'Recommended';
+
+  SortOption get _sortOption => switch (_sortLabel) {
+        'Cheapest' => SortOption.priceLowHigh,
+        'Top rated' => SortOption.rating,
+        _ => SortOption.recommended,
+      };
+
+  void _showFilters() {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => FilterPanel(
+        filters: ref.read(hotelFiltersProvider),
+        onChanged: (f) => ref.read(hotelFiltersProvider.notifier).state = f,
+        showRating: true,
+        showAmenities: true,
+      ),
+    );
+  }
+
+  Widget _buildSortAndFilters() {
+    final filters = ref.watch(hotelFiltersProvider);
+    return SortChipsRow(
+      options: _sortLabels,
+      selected: _sortLabel,
+      onSelected: (label) {
+        setState(() => _sortLabel = label);
+        ref.read(hotelSortProvider.notifier).state = _sortOption;
+      },
+      filtersLabel: 'Filters',
+      filtersActive: !filters.isEmpty,
+      onFilters: _showFilters,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(hotelSearchControllerProvider);
@@ -165,6 +211,7 @@ class _HotelSearchPageState extends ConsumerState<HotelSearchPage> {
           _destination.isEmpty ? 'Hotels' : 'Hotels · $_destination',
       headerActions: const SearchViewToggle(),
       form: _buildForm(),
+      bottomContent: _buildSortAndFilters(),
       body: _buildResults(state),
     );
   }
@@ -313,9 +360,26 @@ class _HotelSearchPageState extends ConsumerState<HotelSearchPage> {
         if (viewMode == SearchViewMode.map) {
           return const SearchMapPlaceholder();
         }
+        // Phase 3C — provider-safe post-processing: filter then sort the
+        // returned list (deterministic; the provider order stays the
+        // "recommended" order).
+        final filters = ref.watch(hotelFiltersProvider);
+        final visible = sortHotelResults(
+          applyHotelFilters(state.results, filters),
+          ref.read(hotelSortProvider),
+        );
+        // Filters that hide everything surface an explicit no-match state
+        // (never a blank screen) while the raw result list stays intact.
+        if (visible.isEmpty && state.results.isNotEmpty) {
+          return SearchStatesView.empty(
+            icon: Icons.filter_alt_off_outlined,
+            title: 'No matches for your filters',
+            body: 'Try widening the price range or clearing filters',
+          );
+        }
         return Column(
           children: [
-            for (final offer in state.results)
+            for (final offer in visible)
               HotelSearchCard(
                 offer: offer,
                 onTap: () => context.push('/offer-details', extra: offer),

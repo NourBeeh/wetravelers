@@ -127,6 +127,15 @@ class OfferDetailsPage extends ConsumerWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
+                // 3D — honest pricing note (spec point 44): the shown price is
+                // a presentation snapshot; booking truth is revalidated.
+                Text(
+                  'Revalidated at booking',
+                  style: typography.caption.copyWith(
+                    color: AppColors.textTertiary,
+                    fontSize: 10,
+                  ),
+                ),
               ],
             ),
             const SizedBox(width: AppSpacing.lg),
@@ -379,12 +388,23 @@ class _SummaryCard extends StatelessWidget {
           ('Arrives', dateFormat(o.arrivalTime), Icons.flag_rounded),
           ('Cabin', o.cabinClass ?? 'Economy', Icons.event_seat_rounded),
           ('Stops', '${o.stops ?? 0}', Icons.alt_route_rounded),
+          // 3D — provider fare facts (verbatim from metadata; absent stays
+          // absent, never invented).
+          if (o.metadata['fareFamily'] != null)
+            ('Fare', '${o.metadata['fareFamily']}', Icons.sell_rounded),
+          if (o.metadata['refundable'] == true)
+            ('Refundable', 'Yes', Icons.task_alt_rounded),
         ],
       HotelOffer o => <(String, String, IconData)>[
           ('Check-in', dateFormat(o.checkIn), Icons.login_rounded),
           ('Check-out', dateFormat(o.checkOut), Icons.logout_rounded),
           ('Room', o.roomType, Icons.bed_rounded),
           ('Rating', '${o.rating ?? '-'} ★', Icons.star_rounded),
+          // 3D — provider-verbatim hotel facts.
+          if (o.metadata['stars'] != null)
+            ('Stars', '${o.metadata['stars']}', Icons.star_outline_rounded),
+          if (o.metadata['boardName'] != null)
+            ('Board', '${o.metadata['boardName']}', Icons.restaurant_rounded),
         ],
       CarOffer o => <(String, String, IconData)>[
           ('Pickup', o.pickupLocation, Icons.pin_drop_rounded),
@@ -392,6 +412,9 @@ class _SummaryCard extends StatelessWidget {
           ('Type', o.carType, Icons.directions_car_rounded),
           ('Transmission', o.transmission ?? '-', Icons.settings_rounded),
           ('Seats', '${o.seats ?? '-'}', Icons.event_seat_rounded),
+          // 3D — provider-verbatim car policy facts (mock-car catalog).
+          if (o.metadata['mileagePolicy'] != null)
+            ('Mileage', '${o.metadata['mileagePolicy']}', Icons.speed_rounded),
         ],
       TravelPackageOffer o => <(String, String, IconData)>[
           ('Destination', o.destination, Icons.place_rounded),
@@ -433,6 +456,122 @@ class _ContentSections extends StatelessWidget {
           description,
           style: typography.body.copyWith(color: AppColors.textSecondary),
         ),
+      ]);
+    }
+
+    // 3D — Flight baggage: verbatim from provider metadata (Duffel/Nuitee);
+    // absent stays absent (never invented).
+    final flight = offer is FlightOffer ? offer as FlightOffer : null;
+    if (flight != null && flight.metadata['baggage'] != null) {
+      final baggage = flight.metadata['baggage'];
+      final baggageText = baggage is Map
+          ? (baggage['quantity'] != null
+                ? '${baggage['quantity']} × ${baggage['type'] ?? 'checked bag'}'
+                : baggage.toString())
+          : baggage.toString();
+      widgets.addAll(<Widget>[
+        _SectionTitle(typography: typography, title: 'Baggage'),
+        Text(
+          baggageText,
+          style: typography.body.copyWith(color: AppColors.textSecondary),
+        ),
+      ]);
+    }
+
+    // 3D — Hotel taxes & cancellation policy (provider-verbatim).
+    final hotel = offer is HotelOffer ? offer as HotelOffer : null;
+    if (hotel != null) {
+      final taxes = hotel.metadata['taxesAndFees'];
+      if (taxes is Map && taxes['amount'] != null) {
+        widgets.addAll(<Widget>[
+          _SectionTitle(typography: typography, title: 'Taxes & fees'),
+          Text(
+            '${taxes['description'] ?? 'Taxes'}: ${taxes['currency']} '
+            '${taxes['amount']}'
+            '${taxes['included'] == true ? ' (included in price)' : ''}',
+            style: typography.body.copyWith(color: AppColors.textSecondary),
+          ),
+        ]);
+      }
+      final cancellation = hotel.metadata['cancellationPolicy'];
+      if (cancellation is Map) {
+        final until = cancellation['refundableUntil'];
+        final fee = cancellation['feeAmount'];
+        final feeCurrency = cancellation['feeCurrency'];
+        final policyText = hotel.metadata['refundable'] == true
+            ? (until != null
+                  ? 'Free cancellation until $until'
+                      '${fee != null ? ' (after that: $feeCurrency $fee)' : ''}'
+                  : 'Refundable rate')
+            : 'Non-refundable rate';
+        widgets.addAll(<Widget>[
+          _SectionTitle(typography: typography, title: 'Cancellation policy'),
+          Text(
+            policyText,
+            style: typography.body.copyWith(color: AppColors.textSecondary),
+          ),
+        ]);
+      } else if (hotel.metadata['refundable'] == false) {
+        widgets.addAll(<Widget>[
+          _SectionTitle(typography: typography, title: 'Cancellation policy'),
+          Text(
+            'Non-refundable rate',
+            style: typography.body.copyWith(color: AppColors.textSecondary),
+          ),
+        ]);
+      }
+    }
+
+    // 3D — Car policies (mock-car provider catalog, verbatim).
+    final car = offer is CarOffer ? offer as CarOffer : null;
+    if (car != null) {
+      final cancellation = car.metadata['cancellationPolicy'];
+      if (cancellation != null) {
+        widgets.addAll(<Widget>[
+          _SectionTitle(typography: typography, title: 'Cancellation policy'),
+          Text(
+            '$cancellation',
+            style: typography.body.copyWith(color: AppColors.textSecondary),
+          ),
+        ]);
+      }
+      final features = car.metadata['features'];
+      if (features is List && features.isNotEmpty) {
+        widgets.addAll(<Widget>[
+          _SectionTitle(typography: typography, title: 'Features'),
+          Text(
+            features.join(' · '),
+            style: typography.body.copyWith(color: AppColors.textSecondary),
+          ),
+        ]);
+      }
+    }
+
+    // 3D — Package inclusions (verbatim from the offer model).
+    final pkg = offer is TravelPackageOffer ? offer as TravelPackageOffer : null;
+    if (pkg != null && pkg.inclusions.isNotEmpty) {
+      widgets.addAll(<Widget>[
+        _SectionTitle(typography: typography, title: 'Inclusions'),
+        ...<Widget>[
+          for (final line in pkg.inclusions)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Row(
+                children: <Widget>[
+                  const Icon(Icons.check_rounded,
+                      size: 18, color: AppColors.brand),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      line,
+                      style: typography.body
+                          .copyWith(color: AppColors.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ]);
     }
 

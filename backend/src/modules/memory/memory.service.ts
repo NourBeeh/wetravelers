@@ -12,6 +12,7 @@ import { UserMemory } from '../../database/entities/user_memory.entity';
 import {
   CreateMemoryDto,
   UpdateMemoryDto,
+  containsControlCharacters,
   containsSensitiveData,
 } from '../../common/dto/memory.dto';
 
@@ -89,6 +90,12 @@ export class MemoryService {
         'Memory value contains forbidden (sensitive) keys.',
       );
     }
+    // Phase 2D — single-line strings only (prompt line-forgery guard).
+    if (containsControlCharacters(dto.value)) {
+      throw new BadRequestException(
+        'Memory value must not contain control characters.',
+      );
+    }
     const existing = await this.memories.findOne({
       where: { userId, type: dto.type, key: dto.key },
     });
@@ -122,6 +129,12 @@ export class MemoryService {
     if (dto.value !== undefined && containsSensitiveData(dto.value)) {
       throw new BadRequestException(
         'Memory value contains forbidden (sensitive) keys.',
+      );
+    }
+    // Phase 2D — single-line strings only (prompt line-forgery guard).
+    if (dto.value !== undefined && containsControlCharacters(dto.value)) {
+      throw new BadRequestException(
+        'Memory value must not contain control characters.',
       );
     }
     const memory = await this.memories.findOne({ where: { id } });

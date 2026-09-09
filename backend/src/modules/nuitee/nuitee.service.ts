@@ -151,12 +151,32 @@ export class NuiteeService implements HotelProvider {
 
       const hotelMeta = this.hotelMetaIndex(response);
       const rateEntries = this.extractRateResults(response);
-      const mapped = rateEntries
-        .map((r: any) =>
-          this.mapRateToOffer(r, hotelMeta, params, checkInStr, checkOutStr),
+
+      // BUGFIX (user report 2026-09-08): the adapter emitted one offer PER
+      // ROOM TYPE, so the same hotel surfaced 2–3 times at different
+      // prices (Standard/Deluxe/Suite) on the Home rail and search. The
+      // original comment said "cheapest rate per hotel" but the code never
+      // deduplicated. Fix: keep exactly ONE offer per hotel — the cheapest
+      // available room. The room-level detail stays reachable through the
+      // provider (rateId of the cheapest room is preserved for prebook).
+      const cheapestPerHotel = new Map<string, { entry: any; price: number }>();
+      for (const entry of rateEntries) {
+        const key = String(
+          entry?.hotelId ?? entry?.rate?.rateId ?? entry?.offerId ?? '',
+        );
+        const price = this.firstAmount(entry?.rate?.retailRate?.total) ?? Infinity;
+        const existing = cheapestPerHotel.get(key);
+        if (!existing || price < existing.price) {
+          cheapestPerHotel.set(key, { entry, price });
+        }
+      }
+
+      const mapped = [...cheapestPerHotel.values()]
+        .map(({ entry }) =>
+          this.mapRateToOffer(entry, hotelMeta, params, checkInStr, checkOutStr),
         )
         .filter((o: any) => o !== null)
-        // Keep the cheapest rate per hotel so the list stays scannable.
+        // Cheapest-first order; capped hotel set keeps responses lean.
         .sort((a: any, b: any) => a.price - b.price)
         .slice(0, 40);
 
@@ -401,6 +421,33 @@ export class NuiteeService implements HotelProvider {
     const roomName =
       entry?.roomType ?? rate?.name ?? rate?.boardName ?? 'Standard Room';
 
+    // 3D — provider-verbatim detail fields (never invented):
+    // taxesAndFees: the first total entry Nuitee quotes (amount/currency/included).
+    const taxes = rate?.retailRate?.taxesAndFees?.[0];
+    const taxesAndFees =
+      typeof taxes?.amount === 'number'
+        ? {
+            amount: taxes.amount,
+            currency: taxes.currency ?? currency,
+            included: taxes.included === true,
+            description: taxes.description,
+          }
+        : undefined;
+    // Cancellation: the LAST policy window (closest to check-in) verbatim.
+    const policyInfos = rate?.cancellationPolicies?.cancelPolicyInfos ?? [];
+    const lastPolicy = policyInfos.length
+      ? policyInfos[policyInfos.length - 1]
+      : undefined;
+    const cancellationPolicy = lastPolicy
+      ? {
+          refundableUntil: lastPolicy.cancelTime,
+          feeAmount:
+            typeof lastPolicy.amount === 'number' ? lastPolicy.amount : undefined,
+          feeCurrency: lastPolicy.currency,
+          timezone: lastPolicy.timezone,
+        }
+      : undefined;
+
     return {
       id: rateId,
       type: 'hotel',
@@ -437,6 +484,12 @@ export class NuiteeService implements HotelProvider {
         refundable,
         paymentType: 'ACC_CREDIT_CARD',
         boardType: rate?.boardType,
+        // 3D — verbatim detail fields for the details page.
+        stars:
+          typeof meta?.stars === 'number' ? meta.stars : undefined,
+        boardName: rate?.boardName,
+        taxesAndFees,
+        cancellationPolicy,
       },
     };
   }

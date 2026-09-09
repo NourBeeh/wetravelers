@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:wetravellers/features/ai/application/ai_state.dart';
+import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 import 'package:wetravellers/features/ai/presentation/widgets/ai_bottom_sheet.dart'
     show aiSheetControllerProvider;
 import 'package:wetravellers/features/universal_search/application/universal_search_controller.dart';
 import 'package:wetravellers/features/universal_search/application/universal_search_state.dart';
+import 'package:wetravellers/features/universal_search/application/voice_search_providers.dart';
+import 'package:wetravellers/features/universal_search/application/voice_search_state.dart';
 import 'package:wetravellers/features/universal_search/presentation/widgets/universal_search_widgets.dart';
 
 /// The Universal Search + AI surface (US-1) — evolved from the v1 smart
@@ -32,11 +37,27 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> {
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
+  /// US-4 — hard ceiling on the AI-interpreting SEARCHING phase. The AI
+  /// layer may hang (provider stall, network black hole) far past a usable
+  /// wait; the search surface degrades to the deterministic path instead
+  /// of spinning forever. 20s is the practical UX ceiling for a search
+  /// surface — far below the backend's 90s provider budget, which is the
+  /// right trade for THIS surface (the full AI chat page keeps its own
+  /// long budget).
+  static const Duration aiInterpretingTimeout = Duration(seconds: 20);
+  Timer? _aiTimeoutTimer;
+
   @override
   void initState() {
     super.initState();
     final controller =
         ref.read(universalSearchControllerProvider.notifier);
+    // US-3 — wire the transcription bridge BEFORE any session can start:
+    // every voice chunk lands in the SAME query field, whose own listener
+    // feeds `onQueryChanged` (single intake, no parallel voice state).
+    ref
+        .read(voiceSearchControllerProvider.notifier)
+        .onTranscription = _onVoiceTranscription;
     // The route scope owns the OPENING phase: a fresh autoDispose machine
     // is born on every push of /smart-search. First restore the preserved
     // query (US-1 STEP 8) — if present, the machine reopens into TYPING.
@@ -69,6 +90,7 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> {
 
   @override
   void dispose() {
+    _aiTimeoutTimer?.cancel();
     _inputController.removeListener(_onFieldChanged);
     _inputController.dispose();
     _focusNode.dispose();
@@ -107,6 +129,39 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> {
     _submit();
   }
 
+  // ── US-3 — voice search wiring ──────────────────────────────────────────
+  // The transcription enters the SAME query pipeline: the field is the
+  // single source of truth, `onQueryChanged` is the single intake, and no
+  // parallel voice-query state exists (spec).
+
+  void _onVoiceTranscription(String text, bool isFinal) {
+    if (!mounted) return;
+    _inputController.text = text;
+    _inputController.selection =
+        TextSelection.collapsed(offset: text.length);
+    // Every partial drives the same TYPING phase (suggestions react live);
+    // only the FINAL chunk restores the caret for review — the user
+    // submits normally, no auto-search (spec).
+    if (isFinal) {
+      _focusNode.requestFocus();
+    }
+  }
+
+  Future<void> _onMicTap() async {
+    final voice = ref.read(voiceSearchControllerProvider.notifier);
+    final isLive =
+        ref.read(voiceSearchControllerProvider).status ==
+            VoiceSearchStatus.listening;
+    if (isLive) {
+      await voice.stopSession();
+      if (mounted) _focusNode.requestFocus();
+      return;
+    }
+    HapticFeedback.lightImpact();
+    _focusNode.unfocus();
+    await voice.startSession();
+  }
+
   void _clearInput() {
     _inputController.clear();
     _focusNode.requestFocus();
@@ -128,13 +183,45 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final state = ref.watch(universalSearchControllerProvider);
+    // US-3 — the mic session state, and the transcription bridge wired to
+    // the SAME query pipeline (the provider's default bridge is a no-op;
+    // the page overrides it through the listen below by directly writing
+    // to the field, whose listener feeds onQueryChanged).
+    final voiceState = ref.watch(voiceSearchControllerProvider);
 
     // The AI flow rides the established shared sheet controller (keyed by
     // prompt). When it lands, its sections are handed to the universal
     // controller — the single source of truth for rendering (US-1 STEP 19).
-    if (state.phase == UniversalSearchPhase.searching && state.aiInterpreting) {
+    final aiInterpreting =
+        state.phase == UniversalSearchPhase.searching && state.aiInterpreting;
+    if (aiInterpreting) {
+      // US-4 — the timeout guard: arm once per SEARCHING stretch, cancel
+      // the moment the phase resolves. A stalled AI layer degrades to the
+      // deterministic fallback instead of spinning forever.
+      _aiTimeoutTimer ??= Timer(aiInterpretingTimeout, () {
+        if (!mounted) return;
+        final current =
+            ref.read(universalSearchControllerProvider);
+        if (current.phase == UniversalSearchPhase.searching &&
+            current.aiInterpreting) {
+          ref
+              .read(universalSearchControllerProvider.notifier)
+              .aiResultsFailed();
+        }
+      });
+    } else {
+      _aiTimeoutTimer?.cancel();
+      _aiTimeoutTimer = null;
+    }
+    if (aiInterpreting) {
       final prompt = state.query.trim();
-      final args = (prompt: prompt, context: null);
+      // US-4 — SAFE STRUCTURED CONTEXT: the AI layer receives only the
+      // route + surface identifier — never tokens, credentials, private
+      // backend data, or unnecessary personal information (spec).
+      final args = (
+        prompt: prompt,
+        context: const AiQueryContext(route: 'smart-search'),
+      );
       final aiState = ref.watch(aiSheetControllerProvider(args));
       final notifier =
           ref.read(universalSearchControllerProvider.notifier);
@@ -179,6 +266,8 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> {
                 onBack: _close,
                 onClear: _clearInput,
                 onSubmit: _submit,
+                voiceState: voiceState,
+                onMicTap: _onMicTap,
               ),
               Divider(
                 height: 1,

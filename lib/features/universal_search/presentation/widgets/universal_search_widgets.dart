@@ -8,6 +8,7 @@ import 'package:wetravellers/core/theme/app_radius.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/core/theme/app_typography.dart';
 import 'package:wetravellers/features/universal_search/application/universal_search_state.dart';
+import 'package:wetravellers/features/universal_search/application/voice_search_state.dart';
 import 'package:wetravellers/features/universal_search/domain/structured_travel_intent.dart';
 import 'package:wetravellers/features/home/presentation/widgets/home_ai_search_field.dart'
     show kAiSmartSearchHeroTag;
@@ -15,11 +16,11 @@ import 'package:wetravellers/features/home/presentation/widgets/home_section.dar
 import 'package:wetravellers/l10n/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
-// Header — the hero destination + mic placeholder (US-1 STEP 12).
+// Header — the hero destination + mic (US-3 voice search).
 // ---------------------------------------------------------------------------
 
 /// The pinned search header: back affordance, the hero-destination field,
-/// clear + send, and the disabled microphone extension point.
+/// clear + send, and the LIVE microphone button (US-3).
 class UniversalSearchHeader extends StatelessWidget {
   const UniversalSearchHeader({
     super.key,
@@ -29,6 +30,8 @@ class UniversalSearchHeader extends StatelessWidget {
     required this.onBack,
     required this.onClear,
     required this.onSubmit,
+    required this.voiceState,
+    required this.onMicTap,
   });
 
   final TextEditingController controller;
@@ -37,6 +40,12 @@ class UniversalSearchHeader extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onClear;
   final VoidCallback onSubmit;
+
+  /// US-3 — the mic session state driving the button's appearance.
+  final VoiceSearchState voiceState;
+
+  /// US-3 — tap action: starts a session when idle, stops when listening.
+  final VoidCallback onMicTap;
 
   @override
   Widget build(BuildContext context) {
@@ -134,26 +143,11 @@ class UniversalSearchHeader extends StatelessWidget {
                     const SizedBox(width: AppSpacing.xs),
                     _SendButton(enabled: hasText, onTap: onSubmit),
                     const SizedBox(width: AppSpacing.xs),
-                    // Disabled microphone placeholder — US-3+ extension
-                    // point. Semantically a disabled button, excluded from
-                    // interactive traversal.
-                    ExcludeSemantics(
-                      child: Semantics(
-                        button: true,
-                        enabled: false,
-                        label: 'Voice search — coming soon',
-                        child: const SizedBox(
-                          width: 36,
-                          height: 36,
-                          child: Center(
-                            child: Icon(
-                              Icons.mic_none_rounded,
-                              size: 20,
-                              color: AppColors.textTertiary,
-                            ),
-                          ),
-                        ),
-                      ),
+                    // US-3 — live voice search button (was: disabled
+                    // placeholder). Same 36px circle, same placement.
+                    _VoiceMicButton(
+                      state: voiceState,
+                      onTap: onMicTap,
                     ),
                   ],
                 ),
@@ -162,6 +156,118 @@ class UniversalSearchHeader extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// US-3 — the mic affordance. Idle → quiet outline; listening → recording
+// red with a pulse; starting → shimmering wait. Fully semantic (spec:
+// microphone / listening state / stop-cancel labels).
+// ---------------------------------------------------------------------------
+
+class _VoiceMicButton extends StatelessWidget {
+  const _VoiceMicButton({required this.state, required this.onTap});
+
+  final VoiceSearchState state;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final isListening = state.status == VoiceSearchStatus.listening;
+    final isStarting = state.status == VoiceSearchStatus.starting;
+
+    final icon = isListening
+        ? Icons.stop_circle_rounded
+        : isStarting
+            ? Icons.mic_none_rounded
+            : Icons.mic_rounded;
+    final color = isListening
+        ? scheme.error
+        : (isStarting ? AppColors.textSecondary : AppColors.textTertiary);
+
+    return Semantics(
+      button: true,
+      enabled: true,
+      label: isListening
+          ? l10n.voiceStop
+          : isStarting
+              ? l10n.voiceStarting
+              : l10n.voiceSearch,
+      child: SizedBox(
+        width: 36,
+        height: 36,
+        child: InkResponse(
+          customBorder: const CircleBorder(),
+          radius: 24,
+          onTap: onTap,
+          child: Center(
+            child: _MicPulse(
+              listening: isListening,
+              child: Icon(icon, size: 20, color: color),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A gentle breathing halo while listening — the same quiet motion language
+/// the Home AI pill uses, no package animations.
+class _MicPulse extends StatefulWidget {
+  const _MicPulse({required this.listening, required this.child});
+
+  final bool listening;
+  final Widget child;
+
+  @override
+  State<_MicPulse> createState() => _MicPulseState();
+}
+
+class _MicPulseState extends State<_MicPulse>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    if (widget.listening) _controller.repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(covariant _MicPulse oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.listening && !oldWidget.listening) {
+      _controller.repeat(reverse: true);
+    } else if (!widget.listening && oldWidget.listening) {
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.listening) return widget.child;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final scale = 1.0 + 0.18 * _controller.value;
+        return Transform.scale(scale: scale, child: child);
+      },
+      child: widget.child,
     );
   }
 }
@@ -669,6 +775,12 @@ class UniversalSearchResultsBody extends ConsumerWidget {
                 _FollowUpChip(
                   label: 'قريب من المطار',
                   onTap: () => onFollowUp(FollowUpAction.nearAirport),
+                ),
+                // US-4 — the comparison CONTRACT chip: present as a
+                // follow-up affordance; US-6 builds the full view.
+                _FollowUpChip(
+                  label: 'قارن',
+                  onTap: () => onFollowUp(FollowUpAction.compare),
                 ),
               ],
             ),

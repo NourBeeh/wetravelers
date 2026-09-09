@@ -150,4 +150,9 @@ enum FollowUpAction {
   changeDates,
   twoPeople,
   nearAirport,
+  /// US-4 — comparison CONTRACT ONLY: the chip signals the user's intent
+  /// to compare results; the surface marks selection mode and the FULL
+  /// comparison implementation lands with US-6 (spec: "Introduce only the
+  /// contract needed for comparison. Full comparison may remain US-6.").
+  compare,
 }

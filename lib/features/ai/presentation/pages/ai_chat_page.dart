@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:wetravellers/core/theme/app_colors.dart';
 import 'package:wetravellers/core/theme/app_spacing.dart';
-import 'package:wetravellers/features/ai/application/ai_providers.dart';
+import 'package:wetravellers/features/ai/application/ai_chat_page_providers.dart';
 import 'package:wetravellers/features/ai/application/ai_state.dart';
 import 'package:wetravellers/features/ai/domain/ai_chat_message.dart';
 import 'package:wetravellers/features/ai/presentation/widgets/ai_bubble_icon.dart';
+import 'package:wetravellers/l10n/app_localizations.dart';
 
 /// Full-screen AI chat page.
 ///
@@ -57,7 +59,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     if (text.isEmpty) return;
     HapticFeedback.mediumImpact();
     // Same submission pathway as AiPromptInput — no duplicated logic.
-    ref.read(aiControllerProvider.notifier).submit(text);
+    ref.read(aiChatControllerProvider.notifier).submit(text);
     _textCtrl.clear();
   }
 
@@ -70,8 +72,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final aiState = ref.watch(aiControllerProvider);
-    ref.listen(aiControllerProvider, (_, _) => _scheduleScrollToEnd());
+    final aiState = ref.watch(aiChatControllerProvider);
+    ref.listen(aiChatControllerProvider, (_, _) => _scheduleScrollToEnd());
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -142,13 +144,36 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           const SizedBox(width: AppSpacing.sm + 2),
           Expanded(
             child: Text(
-              'Hopper AI',
+              'TokiGo AI',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: scheme.onSurface,
                   ),
             ),
           ),
+          // 2C-C2 — memory controls entry ("What I Know About You").
+          Material(
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.push('/ai-memory');
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.psychology_outlined,
+                  size: 20,
+                  color: scheme.onSurface,
+                  semanticLabel:
+                      AppLocalizations.of(context)!.aiMemoryMemoryButton,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
           // Glass circular close button on the RIGHT.
           Material(
             color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
@@ -227,7 +252,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           showRetry: isErrorTail,
           onRetry: () {
             HapticFeedback.lightImpact();
-            ref.read(aiControllerProvider.notifier).retry();
+            ref.read(aiChatControllerProvider.notifier).retry();
           },
         );
       },

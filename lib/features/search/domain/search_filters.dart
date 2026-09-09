@@ -6,6 +6,7 @@ class SearchFilters {
   final int? minSeats;
   final List<String>? airlines;
   final List<String>? amenities;
+  final String? transmission;
 
   const SearchFilters({
     this.priceMin,
@@ -15,6 +16,7 @@ class SearchFilters {
     this.minSeats,
     this.airlines,
     this.amenities,
+    this.transmission,
   });
 
   SearchFilters copyWith({
@@ -25,6 +27,7 @@ class SearchFilters {
     int? minSeats,
     List<String>? airlines,
     List<String>? amenities,
+    String? transmission,
   }) {
     return SearchFilters(
       priceMin: priceMin ?? this.priceMin,
@@ -34,8 +37,17 @@ class SearchFilters {
       minSeats: minSeats ?? this.minSeats,
       airlines: airlines ?? this.airlines,
       amenities: amenities ?? this.amenities,
+      transmission: transmission ?? this.transmission,
     );
   }
 
-  bool get isEmpty => priceMin == null && priceMax == null && maxStops == null && minRating == null && minSeats == null && (airlines?.isEmpty ?? true) && (amenities?.isEmpty ?? true);
+  bool get isEmpty =>
+      priceMin == null &&
+      priceMax == null &&
+      maxStops == null &&
+      minRating == null &&
+      minSeats == null &&
+      (airlines?.isEmpty ?? true) &&
+      (amenities?.isEmpty ?? true) &&
+      transmission == null;
 }

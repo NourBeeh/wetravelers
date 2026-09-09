@@ -12,6 +12,7 @@ import { SearchService } from './search.service';
 import { DuffelService } from '../duffel/duffel.service';
 import { DuffelHotelService } from '../duffel/duffel.hotel.service';
 import { NuiteeService } from '../nuitee/nuitee.service';
+import { NuiteeFlightService } from '../nuitee/nuitee.flight.service';
 import { FxService } from '../../common/market/fx.service';
 import { PricingService } from '../../common/market/pricing.service';
 
@@ -29,6 +30,7 @@ import { PricingService } from '../../common/market/pricing.service';
     DuffelService,
     DuffelHotelService,
     NuiteeService,
+    NuiteeFlightService,
     FxService,
     PricingService,
   ],
@@ -55,6 +57,7 @@ export class ProvidersModule implements OnModuleInit {
     private readonly mockHotelProvider: MockHotelProvider,
     private readonly mockCarProvider: MockCarProvider,
     private readonly nuiteeService: NuiteeService,
+    private readonly nuiteeFlightService: NuiteeFlightService,
   ) {}
 
   async onModuleInit() {
@@ -63,6 +66,7 @@ export class ProvidersModule implements OnModuleInit {
     // providers too, so registration is unconditional.
     this.instances.register('mock-flight', this.mockFlightProvider);
     this.instances.register('duffel-flight', this.duffelService);
+    this.instances.register('nuitee-flight', this.nuiteeFlightService);
     this.instances.register('mock-hotel', this.mockHotelProvider);
     this.instances.register('nuitee', this.nuiteeService);
     this.instances.register('duffel-hotel', this.duffelHotelService);
@@ -73,10 +77,15 @@ export class ProvidersModule implements OnModuleInit {
       return;
     } catch (error) {
       // DB unavailable: keep the search endpoints working exactly as before
-      // (ADM-B1 requirement — zero behaviour change when the DB is down).
+      // (ADM-B1 requirement — zero behaviour change when the DB is down). The
+      // legacy ordering mirrors the DB truth: hotels are Nuitee-only (the
+      // curated fake catalogue in duffel-hotel stays OUT of search results
+      // — 3B user decision), flights stay Duffel-primary with Nuitee as the
+      // admin-switchable alternative (registered above, activated from the
+      // admin provider panel once its DB row is enabled).
       this.sync.applyLegacyOrdering({
-        flight: [this.mockFlightProvider, this.duffelService],
-        hotel: [this.mockHotelProvider, this.nuiteeService, this.duffelHotelService],
+        flight: [this.duffelService, this.nuiteeFlightService],
+        hotel: [this.nuiteeService],
         car: [this.mockCarProvider],
       });
     }

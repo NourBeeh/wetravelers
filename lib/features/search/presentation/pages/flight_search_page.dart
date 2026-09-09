@@ -15,7 +15,7 @@ import 'package:wetravellers/core/theme/app_spacing.dart';
 import 'package:wetravellers/core/theme/app_radius.dart';
 import 'package:wetravellers/core/theme/app_typography.dart';
 import 'package:wetravellers/features/search/domain/sort_option.dart';
-import 'package:wetravellers/features/search/application/sort_utils.dart';
+import 'package:wetravellers/features/search/application/search_results_processing.dart';
 import 'package:wetravellers/features/search/domain/search_filters.dart';
 import 'package:wetravellers/features/search/presentation/widgets/filter_panel.dart';
 
@@ -109,7 +109,7 @@ class _FlightSearchPageState extends ConsumerState<FlightSearchPage> {
             .compareTo(a.arrivalTime.difference(a.departureTime).inMinutes));
       return sorted;
     }
-    return sortFlights(items, _sortOption);
+    return sortFlightResults(items, _sortOption);
   }
 
   void _pickOrigin() {
@@ -190,6 +190,8 @@ class _FlightSearchPageState extends ConsumerState<FlightSearchPage> {
       builder: (_) => FilterPanel(
         filters: ref.read(flightFiltersProvider),
         onChanged: (f) => ref.read(flightFiltersProvider.notifier).state = f,
+        showStops: true,
+        showAirlines: true,
       ),
     );
   }
@@ -405,18 +407,17 @@ class _FlightSearchPageState extends ConsumerState<FlightSearchPage> {
   }
 
   Widget _buildResultsList(FlightSearchState state, SearchFilters filters) {
-    var items = List.of(state.results);
+    // Phase 3C — unified provider-safe post-processing: filter then sort the
+    // returned list. "Recommended" keeps the provider (registry) order.
+    var items = applyFlightFilters(state.results, filters);
     items = _applySort(items);
 
-    // Inline price/stops filtering (kept from the old page).
-    if (filters.priceMin != null) {
-      items = items.where((o) => o.price >= filters.priceMin!).toList();
-    }
-    if (filters.priceMax != null) {
-      items = items.where((o) => o.price <= filters.priceMax!).toList();
-    }
-    if (filters.maxStops != null) {
-      items = items.where((o) => (o.stops ?? 0) <= filters.maxStops!).toList();
+    if (items.isEmpty && state.results.isNotEmpty) {
+      return const SearchStatesView.empty(
+        icon: Icons.filter_alt_off_outlined,
+        title: 'No matches for your filters',
+        body: 'Try widening the price range or clearing filters',
+      );
     }
 
     return Column(

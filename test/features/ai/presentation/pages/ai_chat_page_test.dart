@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wetravellers/core/ai/ai_assistant_service.dart';
 import 'package:wetravellers/core/network/api_client.dart';
 import 'package:wetravellers/core/storage/offline_cache.dart';
+import 'package:wetravellers/features/ai/application/ai_chat_page_providers.dart';
 import 'package:wetravellers/features/ai/application/ai_controller.dart';
-import 'package:wetravellers/features/ai/application/ai_providers.dart';
 import 'package:wetravellers/features/ai/domain/ai_home_mapper.dart';
 import 'package:wetravellers/features/ai/domain/ai_query_context.dart';
 import 'package:wetravellers/features/ai/domain/ai_response.dart';
 import 'package:wetravellers/features/ai/presentation/pages/ai_chat_page.dart';
+import 'package:wetravellers/l10n/app_localizations.dart';
 
 /// Returns a fixed response.
 class _StaticAiService implements AiAssistantService {
@@ -29,13 +31,21 @@ Future<void> pumpPage(WidgetTester tester) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        aiControllerProvider.overrideWith((ref) => AiController(
+        aiChatControllerProvider.overrideWith((ref) => AiController(
               service: _StaticAiService(),
               mapper: const AiHomeMapper(),
               cache: MemoryOfflineCache(),
             )),
       ],
       child: MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         home: const Scaffold(body: SizedBox()),
         routes: {'/chat': (_) => const AiChatPage()},
       ),
@@ -53,7 +63,7 @@ void main() {
     (tester) async {
       await pumpPage(tester);
 
-      expect(find.text('Hopper AI'), findsOneWidget);
+      expect(find.text('TokiGo AI'), findsOneWidget);
       expect(find.text('Hi! Ask me about flights, hotels, and more…'),
           findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
@@ -92,7 +102,7 @@ void main() {
       // the full exit transition.
       await tester.pumpAndSettle();
 
-      expect(find.text('Hopper AI'), findsNothing);
+      expect(find.text('TokiGo AI'), findsNothing);
     },
   );
 
@@ -104,7 +114,7 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pumpAndSettle();
 
-      expect(find.text('Hopper AI'), findsNothing);
+      expect(find.text('TokiGo AI'), findsNothing);
     },
   );
 }

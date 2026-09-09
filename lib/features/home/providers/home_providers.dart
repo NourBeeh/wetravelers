@@ -12,6 +12,7 @@ import 'package:wetravellers/features/bag/application/bag_controller.dart';
 import 'package:wetravellers/features/booking/application/services/offer_revalidation_service.dart';
 import 'package:wetravellers/features/home/application/home_live_validation_service.dart';
 import 'package:wetravellers/features/home/application/hotel_image_cache.dart';
+import 'package:wetravellers/features/home/application/hotel_image_memory_cache.dart';
 import 'package:wetravellers/features/home/application/home_personalization_orchestrator.dart';
 import 'package:wetravellers/features/home/application/local_behavior_store.dart';
 import 'package:wetravellers/features/home/application/recommendation_service.dart';
@@ -92,6 +93,15 @@ final homeLiveValidationServiceProvider =
 /// offline cache box. Bytes only; P2 decode sizing lives in the widget.
 final hotelImageCacheProvider = Provider<HotelImageCache>((ref) {
   return HotelImageCache(ref.watch(offlineCacheProvider));
+});
+
+/// Scroll-fix 2026-09-08 — session memory layer in front of the disk cache:
+/// ListView destroys off-screen cards, so a scroll-back re-reads Hive
+/// asynchronously and flashes the shimmer. This synchronous layer renders
+/// the photo in the same frame. Disk stays the cold-start truth; this is a
+/// session-scoped fast path with the same LRU/TTL discipline.
+final hotelImageMemoryCacheProvider = Provider<HotelImageMemoryCache>((ref) {
+  return HotelImageMemoryCache();
 });
 
 /// Home is scoped to the caller's identity: anonymous users share the
